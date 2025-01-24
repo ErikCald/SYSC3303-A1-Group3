@@ -9,7 +9,23 @@ import java.sql.Time;
 public class Event {
     public enum EventType {
         FIRED_DETECTED,
-        DRONE_REQUESTED,
+        DRONE_REQUESTED;
+
+        /**
+         * Get the event type from a string.
+         * @param string The string representation of the event type.
+         * @return The event type.
+         */
+        public static EventType fromString(String string) {
+            switch (string.toUpperCase()) {
+                case "FIRE_DETECTED":
+                    return FIRED_DETECTED;
+                case "DRONE_REQUEST":
+                    return DRONE_REQUESTED;
+                default:
+                    throw new IllegalArgumentException("Invalid event type: " + string);
+            }
+        }
     }
 
     private final Time time;
@@ -66,5 +82,9 @@ public class Event {
      */
     public Severity getSeverity() {
         return severity;
+    }
+
+    public String toString() {
+        return String.format("Event: %s, Zone: %d, Type: %s, Severity: %s", time, zoneId, eventType, severity);
     }
 }

@@ -22,6 +22,25 @@ public enum Severity {
     }
 
     /**
+     * Get the severity from a string.
+     * 
+     * @param severity The string representation of the severity.
+     * @return The severity.
+     */
+    public static Severity fromString(String severity) {
+        switch (severity.toUpperCase()) {
+            case "LOW":
+                return Low;
+            case "MODERATE":
+                return Moderate;
+            case "HIGH":
+                return High;
+            default:
+                throw new IllegalArgumentException("Invalid severity: " + severity);
+        }
+    }
+
+    /**
      * Get the required amount of foam to extinguish the fire.
      * 
      * @return The required amount of foam to extinguish the fire.
