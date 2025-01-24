@@ -8,6 +8,9 @@ import java.util.ArrayList;
 
 import sysc3303.a1.group3.Event.EventType;
 
+/**
+ * A class to parse the incident file and zone file.
+ */
 public class Parser {
 
     public static void main(String[] args) {
@@ -19,24 +22,31 @@ public class Parser {
         }
     }
 
+    /**
+     * Create a new parser.
+     */
     public Parser() {
-
+        
     }
 
+    /**
+     * Check if the filename is valid.
+     * 
+     * @param filename The filename to check.
+     * @return True if the filename is valid, false otherwise.
+     */
     private boolean isFilenameValid(String filename) {
         return filename == null 
             || filename.isEmpty() 
             || filename.endsWith(".csv");
     }
 
-
-    // Time,Zone_ID,Event_type,Severity
-    // 0:00:05,3,FIRE_DETECTED,Low
-    // 0:00:24,1,FiRE_DETECTED,High
-    // 0:00:51,2,DRONE_REQUEST,Moderate
-    // 0:01:13,4,FiRE_DETECTED,Low
-    // 0:01:31,1,DRONE_REQUEST,Moderate
-
+    /**
+     * Parse the incident file
+     * Expects a csv file in the format hh:mm:ss,zone_id,event_type,severity
+     *  
+     * @param filename The file to parse.
+     */
     public ArrayList<Event> parseIncidientFile(String filename) {
         if(!isFilenameValid(filename)) {
             throw new RuntimeException("Invalid file given to parseIncident");
