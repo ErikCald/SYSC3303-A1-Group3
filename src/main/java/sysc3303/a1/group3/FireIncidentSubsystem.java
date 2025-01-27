@@ -1,5 +1,7 @@
 package sysc3303.a1.group3;
 
+package sysc3303.a1.group3;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -91,3 +93,4 @@ public class FireIncidentSubsystem {
     }
 
 }
+
