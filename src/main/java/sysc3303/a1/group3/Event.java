@@ -9,7 +9,23 @@ import java.sql.Time;
 public class Event {
     public enum EventType {
         FIRED_DETECTED,
-        DRONE_REQUESTED,
+        DRONE_REQUESTED;
+
+        /**
+         * Get the event type from a string.
+         * @param string The string representation of the event type.
+         * @return The event type.
+         */
+        public static EventType fromString(String string) {
+            switch (string.toUpperCase()) {
+                case "FIRE_DETECTED":
+                    return FIRED_DETECTED;
+                case "DRONE_REQUEST":
+                    return DRONE_REQUESTED;
+                default:
+                    throw new IllegalArgumentException("Invalid event type: " + string);
+            }
+        }
     }
 
     private final Time time;
@@ -66,5 +82,36 @@ public class Event {
      */
     public Severity getSeverity() {
         return severity;
+    }
+
+    /**
+     * Get a string representation of the event.
+     * 
+     * @return A string representation of the event.
+     */
+    public String toString() {
+        return String.format("Event: %s, Zone: %d, Type: %s, Severity: %s", time, zoneId, eventType, severity);
+    }
+
+    /**
+     * Check if two events are equal.
+     * 
+     * @param other The other event to compare to.
+     * @return True if the events are equal, false otherwise.
+     */
+    public boolean equals(Object other) {
+        if(other == this) {
+            return true;
+        }
+
+        if(!(other instanceof Event)) {
+            return false;
+        }
+
+        Event otherEvent = (Event) other;
+        return time.equals(otherEvent.time) 
+            && zoneId == otherEvent.zoneId 
+            && eventType == otherEvent.eventType 
+            && severity == otherEvent.severity;
     }
 }
