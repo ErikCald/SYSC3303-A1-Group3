@@ -84,7 +84,34 @@ public class Event {
         return severity;
     }
 
+    /**
+     * Get a string representation of the event.
+     * 
+     * @return A string representation of the event.
+     */
     public String toString() {
         return String.format("Event: %s, Zone: %d, Type: %s, Severity: %s", time, zoneId, eventType, severity);
+    }
+
+    /**
+     * Check if two events are equal.
+     * 
+     * @param other The other event to compare to.
+     * @return True if the events are equal, false otherwise.
+     */
+    public boolean equals(Object other) {
+        if(other == this) {
+            return true;
+        }
+
+        if(!(other instanceof Event)) {
+            return false;
+        }
+
+        Event otherEvent = (Event) other;
+        return time.equals(otherEvent.time) 
+            && zoneId == otherEvent.zoneId 
+            && eventType == otherEvent.eventType 
+            && severity == otherEvent.severity;
     }
 }
