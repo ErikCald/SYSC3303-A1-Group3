@@ -1,9 +1,7 @@
 package sysc3303.a1.group3;
 
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * NOTE: notifyAll() is used as in the future, not all Drones will be ready to take new Events.
@@ -21,28 +19,28 @@ public class Scheduler {
     private final int MAX_SIZE = 10;
 
     // Queue to hold Event objects, to be sent to Drone(s)
-    private Queue<Event> droneMessageQueue;
+    private Deque<Event> droneMessages;
     // Flags for droneMessageQueue status
     private boolean droneWritable;
     private boolean droneReadable;
 
     // Queue to hold Event objects to send back to the Subsystem (confirmation)
-    private Queue<Event> subsystemMessageQueue;
-    // Flags for subsystemMessageQueue status
-    private boolean subsystemWritable;
-    private boolean subsystemReadable;
+    private Deque<Event> incidentSubsystemDeque;
+    // Flags for incidentSubsystemDeque status
+    private boolean incidentSubsystemWritable;
+    private boolean incidentSubsystemReadable;
 
     // private FireIncidentSubsystem subsystem;
     // private List<Drone> drones;
 
     public Scheduler() {
-        this.droneMessageQueue = new LinkedList<>();
-        this.subsystemMessageQueue = new LinkedList<>();
+        this.droneMessages = new ArrayDeque<>();
+        this.incidentSubsystemDeque = new ArrayDeque<>();
 
         this.droneWritable = true;
         this.droneReadable = false;
-        this.subsystemWritable = true;
-        this.subsystemReadable = false;
+        this.incidentSubsystemWritable = true;
+        this.incidentSubsystemReadable = false;
 
         //this.drones = new ArrayList<>();
 
@@ -50,22 +48,21 @@ public class Scheduler {
 
     // Add the new event to Queue, Called by the Fire Subsystem
     // wait() if full. (size > 10)
-    public synchronized void addLast(Event event) {
+    public synchronized void addEvent(Event event) {
 
         // If not writable (full), wait().
         while (!droneWritable) {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 System.err.println(e);
             }
         }
 
         // Add the event to the queue, adjust booleans.
-        droneMessageQueue.offer(event);
+        droneMessages.add(event);
         droneReadable = true;
-        if (droneMessageQueue.size() == MAX_SIZE) {
+        if (droneMessages.size() >= MAX_SIZE) {
             droneWritable = false;
         }
 
@@ -75,7 +72,7 @@ public class Scheduler {
     // Remove the first Event from the Queue, Called by Drone(s)
     // wait() if no events are available (size <= 0)
     // As per iteration 1 instructions, no meaningful scheduling has been implemented.
-    public synchronized Event removeFirst() {
+    public synchronized Event removeEvent() {
         Event event;
 
         // If not readable (empty queue), wait()
@@ -83,15 +80,14 @@ public class Scheduler {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 System.err.println(e);
             }
         }
 
         // The drone grabs the first event from the Queue, adjust booleans.
-        event = droneMessageQueue.poll();
+        event = droneMessages.remove();
         droneWritable = true;
-        if (droneMessageQueue.isEmpty()) {
+        if (droneMessages.isEmpty()) {
             droneReadable = false; // No more data, so it's not readable
         }
 
@@ -101,17 +97,20 @@ public class Scheduler {
 
     public synchronized void confirmWithSubsystem(Event event) {
 
-        while (!subsystemWritable) {
+        while (!incidentSubsystemWritable) {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 System.err.println(e);
             }
         }
 
-        subsystemMessageQueue.offer(event);
-        //subsystem.manageResponse(subsystemMessageQueue.poll());
+        incidentSubsystemDeque.add(event);
+
+        // In the future, there will be code confirming if the queue is full, elc.
+        // Right now, we just send a call back, so it is not needed.
+
+        //subsystem.manageResponse(subsystemMessageQueue.remove());
 
     }
 
