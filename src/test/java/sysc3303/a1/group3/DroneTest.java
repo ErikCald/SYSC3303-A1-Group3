@@ -45,7 +45,7 @@ public class DroneTest {
         Event event = new Event(new Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
 
         // Populate the Scheduler with a single event
-        scheduler.addLast(event);
+        scheduler.addEvent(event);
         // Request the single event from the scheduler
         drone.requestEvent();
 
@@ -61,7 +61,7 @@ public class DroneTest {
 
         // Populate the Scheduler with a single event
         Event event = new Event(new Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-        scheduler.addLast(event);
+        scheduler.addEvent(event);
 
         // Wait until the drone's event field is filled
         busyWaitUntil(() -> drone.currentEvent != null, 10);

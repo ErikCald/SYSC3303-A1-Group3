@@ -18,11 +18,12 @@ public class Drone implements Runnable {
         while (true) {
             requestEvent();
             System.out.println("Received " + currentEvent);
+            scheduler.confirmWithSubsystem(currentEvent);
         }
     }
 
     // package private for testing purposes
     void requestEvent() {
-        currentEvent = scheduler.removeFirst();
+        currentEvent = scheduler.removeEvent();
     }
 }
