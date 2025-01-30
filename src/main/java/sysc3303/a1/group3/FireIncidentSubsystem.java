@@ -1,7 +1,5 @@
 package sysc3303.a1.group3;
 
-package sysc3303.a1.group3;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -91,6 +89,11 @@ public class FireIncidentSubsystem {
         String acknowledgment = new String(receivePacket.getData(), 0, receivePacket.getLength()); // Convert bytes to string
         System.out.println("Received acknowledgment: " + acknowledgment); // Log acknowledgment received
     }
+
+    private void manageResponse(Event event) {
+        System.out.println("The drone has responded! It has received: " + event);
+    }
+
 
 }
 
