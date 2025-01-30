@@ -15,9 +15,9 @@ class FireIncidentSubsystemTest {
     Scheduler scheduler;
     Drone drone;
     FireIncidentSubsystem fiSubsystem;
+
     @BeforeEach
     void beforeEach() {
-        // Create a fresh Scheduler and Drone for each test
         scheduler = new Scheduler();
         drone = new Drone(scheduler);
         fiSubsystem = new FireIncidentSubsystem(scheduler);
@@ -25,26 +25,26 @@ class FireIncidentSubsystemTest {
         scheduler.setSubsystem(fiSubsystem);
     }
 
+    // After parsing, there should be some Events. If an error occurs, or is empty, then fail.
     @Test
     void testParseEvents() {
-        // After parsing, there should be some Events. If an error occurs, or is empty, then fail.
         fiSubsystem.parseEvents();
         assertFalse(fiSubsystem.getEvents().isEmpty(), "The events list should not be empty.");
     }
 
+    // Parse events some evens and start the subsystem
+    // After the subsystem has finished, this should mean all events are exhausted.
+    // This test may not be relevant in later iterations.
     @Test
     void testRunSubsystem() throws InterruptedException {
         // Add events to the subsystem (simulate file parsing)
         fiSubsystem.parseEvents();
 
-        // Run the FireIncidentSubsystem in a separate thread
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         FIsubsystemThread.start();
 
         //wait for the subsystem to finish.
         FIsubsystemThread.join();
-
-        //The scheduler should be shut off after all events are processed.
         assertTrue(scheduler.getShutOff());
     }
 

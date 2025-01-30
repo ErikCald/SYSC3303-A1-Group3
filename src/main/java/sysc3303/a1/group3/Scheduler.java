@@ -121,6 +121,8 @@ public class Scheduler {
 
     public void addDrone(Drone drone){ drones.add(drone); }
     public void setSubsystem(FireIncidentSubsystem subsystem){ this.subsystem = subsystem;}
+
+    //shutoff system, all related objects should observe this for a graceful shutoff.
     public boolean getShutOff(){ return shutoff; }
     public synchronized void shutOff(){
         this.shutoff = true;

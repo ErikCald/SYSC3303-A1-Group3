@@ -10,6 +10,7 @@ public class Drone implements Runnable {
         this.scheduler = scheduler;
     }
 
+    //Start the Drone, wait for notifications.
     @Override
     public void run() {
         while (!(scheduler.getShutOff())) {

@@ -3,8 +3,6 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class WholeSystemTest {
 
     private Scheduler scheduler;
@@ -21,7 +19,7 @@ public class WholeSystemTest {
         scheduler.setSubsystem(fiSubsystem);
     }
 
-    //
+    // Test the whole system, similar to main
     @Test
     void SystemTest() {
 

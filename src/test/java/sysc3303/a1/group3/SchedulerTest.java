@@ -27,6 +27,7 @@ class SchedulerTest {
         scheduler.setSubsystem(fiSubsystem);
     }
 
+    // Add an event, and test if it is there afterward, and equal to the one prior
     @Test
     void testAddEvent() {
         Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
@@ -36,7 +37,8 @@ class SchedulerTest {
         assertEquals(event, removedEvent);
     }
 
-    // Waits are to guarantee the JVM has given the Drone time to run
+    // NOTE: Waits are to guarantee the JVM has given the Drone time to run
+    // Test the state of the queue upon addition and removal of events
     @Test
     void testRemoveEventEmptyQueue() throws InterruptedException {
         Thread droneThread = new Thread(drone, "Drone");
@@ -65,7 +67,7 @@ class SchedulerTest {
         assertEquals(event, drone.currentEvent);
     }
 
-    //Similar to before, but testing if the drone shuts off.
+    //Similar to before, but testing if the drone shuts off afterward.
     @Test
     void testShutOff() throws InterruptedException {
         Thread droneThread = new Thread(drone, "Drone");

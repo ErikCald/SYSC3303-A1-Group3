@@ -65,15 +65,19 @@ class FireIncidentSubsystem implements Runnable {
         events = parser.parseIncidientFile(fileStream);
     }
 
+    // Tell the system to shutoff for a graceful termination.
+    // Private for security, should only be called after required work in run is complete.
     private synchronized void sendShutOffSignal(){
         scheduler.shutOff();
     }
 
-
+    // In future iterations, this will likely be much more complicated, but in this iteration
+    // we were told that text confirmation form the originating class is adequate.
     public void manageResponse(Event event) {
         System.out.println("The drone confirmed it has received the event: " + event + "\n");
     }
 
+    // For JUnit, I'm leaving this as public as it's not a big security risk.
     public ArrayList<Event> getEvents() { return events; }
 
 }
