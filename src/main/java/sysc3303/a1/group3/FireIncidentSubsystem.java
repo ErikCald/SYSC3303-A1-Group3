@@ -55,9 +55,9 @@ class FireIncidentSubsystem implements Runnable {
     }
 
     // Use an instance of Parser to parse and add events to the subsystem
-    public void parseEvents(){
+    public void parseEvents() {
         InputStream fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
-        if(fileStream == null) {
+        if (fileStream == null) {
             System.out.println("File doesn't exist");
             return;
         }
