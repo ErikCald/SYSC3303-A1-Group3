@@ -20,7 +20,7 @@ public class Scheduler {
     private final int MAX_SIZE = 10;
 
     // Queue to hold Event objects, to be sent to Drone(s)
-    private Queue<Event> droneMessages;
+    private final Queue<Event> droneMessages;
     // Flags for droneMessageQueue status
     private boolean droneWritable;
     private boolean droneReadable;
