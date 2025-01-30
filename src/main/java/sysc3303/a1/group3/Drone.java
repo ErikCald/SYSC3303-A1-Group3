@@ -3,7 +3,6 @@ package sysc3303.a1.group3;
 public class Drone implements Runnable {
 
     private final Scheduler scheduler;
-
     // package private for testing purposes
     Event currentEvent;
 
@@ -13,17 +12,17 @@ public class Drone implements Runnable {
 
     @Override
     public void run() {
-        // todo: mechanism for cleanly stopping the thread
-
-        while (true) {
+        while (!(scheduler.getShutOff())) {
             requestEvent();
-            System.out.println("Received " + currentEvent);
+            System.out.println("Drone has been scheduled with event: \n" + currentEvent);
+            System.out.println("Sending back confirmation to Fire Incident Subsystem.\n");
             scheduler.confirmWithSubsystem(currentEvent);
         }
+        System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
 
     // package private for testing purposes
-    void requestEvent() {
+    public void requestEvent() {
         currentEvent = scheduler.removeEvent();
     }
 }

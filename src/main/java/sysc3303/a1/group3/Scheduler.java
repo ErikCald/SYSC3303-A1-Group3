@@ -1,7 +1,8 @@
 package sysc3303.a1.group3;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.Queue;
 
 /**
  * NOTE: notifyAll() is used as in the future, not all Drones will be ready to take new Events.
@@ -19,31 +20,34 @@ public class Scheduler {
     private final int MAX_SIZE = 10;
 
     // Queue to hold Event objects, to be sent to Drone(s)
-    private Deque<Event> droneMessages;
+    private Queue<Event> droneMessages;
     // Flags for droneMessageQueue status
     private boolean droneWritable;
     private boolean droneReadable;
 
     // Queue to hold Event objects to send back to the Subsystem (confirmation)
-    private Deque<Event> incidentSubsystemDeque;
+    private Queue<Event> incidentSubsystemQeque;
     // Flags for incidentSubsystemDeque status
     private boolean incidentSubsystemWritable;
     private boolean incidentSubsystemReadable;
 
-    // private FireIncidentSubsystem subsystem;
-    // private List<Drone> drones;
+    private FireIncidentSubsystem subsystem;
+    private ArrayList<Drone> drones;
+
+    boolean shutoff;
 
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
-        this.incidentSubsystemDeque = new ArrayDeque<>();
+        this.incidentSubsystemQeque = new ArrayDeque<>();
 
         this.droneWritable = true;
         this.droneReadable = false;
         this.incidentSubsystemWritable = true;
         this.incidentSubsystemReadable = false;
 
-        //this.drones = new ArrayList<>();
+        this.drones = new ArrayList<>();
 
+        shutoff = false;
     }
 
     // Add the new event to Queue, Called by the Fire Subsystem
@@ -105,18 +109,22 @@ public class Scheduler {
             }
         }
 
-        incidentSubsystemDeque.add(event);
+        incidentSubsystemQeque.add(event);
 
         // In the future, there will be code confirming if the queue is full, elc.
         // Right now, we just send a call back, so it is not needed.
 
-        //subsystem.manageResponse(subsystemMessageQueue.remove());
+        subsystem.manageResponse(incidentSubsystemQeque.remove());
 
     }
 
-    /*
+
     public void addDrone(Drone drone){ drones.add(drone); }
     public void setSubsystem(FireIncidentSubsystem subsystem){ this.subsystem = subsystem;}
-     */
+    public boolean getShutOff(){ return shutoff; }
+    public synchronized void shutOff(){
+        this.shutoff = true;
+        notifyAll();
+    }
 
 }

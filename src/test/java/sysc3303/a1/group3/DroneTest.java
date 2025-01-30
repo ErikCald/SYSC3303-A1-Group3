@@ -13,12 +13,16 @@ public class DroneTest {
 
     Scheduler scheduler;
     Drone drone;
+    FireIncidentSubsystem fiSubsystem;
 
     @BeforeEach
     void beforeEach() {
         // Create a fresh Scheduler and Drone for each test
         scheduler = new Scheduler();
         drone = new Drone(scheduler);
+        fiSubsystem = new FireIncidentSubsystem(scheduler);
+        scheduler.addDrone(drone);
+        scheduler.setSubsystem(fiSubsystem);
     }
 
     @Test

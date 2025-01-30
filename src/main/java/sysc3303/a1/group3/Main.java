@@ -1,22 +1,36 @@
 package sysc3303.a1.group3;
 
-import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
-        // Example usage of the Parser class. Can remove this whenever.
-        InputStream fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
-        if(fileStream == null) {
-            System.out.println("File doesn't exist");
-            return;
-        }
 
-        Parser parser = new Parser();
-        ArrayList<Event> events = parser.parseIncidientFile(fileStream);
-        for(Event e : events) {
-            System.out.println(e);
-        }
+        //Create required objects for simulation
+        Scheduler scheduler = new Scheduler();
+        FireIncidentSubsystem fiSubsystem = new FireIncidentSubsystem(scheduler);
+        Drone drone1 = new Drone(scheduler);
+
+        //Ensure scheduler aggregation is complete
+        scheduler.addDrone(drone1);
+        scheduler.setSubsystem(fiSubsystem);
+
+        //Make threads from the aforementioned objects
+        Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
+        Thread DroneThread = new Thread((drone1), "Drone1");
+
+        // Call parseEvents() to parse csv into Event Objects
+        fiSubsystem.parseEvents();
+
+        // Wait for user to press Enter before starting
+        System.out.println("\nPress Enter to start the simulation:");
+        Scanner scanner = new Scanner(System.in);
+        scanner.nextLine();
+        scanner.close();
+
+        // Start the simulation
+        FIsubsystemThread.start();
+        DroneThread.start();
+
     }
 }
