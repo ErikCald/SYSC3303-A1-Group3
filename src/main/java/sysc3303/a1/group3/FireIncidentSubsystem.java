@@ -11,8 +11,8 @@ import java.io.InputStream;
  */
 class FireIncidentSubsystem implements Runnable {
 
-    private Scheduler scheduler;
-    private ArrayList<Event> events;
+    private final Scheduler scheduler;
+    private List<Event> events;
     private int eventCount;
     private Parser parser;
 
