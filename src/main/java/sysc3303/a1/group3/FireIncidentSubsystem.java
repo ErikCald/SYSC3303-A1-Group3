@@ -44,12 +44,13 @@ class FireIncidentSubsystem implements Runnable {
                 }
             }
 
-            // Wait for testing purposes. Can be omitted
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // I have left it commented out in case the TAs want to slow the output down for demonstration
+            // It should not mess the implementation up at this iteration, but I agree it should be removed later.
+//            try {
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//            }
         }
         System.out.println("All events have been exhausted, " + Thread.currentThread().getName() + " , is closing.");
     }
@@ -62,7 +63,6 @@ class FireIncidentSubsystem implements Runnable {
             return;
         }
 
-        parser = new Parser();
         events = parser.parseIncidientFile(fileStream);
     }
 
