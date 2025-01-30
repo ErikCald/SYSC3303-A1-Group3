@@ -26,7 +26,7 @@ public class Scheduler {
     private boolean droneReadable;
 
     // Queue to hold Event objects to send back to the Subsystem (confirmation)
-    private Queue<Event> incidentSubsystemQeque;
+    private final Queue<Event> incidentSubsystemQueue;
     // Flags for incidentSubsystemDeque status
     private boolean incidentSubsystemWritable;
     private boolean incidentSubsystemReadable;
