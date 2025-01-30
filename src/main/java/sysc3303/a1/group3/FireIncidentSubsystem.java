@@ -79,7 +79,7 @@ class FireIncidentSubsystem implements Runnable {
     }
 
     // For JUnit, I'm leaving this as public as it's not a big security risk.
-    public ArrayList<Event> getEvents() { return events; }
+    public List<Event> getEvents() { return events; }
 
 }
 
