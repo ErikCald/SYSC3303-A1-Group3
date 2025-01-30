@@ -32,7 +32,7 @@ public class Scheduler {
     private boolean incidentSubsystemReadable;
 
     private FireIncidentSubsystem subsystem;
-    private ArrayList<Drone> drones;
+    private final List<Drone> drones;
 
     boolean shutoff;
 
