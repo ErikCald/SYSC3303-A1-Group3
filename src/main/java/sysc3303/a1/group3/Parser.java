@@ -24,7 +24,7 @@ public class Parser {
      * Parse the incident file
      * Expects a csv file in the format hh:mm:ss,zone_id,event_type,severity
      *  
-     * @param filename The file to parse.
+     * @param file The file to parse.
      */
     public ArrayList<Event> parseIncidientFile(InputStream file) {
         ArrayList<Event> events = new ArrayList<>();
@@ -47,10 +47,10 @@ public class Parser {
     }
 
     /**
-     * Parse a line from the incident file.
-     * 
+     * Parse a line from the zone file.
+     *
      * @param line The line to parse.
-     * @return The event represented by the line.
+     * @return The zone represented by the line.
      * @throws IllegalArgumentException If the line is not parsed correctly.
      */
     private Event parseIncidentLine(String line) throws IllegalArgumentException {
@@ -71,4 +71,58 @@ public class Parser {
             throw new IllegalArgumentException("Invalid line: " + line);
         }
     }
+
+
+
+    public ArrayList<Zone> parseZoneFileLine(InputStream file) {
+        ArrayList<Zone> zones = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                try {
+                    zones.add(parseZoneFileLine(line));
+                } catch (IllegalArgumentException e) {
+                    System.err.printf("Error parsing line: %s with exception: %s, continuing to next line.%n", line, e);
+                    continue;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading Zone file with exception: " + e);
+        }
+
+        return zones;
+    }
+
+    /**
+     * Parse a line from the zone file.
+     *
+     * @param line The line to parse.
+     * @return The event represented by the line.
+     * @throws IllegalArgumentException If the line is not parsed correctly.
+     */
+    private Zone parseZoneFileLine(String line) throws IllegalArgumentException {
+        String[] values = line.split(",");
+
+        if(values.length < 4) {
+            throw new IllegalArgumentException("Parse Error: Not enough coloums in line: " + line);
+        }
+
+        try {
+
+            int zoneId = Integer.parseInt(values[0]);
+            int startx = Integer.parseInt(values[1]);
+            int starty = Integer.parseInt(values[2]);
+            int endx = Integer.parseInt(values[3]);
+            int endy = Integer.parseInt(values[4]);
+
+
+            return new Zone(zoneId, startx, starty, endx,endy);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid line: " + line);
+        }
+    }
+
+
+
 }
