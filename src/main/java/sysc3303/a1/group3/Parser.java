@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.List;
 
 import sysc3303.a1.group3.Event.EventType;
 
@@ -74,8 +75,8 @@ public class Parser {
 
 
 
-    public ArrayList<Zone> parseZoneFileLine(InputStream file) {
-        ArrayList<Zone> zones = new ArrayList<>();
+    public List<Zone> parseZoneFile(InputStream file) {
+        List<Zone> zones = new ArrayList<Zone>() {};
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
             String line;
@@ -83,8 +84,8 @@ public class Parser {
                 try {
                     zones.add(parseZoneFileLine(line));
                 } catch (IllegalArgumentException e) {
-                    System.err.printf("Error parsing line: %s with exception: %s, continuing to next line.%n", line, e);
-                    continue;
+                    System.err.printf("Error parsing line: %s with exception: %s, Stopping process", line, e);
+                    break;
                 }
             }
         } catch (IOException e) {
@@ -104,7 +105,7 @@ public class Parser {
     private Zone parseZoneFileLine(String line) throws IllegalArgumentException {
         String[] values = line.split(",");
 
-        if(values.length < 4) {
+        if (values.length < 4) {
             throw new IllegalArgumentException("Parse Error: Not enough coloums in line: " + line);
         }
 
@@ -116,10 +117,9 @@ public class Parser {
             int endx = Integer.parseInt(values[3]);
             int endy = Integer.parseInt(values[4]);
 
-
-            return new Zone(zoneId, startx, starty, endx,endy);
+            return new Zone(zoneId, startx, starty, endx, endy);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid line: " + line);
+            throw new IllegalArgumentException("Can not create Zone object using provided parameters " + line);
         }
     }
 
