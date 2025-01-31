@@ -80,16 +80,19 @@ public class Scheduler {
     public synchronized Event removeEvent() {
         Event event;
 
+        if (shutoff){
+            return null;
+        }
         // If not readable (empty queue), wait()
         while (!droneMessagesReadable && !shutoff) {
-            if (shutoff){
-                return null;
-            }
             try {
                 wait();
             } catch (InterruptedException e) {
                 System.err.println(e);
             }
+        }
+        if (shutoff){
+            return null;
         }
 
         // The drone grabs the first event from the Queue, adjust booleans.
@@ -128,6 +131,9 @@ public class Scheduler {
 
     //shutoff system, all related objects should observe this for a graceful shutoff.
     public boolean getShutOff(){ return shutoff; }
+
+    //synchronized even if the subsystem calls it just to ensure it has a lock when it calls this
+    //and won't trigger a "current thread is not owner" error.
     public synchronized void shutOff(){
         this.shutoff = true;
         notifyAll();

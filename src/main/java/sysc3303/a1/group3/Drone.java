@@ -17,7 +17,9 @@ public class Drone implements Runnable {
             requestEvent();
             System.out.println("Drone has been scheduled with event: \n" + currentEvent);
             System.out.println("Sending back confirmation to Fire Incident Subsystem.\n");
-            scheduler.confirmWithSubsystem(currentEvent);
+            if (currentEvent != null){
+                scheduler.confirmWithSubsystem(currentEvent);
+            }
         }
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
