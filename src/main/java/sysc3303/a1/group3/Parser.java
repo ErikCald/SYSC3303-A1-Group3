@@ -24,7 +24,7 @@ public class Parser {
      * Parse the incident file
      * Expects a csv file in the format hh:mm:ss,zone_id,event_type,severity
      *  
-     * @param filename The file to parse.
+     * @param file The file to parse.
      */
     public ArrayList<Event> parseIncidientFile(InputStream file) {
         ArrayList<Event> events = new ArrayList<>();

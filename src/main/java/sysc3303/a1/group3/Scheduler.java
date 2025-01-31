@@ -1,7 +1,9 @@
 package sysc3303.a1.group3;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 /**
  * NOTE: notifyAll() is used as in the future, not all Drones will be ready to take new Events.
@@ -19,51 +21,60 @@ public class Scheduler {
     private final int MAX_SIZE = 10;
 
     // Queue to hold Event objects, to be sent to Drone(s)
-    private Deque<Event> droneMessages;
+    private final Queue<Event> droneMessages;
     // Flags for droneMessageQueue status
-    private boolean droneWritable;
-    private boolean droneReadable;
+    private boolean droneMessagesWritable;
+    private boolean droneMessagesReadable;
 
     // Queue to hold Event objects to send back to the Subsystem (confirmation)
-    private Deque<Event> incidentSubsystemDeque;
+    private final Queue<Event> incidentSubsystemQueue;
     // Flags for incidentSubsystemDeque status
     private boolean incidentSubsystemWritable;
     private boolean incidentSubsystemReadable;
 
-    // private FireIncidentSubsystem subsystem;
-    // private List<Drone> drones;
+    private FireIncidentSubsystem subsystem;
+    private final List<Drone> drones;
+
+    private volatile boolean shutoff;
 
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
-        this.incidentSubsystemDeque = new ArrayDeque<>();
+        this.incidentSubsystemQueue = new ArrayDeque<>();
 
-        this.droneWritable = true;
-        this.droneReadable = false;
+        this.droneMessagesWritable = true;
+        this.droneMessagesReadable = false;
         this.incidentSubsystemWritable = true;
         this.incidentSubsystemReadable = false;
 
-        //this.drones = new ArrayList<>();
+        this.drones = new ArrayList<>();
 
+        shutoff = false;
     }
 
     // Add the new event to Queue, Called by the Fire Subsystem
     // wait() if full. (size > 10)
     public synchronized void addEvent(Event event) {
 
+        if (shutoff){
+            return;
+        }
         // If not writable (full), wait().
-        while (!droneWritable) {
+        while (!droneMessagesWritable) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 System.err.println(e);
             }
         }
+        if (shutoff){
+            return;
+        }
 
         // Add the event to the queue, adjust booleans.
         droneMessages.add(event);
-        droneReadable = true;
+        droneMessagesReadable = true;
         if (droneMessages.size() >= MAX_SIZE) {
-            droneWritable = false;
+            droneMessagesWritable = false;
         }
 
         notifyAll();
@@ -75,20 +86,26 @@ public class Scheduler {
     public synchronized Event removeEvent() {
         Event event;
 
+        if (shutoff){
+            return null;
+        }
         // If not readable (empty queue), wait()
-        while (!droneReadable) {
+        while (!droneMessagesReadable && !shutoff) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 System.err.println(e);
             }
         }
+        if (shutoff){
+            return null;
+        }
 
         // The drone grabs the first event from the Queue, adjust booleans.
         event = droneMessages.remove();
-        droneWritable = true;
+        droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
-            droneReadable = false; // No more data, so it's not readable
+            droneMessagesReadable = false; // No more data, so it's not readable
         }
 
         notifyAll();
@@ -105,18 +122,27 @@ public class Scheduler {
             }
         }
 
-        incidentSubsystemDeque.add(event);
+        incidentSubsystemQueue.add(event);
 
         // In the future, there will be code confirming if the queue is full, elc.
         // Right now, we just send a call back, so it is not needed.
 
-        //subsystem.manageResponse(subsystemMessageQueue.remove());
+        subsystem.manageResponse(incidentSubsystemQueue.remove());
 
     }
 
-    /*
+
     public void addDrone(Drone drone){ drones.add(drone); }
     public void setSubsystem(FireIncidentSubsystem subsystem){ this.subsystem = subsystem;}
-     */
+
+    //shutoff system, all related objects should observe this for a graceful shutoff.
+    public boolean getShutOff(){ return shutoff; }
+
+    //synchronized even if the subsystem calls it just to ensure it has a lock when it calls this
+    //and won't trigger a "current thread is not owner" error.
+    public synchronized void shutOff(){
+        this.shutoff = true;
+        notifyAll();
+    }
 
 }
