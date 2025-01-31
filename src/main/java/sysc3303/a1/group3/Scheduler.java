@@ -2,6 +2,7 @@ package sysc3303.a1.group3;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -38,7 +39,7 @@ public class Scheduler {
 
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
-        this.incidentSubsystemQeque = new ArrayDeque<>();
+        this.incidentSubsystemQueue = new ArrayDeque<>();
 
         this.droneMessagesWritable = true;
         this.droneMessagesReadable = false;
@@ -112,12 +113,12 @@ public class Scheduler {
             }
         }
 
-        incidentSubsystemQeque.add(event);
+        incidentSubsystemQueue.add(event);
 
         // In the future, there will be code confirming if the queue is full, elc.
         // Right now, we just send a call back, so it is not needed.
 
-        subsystem.manageResponse(incidentSubsystemQeque.remove());
+        subsystem.manageResponse(incidentSubsystemQueue.remove());
 
     }
 
