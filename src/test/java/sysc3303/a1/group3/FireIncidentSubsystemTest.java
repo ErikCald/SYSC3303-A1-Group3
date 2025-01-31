@@ -8,6 +8,8 @@ NOTE: As mentioned in other test files, if you find that synchronized method tes
 tested in WholeSystemTest as these methods can only be meaningfully tested there.
  */
 
+import java.io.InputStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class FireIncidentSubsystemTest {
@@ -16,20 +18,22 @@ class FireIncidentSubsystemTest {
     Drone drone;
     FireIncidentSubsystem fiSubsystem;
 
+    InputStream fileStream;
+
     @BeforeEach
     void beforeEach() {
+        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
         drone = new Drone(scheduler);
-        fiSubsystem = new FireIncidentSubsystem(scheduler);
+        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         scheduler.addDrone(drone);
         scheduler.setSubsystem(fiSubsystem);
     }
 
-    // After parsing, there should be some Events. If an error occurs, or is empty, then fail.
+    // After create obj and parsing, there should be some Events. If an error occurs, or is empty, then fail.
     @Test
     void testParseEvents() {
-        fiSubsystem.parseEvents();
-        assertFalse(fiSubsystem.getEvents().isEmpty(), "The events list should not be empty.");
+        assertFalse(fiSubsystem.getEvents().isEmpty());
     }
 
     // Parse events some evens and start the subsystem
@@ -37,10 +41,7 @@ class FireIncidentSubsystemTest {
     // This test may not be relevant in later iterations.
     @Test
     void testRunSubsystem() throws InterruptedException {
-        // Add events to the subsystem (simulate file parsing)
-        fiSubsystem.parseEvents();
-
-        Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
+        Thread FIsubsystemThread = new Thread(fiSubsystem);
         FIsubsystemThread.start();
 
         //wait for the subsystem to finish.

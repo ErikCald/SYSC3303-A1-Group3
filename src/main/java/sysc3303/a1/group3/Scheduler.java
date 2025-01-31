@@ -22,8 +22,8 @@ public class Scheduler {
     // Queue to hold Event objects, to be sent to Drone(s)
     private final Queue<Event> droneMessages;
     // Flags for droneMessageQueue status
-    private boolean droneWritable;
-    private boolean droneReadable;
+    private boolean droneMessagesWritable;
+    private boolean droneMessagesReadable;
 
     // Queue to hold Event objects to send back to the Subsystem (confirmation)
     private final Queue<Event> incidentSubsystemQueue;
@@ -34,14 +34,14 @@ public class Scheduler {
     private FireIncidentSubsystem subsystem;
     private final List<Drone> drones;
 
-    boolean shutoff;
+    private volatile boolean shutoff;
 
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
         this.incidentSubsystemQeque = new ArrayDeque<>();
 
-        this.droneWritable = true;
-        this.droneReadable = false;
+        this.droneMessagesWritable = true;
+        this.droneMessagesReadable = false;
         this.incidentSubsystemWritable = true;
         this.incidentSubsystemReadable = false;
 
@@ -55,7 +55,7 @@ public class Scheduler {
     public synchronized void addEvent(Event event) {
 
         // If not writable (full), wait().
-        while (!droneWritable) {
+        while (!droneMessagesWritable) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -65,9 +65,9 @@ public class Scheduler {
 
         // Add the event to the queue, adjust booleans.
         droneMessages.add(event);
-        droneReadable = true;
+        droneMessagesReadable = true;
         if (droneMessages.size() >= MAX_SIZE) {
-            droneWritable = false;
+            droneMessagesWritable = false;
         }
 
         notifyAll();
@@ -80,7 +80,10 @@ public class Scheduler {
         Event event;
 
         // If not readable (empty queue), wait()
-        while (!droneReadable) {
+        while (!droneMessagesReadable && !shutoff) {
+            if (shutoff){
+                return null;
+            }
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -90,9 +93,9 @@ public class Scheduler {
 
         // The drone grabs the first event from the Queue, adjust booleans.
         event = droneMessages.remove();
-        droneWritable = true;
+        droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
-            droneReadable = false; // No more data, so it's not readable
+            droneMessagesReadable = false; // No more data, so it's not readable
         }
 
         notifyAll();

@@ -3,6 +3,7 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
 import java.sql.Time;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
@@ -14,13 +15,15 @@ public class DroneTest {
     Scheduler scheduler;
     Drone drone;
     FireIncidentSubsystem fiSubsystem;
+    InputStream fileStream;
 
     @BeforeEach
     void beforeEach() {
         // Create a fresh Scheduler and Drone for each test
+        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
         drone = new Drone(scheduler);
-        fiSubsystem = new FireIncidentSubsystem(scheduler);
+        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         scheduler.addDrone(drone);
         scheduler.setSubsystem(fiSubsystem);
     }

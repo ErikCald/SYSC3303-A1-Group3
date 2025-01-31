@@ -3,16 +3,22 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+
 public class WholeSystemTest {
 
     private Scheduler scheduler;
     private FireIncidentSubsystem fiSubsystem;
     private Drone drone;
 
+    InputStream fileStream;
+
     @BeforeEach
     void beforeEach() {
+        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
+
         scheduler = new Scheduler();
-        fiSubsystem = new FireIncidentSubsystem(scheduler);
+        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         drone = new Drone(scheduler);
 
         scheduler.addDrone(drone);
@@ -26,9 +32,6 @@ public class WholeSystemTest {
         //Make threads from the aforementioned objects
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         Thread DroneThread = new Thread((drone), "Drone");
-
-        // Call parseEvents() to parse csv into Event Objects
-        fiSubsystem.parseEvents();
 
         // Start the simulation
         FIsubsystemThread.start();

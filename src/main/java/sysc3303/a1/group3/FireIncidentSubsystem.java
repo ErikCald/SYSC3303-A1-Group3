@@ -16,11 +16,17 @@ class FireIncidentSubsystem implements Runnable {
     private int eventCount;
     private Parser parser;
 
-    public FireIncidentSubsystem(Scheduler s) {
+    public FireIncidentSubsystem(Scheduler s, InputStream fileStream) {
         this.scheduler = s;
         eventCount = 0;
         events = new ArrayList<>();
+
         parser = new Parser();
+        if (fileStream == null) {
+            System.out.println("File doesn't exist");
+            return;
+        }
+        events = parser.parseIncidientFile(fileStream);
 
     }
 
@@ -38,37 +44,23 @@ class FireIncidentSubsystem implements Runnable {
             // constantly reading events, but if there are multiple drones in the future, we will need
             // to re-alert them.
             if (i == events.size() - 1) {
-                synchronized (scheduler) {
-                    sendShutOffSignal();
-                    scheduler.notifyAll();
-                }
+                sendShutOffSignal();
             }
 
             // I have left it commented out in case the TAs want to slow the output down for demonstration
             // It should not mess the implementation up at this iteration, but I agree it should be removed later.
-//            try {
-//                Thread.sleep(2000);
-//            } catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
         }
         System.out.println("All events have been exhausted, " + Thread.currentThread().getName() + " , is closing.");
     }
 
-    // Use an instance of Parser to parse and add events to the subsystem
-    public void parseEvents() {
-        InputStream fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
-        if (fileStream == null) {
-            System.out.println("File doesn't exist");
-            return;
-        }
-
-        events = parser.parseIncidientFile(fileStream);
-    }
-
     // Tell the system to shutoff for a graceful termination.
     // Private for security, should only be called after required work in run is complete.
-    private synchronized void sendShutOffSignal(){
+    private void sendShutOffSignal(){
         scheduler.shutOff();
     }
 

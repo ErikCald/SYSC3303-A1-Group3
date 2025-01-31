@@ -3,6 +3,8 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /*
@@ -16,11 +18,13 @@ class SchedulerTest {
     private Drone drone;
     private FireIncidentSubsystem fiSubsystem;
 
+    InputStream fileStream;
+
     @BeforeEach
     void beforeEach() {
-        // Initialize the objects before each test
+        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
-        fiSubsystem = new FireIncidentSubsystem(scheduler);
+        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         drone = new Drone(scheduler);
 
         scheduler.addDrone(drone);
@@ -44,11 +48,7 @@ class SchedulerTest {
         Thread droneThread = new Thread(drone, "Drone");
         droneThread.start();
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        Thread.sleep(500);
 
         // Since no events, the drone should wait for events
         assertEquals(Thread.State.WAITING, droneThread.getState());
@@ -56,11 +56,7 @@ class SchedulerTest {
         Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
         scheduler.addEvent(event);
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        Thread.sleep(500);
 
         // Verify that the drone received the event, and that it equals the one prior
         assertNotNull(drone.currentEvent);
