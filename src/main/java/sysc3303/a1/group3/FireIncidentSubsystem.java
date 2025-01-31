@@ -15,14 +15,13 @@ class FireIncidentSubsystem implements Runnable {
     private final Scheduler scheduler;
     private List<Event> events;
     private int eventCount;
-    private Parser parser;
 
     public FireIncidentSubsystem(Scheduler s, InputStream fileStream) {
         this.scheduler = s;
         eventCount = 0;
         events = new ArrayList<>();
 
-        parser = new Parser();
+        Parser parser = new Parser();
         if (fileStream == null) {
             System.out.println("File doesn't exist");
             return;

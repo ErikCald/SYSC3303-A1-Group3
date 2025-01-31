@@ -55,6 +55,9 @@ public class Scheduler {
     // wait() if full. (size > 10)
     public synchronized void addEvent(Event event) {
 
+        if (shutoff){
+            return;
+        }
         // If not writable (full), wait().
         while (!droneMessagesWritable) {
             try {
@@ -62,6 +65,9 @@ public class Scheduler {
             } catch (InterruptedException e) {
                 System.err.println(e);
             }
+        }
+        if (shutoff){
+            return;
         }
 
         // Add the event to the queue, adjust booleans.
