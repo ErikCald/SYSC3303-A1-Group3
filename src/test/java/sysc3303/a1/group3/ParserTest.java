@@ -3,9 +3,11 @@ package sysc3303.a1.group3;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -27,15 +29,15 @@ class ParserTest {
      * Test parsing an valid incident file.
      */
     @Test
-    public void testParseIncidentFile() {
+    public void testParseIncidentFile() throws IOException {
         InputStream fileStream = ParserTest.class.getResourceAsStream("/validIncidentFileForTesting.csv");
         if(fileStream == null) {
             throw new RuntimeException("Failed to load incident file for testing");
         }
 
-        ArrayList<Event> events = ParserTest.parser.parseIncidientFile(fileStream);
+        List<Event> events = ParserTest.parser.parseIncidentFile(fileStream);
 
-        ArrayList<Event> expectedEvents = new ArrayList<>();
+        List<Event> expectedEvents = new ArrayList<>();
         expectedEvents.add(new Event(Time.valueOf("0:00:05"), 3, EventType.FIRED_DETECTED, Severity.Low));
         expectedEvents.add(new Event(Time.valueOf("0:00:24"), 1, EventType.FIRED_DETECTED, Severity.High));
         expectedEvents.add(new Event(Time.valueOf("0:00:51"), 2, EventType.DRONE_REQUESTED, Severity.Moderate));
@@ -53,10 +55,10 @@ class ParserTest {
      * Test parsing an invalid incident file.
      */
     @Test
-    public void testEmptyFile() {
+    public void testEmptyFile() throws IOException {
         InputStream fileStream = ParserTest.class.getResourceAsStream("/emptyFileForTesting.csv");
 
-        ArrayList<Event> events = parser.parseIncidientFile(fileStream);
+        List<Event> events = parser.parseIncidentFile(fileStream);
         assertTrue(events.isEmpty(), "Empty file should return an empty list of events");
     }
 }

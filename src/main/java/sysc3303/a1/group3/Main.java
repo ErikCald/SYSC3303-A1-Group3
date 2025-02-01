@@ -1,7 +1,8 @@
 package sysc3303.a1.group3;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
@@ -14,8 +15,16 @@ public class Main {
         }
 
         Parser parser = new Parser();
-        ArrayList<Event> events = parser.parseIncidientFile(fileStream);
-        for(Event e : events) {
+        List<Event> events;
+        try {
+            events = parser.parseIncidentFile(fileStream);
+        } catch (IOException e) {
+            System.err.println("Failed to parse incidentFile.csv");
+            e.printStackTrace();
+            return;
+        }
+
+        for (Event e : events) {
             System.out.println(e);
         }
     }
