@@ -8,6 +8,7 @@ NOTE: As mentioned in other test files, if you find that synchronized method tes
 tested in WholeSystemTest as these methods can only be meaningfully tested there.
  */
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +22,7 @@ class FireIncidentSubsystemTest {
     InputStream fileStream;
 
     @BeforeEach
-    void beforeEach() {
+    void beforeEach() throws IOException {
         fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
         drone = new Drone(scheduler);

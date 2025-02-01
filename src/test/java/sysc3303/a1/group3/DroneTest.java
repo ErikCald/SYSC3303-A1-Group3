@@ -3,6 +3,7 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Time;
 import java.util.concurrent.TimeoutException;
@@ -18,7 +19,7 @@ public class DroneTest {
     InputStream fileStream;
 
     @BeforeEach
-    void beforeEach() {
+    void beforeEach() throws IOException {
         // Create a fresh Scheduler and Drone for each test
         fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
