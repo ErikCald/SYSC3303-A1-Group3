@@ -3,6 +3,7 @@ package sysc3303.a1.group3;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +22,7 @@ class SchedulerTest {
     InputStream fileStream;
 
     @BeforeEach
-    void beforeEach() {
+    void beforeEach() throws IOException {
         fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
         fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);

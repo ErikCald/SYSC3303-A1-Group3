@@ -1,5 +1,6 @@
 package sysc3303.a1.group3;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.io.InputStream;
 import java.util.List;
@@ -16,7 +17,7 @@ class FireIncidentSubsystem implements Runnable {
     private List<Event> events;
     private int eventCount;
 
-    public FireIncidentSubsystem(Scheduler s, InputStream fileStream) {
+    public FireIncidentSubsystem(Scheduler s, InputStream fileStream) throws IOException {
         this.scheduler = s;
         eventCount = 0;
         events = new ArrayList<>();
@@ -26,7 +27,7 @@ class FireIncidentSubsystem implements Runnable {
             System.out.println("File doesn't exist");
             return;
         }
-        events = parser.parseIncidientFile(fileStream);
+        events = parser.parseIncidentFile(fileStream);
 
     }
 

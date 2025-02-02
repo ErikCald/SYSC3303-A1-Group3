@@ -1,5 +1,6 @@
 package sysc3303.a1.group3;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
@@ -12,7 +13,17 @@ public class Main {
 
         //Create required objects for simulation
         Scheduler scheduler = new Scheduler();
-        FireIncidentSubsystem fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
+
+
+        FireIncidentSubsystem fiSubsystem;
+        try {
+            fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
+        } catch (IOException e) {
+            System.err.println("Failed to parse incidentFile.csv, aborting.");
+            e.printStackTrace();
+            return;
+        }
+
         Drone drone1 = new Drone(scheduler);
 
         //Ensure scheduler aggregation is complete
