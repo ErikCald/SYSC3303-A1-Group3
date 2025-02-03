@@ -31,7 +31,7 @@ public class Parser {
         List<Event> events = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
-            String line;
+            String line = br.readLine(); //skip header
             while ((line = br.readLine()) != null) {
                 try {
                     events.add(parseIncidentLine(line));
@@ -70,7 +70,7 @@ public class Parser {
         List<Zone> zones = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
-            String line;
+            String line = br.readLine(); //skip header
             while ((line = br.readLine()) != null) {
                 try {
                     zones.add(parseZoneFileLine(line));
