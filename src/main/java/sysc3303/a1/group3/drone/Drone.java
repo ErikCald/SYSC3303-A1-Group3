@@ -1,4 +1,7 @@
-package sysc3303.a1.group3;
+package sysc3303.a1.group3.drone;
+
+import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.Scheduler;
 
 public class Drone implements Runnable {
 
@@ -27,5 +30,14 @@ public class Drone implements Runnable {
     // package private for testing purposes
     public void requestEvent() {
         currentEvent = scheduler.removeEvent();
+    }
+
+    /**
+     * @return the current event that this drone is handling, or null if there is none
+     * @deprecated likely to change or be removed in the future. should only be used for testing.
+     */
+    @Deprecated(forRemoval = true)
+    public Event getCurrentEvent() {
+        return currentEvent;
     }
 }
