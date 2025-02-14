@@ -11,7 +11,7 @@ import java.util.List;
  * This subsystem reads fire incident events from an input file, sends them to the Scheduler, and waits for
  * acknowledgments.
  */
-class FireIncidentSubsystem implements Runnable {
+public class FireIncidentSubsystem implements Runnable {
 
     private final Scheduler scheduler;
     private List<Event> events;

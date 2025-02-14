@@ -1,7 +1,12 @@
-package sysc3303.a1.group3;
+package sysc3303.a1.group3.drone;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.FireIncidentSubsystem;
+import sysc3303.a1.group3.Main;
+import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.Severity;
 
 import java.io.IOException;
 import java.io.InputStream;

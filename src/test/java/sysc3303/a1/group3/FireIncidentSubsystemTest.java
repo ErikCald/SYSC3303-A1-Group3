@@ -2,6 +2,7 @@ package sysc3303.a1.group3;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sysc3303.a1.group3.drone.Drone;
 
 /*
 NOTE: As mentioned in other test files, if you find that synchronized method tests are missing, then they're

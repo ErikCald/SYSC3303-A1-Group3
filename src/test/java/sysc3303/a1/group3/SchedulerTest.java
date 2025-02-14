@@ -2,6 +2,7 @@ package sysc3303.a1.group3;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sysc3303.a1.group3.drone.Drone;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,8 +61,9 @@ class SchedulerTest {
         Thread.sleep(500);
 
         // Verify that the drone received the event, and that it equals the one prior
-        assertNotNull(drone.currentEvent);
-        assertEquals(event, drone.currentEvent);
+        Event receivedEvent = drone.getCurrentEvent();
+        assertNotNull(receivedEvent);
+        assertEquals(event, receivedEvent);
     }
 
     //Similar to before, but testing if the drone shuts off afterward.
@@ -77,7 +79,7 @@ class SchedulerTest {
 
         // Verify that the shutoff flag is set and that the drone is off and has no event.
         assertTrue(scheduler.getShutOff());
-        assertNull(drone.currentEvent);
+        assertNull(drone.getCurrentEvent());
     }
 
 }

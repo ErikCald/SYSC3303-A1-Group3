@@ -2,6 +2,7 @@ package sysc3303.a1.group3;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sysc3303.a1.group3.drone.Drone;
 
 import java.io.IOException;
 import java.io.InputStream;
