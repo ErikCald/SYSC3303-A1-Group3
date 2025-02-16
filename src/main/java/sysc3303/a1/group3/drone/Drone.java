@@ -5,15 +5,25 @@ import sysc3303.a1.group3.Scheduler;
 
 public class Drone implements Runnable {
 
+    private final Sensors sensors;
+    private final Motors motors;
+    private final WaterTank waterTank;
+    private final Nozzle nozzle;
+
     private static final DroneStates STATES = DroneStates.withDefaults();;
 
     private final Scheduler scheduler;
+
     // package private for testing purposes
     Event currentEvent;
 
     private DroneState state;
 
     public Drone(Scheduler scheduler) {
+        this.sensors = new Sensors();
+        this.motors = new Motors();
+        this.waterTank = new WaterTank();
+        this.nozzle = new Nozzle();
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
     }
