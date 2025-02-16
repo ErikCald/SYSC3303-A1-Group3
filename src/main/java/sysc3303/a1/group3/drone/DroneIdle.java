@@ -9,11 +9,16 @@ public class DroneIdle implements BaseDroneState {
 
     @Override
     public void triggerExitWork(Drone drone) {
-        // todo ?
+        // do nothing
     }
 
     @Override
     public void onZoneInstruction(Drone drone) {
         drone.transitionState(DroneEnRoute.class);
+    }
+
+    @Override
+    public String toString() {
+        return getStateName();
     }
 }

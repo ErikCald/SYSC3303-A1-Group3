@@ -9,11 +9,16 @@ public class DroneInZone implements BaseDroneState {
 
     @Override
     public void triggerExitWork(Drone drone) {
-        // todo ?
+        // do nothing
     }
 
     @Override
     public void onDropInstruction(Drone drone) {
         drone.transitionState(DroneDroppingFoam.class);
+    }
+
+    @Override
+    public String toString() {
+        return getStateName();
     }
 }

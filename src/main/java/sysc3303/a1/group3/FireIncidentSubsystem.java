@@ -15,6 +15,7 @@ public class FireIncidentSubsystem implements Runnable {
 
     private final Scheduler scheduler;
     private List<Event> events;
+    private List<Zone> zones;
     private int eventCount;
 
     public FireIncidentSubsystem(Scheduler s, InputStream fileStream) throws IOException {
@@ -24,7 +25,7 @@ public class FireIncidentSubsystem implements Runnable {
 
         Parser parser = new Parser();
         if (fileStream == null) {
-            System.out.println("File doesn't exist");
+            System.out.println("Incident file doesn't exist");
             return;
         }
         events = parser.parseIncidentFile(fileStream);
@@ -40,14 +41,6 @@ public class FireIncidentSubsystem implements Runnable {
             System.out.println("Sending Event " + eventCount + " to Scheduler: \n" + event + "\n");
             scheduler.addEvent(event);
 
-            // Shutoff condition can be changed here, and in the loop
-            // Notify all drones waiting on scheduler. Not needed right now since there is one drone
-            // constantly reading events, but if there are multiple drones in the future, we will need
-            // to re-alert them.
-            if (i == events.size() - 1) {
-                sendShutOffSignal();
-            }
-
             // I have left it commented out in case the TAs want to slow the output down for demonstration
             // It should not mess the implementation up at this iteration, but I agree it should be removed later.
             try {
@@ -57,6 +50,9 @@ public class FireIncidentSubsystem implements Runnable {
             }
         }
         System.out.println("All events have been exhausted, " + Thread.currentThread().getName() + " , is closing.");
+        sendShutOffSignal();
+
+        //
     }
 
     // Tell the system to shutoff for a graceful termination.

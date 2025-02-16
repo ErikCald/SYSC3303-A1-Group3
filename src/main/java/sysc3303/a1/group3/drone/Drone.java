@@ -5,7 +5,7 @@ import sysc3303.a1.group3.Scheduler;
 
 public class Drone implements Runnable {
 
-    private static final DroneStates STATES = new DroneStates();
+    private static final DroneStates STATES = DroneStates.withDefaults();;
 
     private final Scheduler scheduler;
     // package private for testing purposes
@@ -49,15 +49,7 @@ public class Drone implements Runnable {
     public void requestEvent() {
         currentEvent = scheduler.removeEvent();
     }
-
-    /**
-     * @return the current event that this drone is handling, or null if there is none
-     * @deprecated likely to change or be removed in the future. should only be used for testing.
-     */
-    @Deprecated(forRemoval = true)
-    public Event getCurrentEvent() {
-        return currentEvent;
-    }
+    public DroneState getState() { return state; }
 
     /**
      * @return the Scheduler that owns this Drone
@@ -65,4 +57,5 @@ public class Drone implements Runnable {
     Scheduler getScheduler() {
         return scheduler;
     }
+
 }

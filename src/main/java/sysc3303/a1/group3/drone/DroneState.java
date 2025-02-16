@@ -69,6 +69,10 @@ public interface DroneState {
      */
     void onFault(Drone drone);
 
+    default String getStateName() {
+        return this.getClass().getSimpleName();
+    }
+
     /**
      * Throws an {@link IllegalArgumentException} with a message indicating
      * that an event handler method was invoked in an unexpected state.

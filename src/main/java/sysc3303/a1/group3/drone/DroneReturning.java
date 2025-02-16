@@ -13,4 +13,9 @@ public class DroneReturning implements BaseDroneState {
     public void triggerExitWork(Drone drone) {
         // todo
     }
+
+    @Override
+    public String toString() {
+        return getStateName();
+    }
 }

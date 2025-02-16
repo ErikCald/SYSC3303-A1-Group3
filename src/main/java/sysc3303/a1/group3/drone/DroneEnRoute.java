@@ -16,4 +16,9 @@ public class DroneEnRoute implements BaseDroneState {
     public void onZoneArrival(Drone drone) {
         drone.transitionState(DroneInZone.class);
     }
+
+    @Override
+    public String toString() {
+        return getStateName();
+    }
 }

@@ -2,6 +2,8 @@ package sysc3303.a1.group3;
 
 import sysc3303.a1.group3.drone.Drone;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +38,11 @@ public class Scheduler {
 
     private FireIncidentSubsystem subsystem;
     private final List<Drone> drones;
+    private List<Zone> zones;
 
     private volatile boolean shutoff;
 
+    //Constructor with no Zones (Iteration 1)
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
         this.incidentSubsystemQueue = new ArrayDeque<>();
@@ -52,6 +56,29 @@ public class Scheduler {
 
         shutoff = false;
     }
+
+    public Scheduler(InputStream zoneFile) throws IOException {
+        this.droneMessages = new ArrayDeque<>();
+        this.incidentSubsystemQueue = new ArrayDeque<>();
+
+        this.droneMessagesWritable = true;
+        this.droneMessagesReadable = false;
+        this.incidentSubsystemWritable = true;
+        this.incidentSubsystemReadable = false;
+
+        this.drones = new ArrayList<>();
+
+        shutoff = false;
+
+        Parser parser = new Parser();
+        if (zoneFile == null) {
+            System.out.println("Zone file doesn't exist");
+            return;
+        }
+        zones = parser.parseZoneFile(zoneFile);
+    }
+
+
 
     // Add the new event to Queue, Called by the Fire Subsystem
     // wait() if full. (size > 10)
@@ -84,7 +111,7 @@ public class Scheduler {
 
     // Remove the first Event from the Queue, Called by Drone(s)
     // wait() if no events are available (size <= 0)
-    // As per iteration 1 instructions, no meaningful scheduling has been implemented.
+    // As per iteration 1 instruction, no meaningful scheduling has been implemented.
     public synchronized Event removeEvent() {
         Event event;
 

@@ -43,29 +43,6 @@ class SchedulerTest {
         assertEquals(event, removedEvent);
     }
 
-    // NOTE: Waits are to guarantee the JVM has given the Drone time to run
-    // Test the state of the queue upon addition and removal of events
-    @Test
-    void testRemoveEventEmptyQueue() throws InterruptedException {
-        Thread droneThread = new Thread(drone, "Drone");
-        droneThread.start();
-
-        Thread.sleep(500);
-
-        // Since no events, the drone should wait for events
-        assertEquals(Thread.State.WAITING, droneThread.getState());
-
-        Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-        scheduler.addEvent(event);
-
-        Thread.sleep(500);
-
-        // Verify that the drone received the event, and that it equals the one prior
-        Event receivedEvent = drone.getCurrentEvent();
-        assertNotNull(receivedEvent);
-        assertEquals(event, receivedEvent);
-    }
-
     //Similar to before, but testing if the drone shuts off afterward.
     @Test
     void testShutOff() throws InterruptedException {
@@ -79,7 +56,6 @@ class SchedulerTest {
 
         // Verify that the shutoff flag is set and that the drone is off and has no event.
         assertTrue(scheduler.getShutOff());
-        assertNull(drone.getCurrentEvent());
     }
 
 }
