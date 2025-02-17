@@ -131,6 +131,7 @@ public class Scheduler {
         }
 
         // The drone grabs the first event from the Queue, adjust booleans.
+        // Then send the event through the scheduling algorithm for distribution
         event = droneMessages.remove();
         List<Drone> availableDrones = getAvailableDrones();
         distributeEvent(event, availableDrones);
@@ -145,6 +146,11 @@ public class Scheduler {
         return event;
     }
 
+    // Scheduling Algorithm:
+    // If there is only 1 drone available, then we assign that drone the event as you need to have no event to ask for one.
+    // If there are multiple drones available, then give the event to the drone closes to the Zone.
+        // If that Drone already had an event, redistribute the event to the rest of the drones recursively, excluding the initial drone.
+        // Later, we can modify availableDrones to only have drones who have enough water.
     private void distributeEvent(Event event, List<Drone> availableDrones) {
         if (availableDrones.isEmpty()) {
             System.out.println("No available drones to assign the event. Something has gone wrong!");
