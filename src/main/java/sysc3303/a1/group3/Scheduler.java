@@ -1,6 +1,6 @@
 package sysc3303.a1.group3;
 
-import sysc3303.a1.group3.drone.Drone;
+import sysc3303.a1.group3.drone.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,6 +132,10 @@ public class Scheduler {
 
         // The drone grabs the first event from the Queue, adjust booleans.
         event = droneMessages.remove();
+        List<Drone> availableDrones = getAvailableDrones();
+        distributeEvent(event, availableDrones);
+
+
         droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
             droneMessagesReadable = false; // No more data, so it's not readable
@@ -139,6 +143,78 @@ public class Scheduler {
 
         notifyAll();
         return event;
+    }
+
+    private void distributeEvent(Event event, List<Drone> availableDrones) {
+        if (availableDrones.isEmpty()) {
+            System.out.println("No available drones to assign the event. Something has gone wrong!");
+            return;
+        }
+
+        Drone selectedDrone = null;
+        Event previousEvent = null;
+
+        if (availableDrones.size() == 1) {
+            // If there's only one available drone, assign the event to that drone
+            // This means this is the drone that just asked for an Event, which means it shouldn't have one.
+            // So, just assign it and return.
+            selectedDrone = availableDrones.getFirst();
+            if (selectedDrone.getCurrentEvent() != null) {
+                System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
+                throw new IllegalStateException("Drone " + selectedDrone + " is marked as available but already has an event: "
+                    + selectedDrone.getCurrentEvent() + " ... Something messed up!");
+            }
+            selectedDrone.setCurrentEvent(event);
+            return;
+        } else {
+            // If multiple drones are available, find the one closest to the zone
+            int minDistance = Integer.MAX_VALUE;
+            for (Drone drone : availableDrones) {
+                int distance = getDistanceFromZone(drone, event);
+                // System.out.println("Drone " + drone + " distance: " + distance); // Debuggin
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    selectedDrone = drone;
+                }
+            }
+        }
+
+        if (selectedDrone != null) {
+            // Check if the selected drone already had an event
+            if (selectedDrone.getCurrentEvent() != null) {
+                previousEvent = selectedDrone.getCurrentEvent();
+            }
+
+            // Assign the new event to the selected drone either way
+            selectedDrone.setCurrentEvent(event);
+            //System.out.println("Assigned event to Drone " + selectedDrone); //debuggin
+
+            // Redistribute the previous event recursively (if there was one)
+            // Be sure to exclude the drone that was just selected!
+            if (previousEvent != null) {
+                List<Drone> updatedAvailableDrones = new ArrayList<>(availableDrones);
+                updatedAvailableDrones.remove(selectedDrone);
+                distributeEvent(previousEvent, updatedAvailableDrones);
+            }
+        } else {
+            System.out.println("No available drone without an event.");
+        }
+    }
+
+
+
+    private List<Drone> getAvailableDrones(){
+        List<Drone> availableDrones = new ArrayList<>();
+
+        for (Drone drone : drones) {
+            // Check if the drone's state is either DroneIdle or DroneEnRoute.
+            // This can be changed later easily if we want to modify the selection of Drones.
+            if (drone.getState() instanceof DroneIdle || drone.getState() instanceof DroneEnRoute) {
+                availableDrones.add(drone);
+            }
+        }
+
+        return availableDrones;
     }
 
     public synchronized void confirmWithSubsystem(Event event) {
@@ -160,6 +236,47 @@ public class Scheduler {
 
     }
 
+    //Should be changed when movement and location for drones is implemented.
+    private int getDistanceFromZone(Drone drone, Event event) {
+        // Find the Zone corresponding to the event's zoneId
+        Zone zone = null;
+        for (Zone z : zones) {
+            if (z.zoneID() == event.getZoneId()) {
+                zone = z;
+                break;
+            }
+        }
+
+        // If no zone is found...
+        if (zone == null) {
+            throw new IllegalArgumentException("Zone not found for zoneId: " + event.getZoneId());
+        }
+
+        // Get the center of the zone and position of drone:
+        int[] zoneCenter = getCenter(zone);
+        int[] dronePosition = drone.getPosition();
+        int centerX = zoneCenter[0];
+        int centerY = zoneCenter[1];
+        int droneX = dronePosition[0];
+        int droneY = dronePosition[1];
+
+        // Calculate the distance between the drone and the zone center.
+        // See "Euclidean distance" (https://en.wikipedia.org/wiki/Euclidean_distance)
+        // redundant variable declaration for debug
+        int distance = (int) Math.sqrt(Math.pow(centerX - droneX, 2) + Math.pow(centerY - droneY, 2));
+
+        return distance;
+    }
+
+
+    //Get the x and y of the center of the zone.
+    //We could move this later, but only Scheduler needs it right now.
+    public static int[] getCenter(Zone zone) {
+        int centerX = (zone.start_x() + zone.end_x()) / 2;
+        int centerY = (zone.start_y() + zone.end_y()) / 2;
+
+        return new int[] { centerX, centerY };
+    }
 
     public void addDrone(Drone drone){ drones.add(drone); }
     public void setSubsystem(FireIncidentSubsystem subsystem){ this.subsystem = subsystem;}

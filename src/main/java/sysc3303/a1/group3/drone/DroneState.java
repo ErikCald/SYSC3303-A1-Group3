@@ -10,7 +10,7 @@ public interface DroneState {
      *
      * @param drone the Drone entering this state
      */
-    void triggerEntryWork(Drone drone);
+    void triggerEntryWork(Drone drone) throws InterruptedException;
 
     /**
      * Trigger for when this state is no longer the current state.
@@ -24,7 +24,7 @@ public interface DroneState {
      *
      * @param drone the drone being instructed
      */
-    void onZoneInstruction(Drone drone);
+    void onZoneInstruction(Drone drone) throws InterruptedException;
     // todo more parameters needed?
 
     /**
@@ -32,14 +32,14 @@ public interface DroneState {
      *
      * @param drone the drone that arrived
      */
-    void onZoneArrival(Drone drone);
+    void onZoneArrival(Drone drone) throws InterruptedException;
 
     /**
      * Event handler for the Scheduler instructing a drone to begin dropping foam.
      *
      * @param drone the drone being instructed
      */
-    void onDropInstruction(Drone drone);
+    void onDropInstruction(Drone drone) throws InterruptedException;
 
     /**
      * Event handler for a drone completing a foam drop.
@@ -60,7 +60,7 @@ public interface DroneState {
      *
      * @param drone the drone being instructed to comply with the shutdown
      */
-    void onShutdown(Drone drone);
+    void onShutdown(Drone drone) throws InterruptedException;
 
     /**
      * Event handler for a drone experiencing a fault

@@ -35,14 +35,20 @@ public class Main {
 
 
         Drone drone1 = new Drone(scheduler);
+        Drone drone2 = new Drone(scheduler);
+        Drone drone3 = new Drone(scheduler);
 
         //Ensure scheduler aggregation is complete
         scheduler.addDrone(drone1);
+        scheduler.addDrone(drone2);
+        scheduler.addDrone(drone3);
         scheduler.setSubsystem(fiSubsystem);
 
         //Make threads from the aforementioned objects
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
-        Thread DroneThread = new Thread((drone1), "Drone1");
+        Thread DroneThread1 = new Thread((drone1), "Drone1");
+        Thread DroneThread2 = new Thread((drone2), "Drone2");
+        Thread DroneThread3 = new Thread((drone3), "Drone3");
 
         // Wait for user to press Enter before starting
         System.out.println("\nPress Enter to start the simulation:");
@@ -52,7 +58,9 @@ public class Main {
 
         // Start the simulation
         FIsubsystemThread.start();
-        DroneThread.start();
+        DroneThread1.start();
+        DroneThread2.start();
+        DroneThread3.start();
 
     }
 }

@@ -13,7 +13,7 @@ public class DroneInZone implements BaseDroneState {
     }
 
     @Override
-    public void onDropInstruction(Drone drone) {
+    public void onDropInstruction(Drone drone) throws InterruptedException {
         drone.transitionState(DroneDroppingFoam.class);
     }
 
