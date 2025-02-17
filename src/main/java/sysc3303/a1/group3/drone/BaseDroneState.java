@@ -7,17 +7,17 @@ package sysc3303.a1.group3.drone;
 public interface BaseDroneState extends DroneState {
 
     @Override
-    default void onZoneInstruction(Drone drone) {
+    default void onZoneInstruction(Drone drone) throws InterruptedException {
         throwIllegalState(drone);
     }
 
     @Override
-    default void onZoneArrival(Drone drone) {
+    default void onZoneArrival(Drone drone) throws InterruptedException {
         throwIllegalState(drone);
     }
 
     @Override
-    default void onDropInstruction(Drone drone) {
+    default void onDropInstruction(Drone drone) throws InterruptedException {
         throwIllegalState(drone);
     }
 
@@ -32,7 +32,7 @@ public interface BaseDroneState extends DroneState {
     }
 
     @Override
-    default void onShutdown(Drone drone) {
+    default void onShutdown(Drone drone) throws InterruptedException {
         // Remember that #triggerExitWork will be invoked
         drone.transitionState(DroneReturning.class);
     }

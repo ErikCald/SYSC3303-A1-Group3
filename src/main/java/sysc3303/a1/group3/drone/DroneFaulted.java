@@ -12,4 +12,9 @@ public class DroneFaulted implements BaseDroneState {
     public void triggerExitWork(Drone drone) {
         throw new UnsupportedOperationException("To be implemented in iteration 4");
     }
+
+    @Override
+    public String toString() {
+        return getStateName();
+    }
 }

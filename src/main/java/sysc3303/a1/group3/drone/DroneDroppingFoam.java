@@ -11,4 +11,9 @@ public class DroneDroppingFoam implements BaseDroneState {
     public void triggerExitWork(Drone drone) {
         // todo close nozzles/doors?
     }
+
+    @Override
+    public String toString() {
+        return getStateName();
+    }
 }
