@@ -203,6 +203,8 @@ public class Scheduler {
 
 
 
+    // Gets a list of all drones that are Idle or EnRoute.
+    // We can add further criteria later.
     private List<Drone> getAvailableDrones(){
         List<Drone> availableDrones = new ArrayList<>();
 
@@ -237,6 +239,7 @@ public class Scheduler {
     }
 
     //Should be changed when movement and location for drones is implemented.
+    //Gets the distance from the zone to the event's zone
     private int getDistanceFromZone(Drone drone, Event event) {
         // Find the Zone corresponding to the event's zoneId
         Zone zone = null;
