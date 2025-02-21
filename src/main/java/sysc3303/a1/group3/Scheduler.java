@@ -137,7 +137,7 @@ public class Scheduler {
 
         // The drone grabs the first event from the Queue, adjust booleans.
         // Then send the event through the scheduling algorithm for distribution
-        event = droneMessages.remove();
+
         List<Drone> availableDrones = getAvailableDrones();
         // If all drones already have an event, then this call is likely leftover from a drone calling for a new event
         // when distributeEvent gave it one.
@@ -145,6 +145,7 @@ public class Scheduler {
         if (availableDrones.isEmpty()){
             return null;
         }
+        event = droneMessages.remove();
         distributeEvent(event, availableDrones);
 
         droneMessagesWritable = true;
@@ -322,6 +323,13 @@ public class Scheduler {
     //synchronized even if the subsystem calls it just to ensure it has a lock when it calls this
     //and won't trigger a "current thread is not owner" error.
     public synchronized void shutOff(){
+        while (!droneMessages.isEmpty()) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                System.err.println(e);
+            }
+        }
         this.shutoff = true;
         notifyAll();
     }
