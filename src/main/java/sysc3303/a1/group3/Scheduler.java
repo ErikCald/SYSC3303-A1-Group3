@@ -330,7 +330,6 @@ public class Scheduler {
                 System.err.println(e);
             }
         }
-        System.out.println("droneMessages.size(): " + droneMessages.size());
         this.shutoff = true;
         notifyAll();
     }
