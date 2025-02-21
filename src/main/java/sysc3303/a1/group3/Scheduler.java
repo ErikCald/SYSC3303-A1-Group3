@@ -4,6 +4,7 @@ import sysc3303.a1.group3.drone.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLOutput;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,12 +131,21 @@ public class Scheduler {
             return null;
         }
 
+        if (droneMessages.isEmpty()){
+            return null;
+        }
+
         // The drone grabs the first event from the Queue, adjust booleans.
         // Then send the event through the scheduling algorithm for distribution
         event = droneMessages.remove();
         List<Drone> availableDrones = getAvailableDrones();
+        // If all drones already have an event, then this call is likely leftover from a drone calling for a new event
+        // when distributeEvent gave it one.
+        // Thus, if all drones have events already, but removeEvent is called, then ignore the call.
+        if (availableDrones.isEmpty()){
+            return null;
+        }
         distributeEvent(event, availableDrones);
-
 
         droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
@@ -151,6 +161,7 @@ public class Scheduler {
     // If there are multiple drones available, then give the event to the drone closes to the Zone.
         // If that Drone already had an event, redistribute the event to the rest of the drones recursively, excluding the initial drone.
         // Later, we can modify availableDrones to only have drones who have enough water.
+    // However, if there are multiple drones available, but they all have events, then wait.
     private void distributeEvent(Event event, List<Drone> availableDrones) {
         if (availableDrones.isEmpty()) {
             System.out.println("No available drones to assign the event. Something has gone wrong!");
@@ -166,18 +177,17 @@ public class Scheduler {
             // So, just assign it and return.
             selectedDrone = availableDrones.getFirst();
             if (selectedDrone.getCurrentEvent() != null) {
+                System.out.println("event: " + selectedDrone.getCurrentEvent());
                 System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
                 throw new IllegalStateException("Drone " + selectedDrone + " is marked as available but already has an event: "
                     + selectedDrone.getCurrentEvent() + " ... Something messed up!");
             }
-            selectedDrone.setCurrentEvent(event);
-            return;
         } else {
             // If multiple drones are available, find the one closest to the zone
             int minDistance = Integer.MAX_VALUE;
             for (Drone drone : availableDrones) {
                 int distance = getDistanceFromZone(drone, event);
-                // System.out.println("Drone " + drone + " distance: " + distance); // Debuggin
+                // System.out.println("Drone " + drone + " distance: " + distance); // Debugging
                 if (distance < minDistance) {
                     minDistance = distance;
                     selectedDrone = drone;
@@ -193,7 +203,7 @@ public class Scheduler {
 
             // Assign the new event to the selected drone either way
             selectedDrone.setCurrentEvent(event);
-            //System.out.println("Assigned event to Drone " + selectedDrone); //debuggin
+            //System.out.println("Assigned event to Drone " + selectedDrone.getName()); //debugging
 
             // Redistribute the previous event recursively (if there was one)
             // Be sure to exclude the drone that was just selected!
@@ -205,6 +215,7 @@ public class Scheduler {
         } else {
             System.out.println("No available drone without an event.");
         }
+        System.out.println(selectedDrone.getName() + " is scheduled with event, " + event);
     }
 
 
@@ -213,16 +224,25 @@ public class Scheduler {
     // We can add further criteria later.
     private List<Drone> getAvailableDrones(){
         List<Drone> availableDrones = new ArrayList<>();
+        Boolean allHaveEvents = true;
 
         for (Drone drone : drones) {
             // Check if the drone's state is either DroneIdle or DroneEnRoute.
             // This can be changed later easily if we want to modify the selection of Drones.
             if (drone.getState() instanceof DroneIdle || drone.getState() instanceof DroneEnRoute) {
                 availableDrones.add(drone);
+                if (drone.getCurrentEvent() == null){
+                    allHaveEvents = false;
+                }
             }
         }
 
-        return availableDrones;
+        // If all the available Drones have events, then tell the scheduler to wait instead.
+        if (allHaveEvents){
+            return new ArrayList<>();
+        } else {
+            return availableDrones;
+        }
     }
 
     public synchronized void confirmWithSubsystem(Event event) {
@@ -289,6 +309,12 @@ public class Scheduler {
 
     public void addDrone(Drone drone){ drones.add(drone); }
     public void setSubsystem(FireIncidentSubsystem subsystem){ this.subsystem = subsystem;}
+
+    public boolean confirmDroneInZone(Drone drone){
+        //Later, the state of the drone can be used to determine what it should do.
+        //With just one drone, it should just start extinguishing the fire.
+        return true;
+    }
 
     //shutoff system, all related objects should observe this for a graceful shutoff.
     public boolean getShutOff(){ return shutoff; }

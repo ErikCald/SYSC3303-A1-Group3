@@ -7,13 +7,15 @@ public class DroneReturning implements BaseDroneState {
     @Override
     public void triggerEntryWork(Drone drone) throws InterruptedException {
         //Simulate movement
+        System.out.println(drone.getName() + " returning!");
         Thread.sleep(500);
         drone.transitionState(DroneIdle.class);
     }
 
     @Override
     public void triggerExitWork(Drone drone) {
-        // todo
+        drone.setCurrentEvent(null);
+        System.out.println(drone.getName() + " is back!");
     }
 
     @Override

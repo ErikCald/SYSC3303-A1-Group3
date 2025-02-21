@@ -26,7 +26,7 @@ class FireIncidentSubsystemTest {
     void beforeEach() throws IOException {
         fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
-        drone = new Drone(scheduler);
+        drone = new Drone("drone", scheduler);
         fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         scheduler.addDrone(drone);
         scheduler.setSubsystem(fiSubsystem);

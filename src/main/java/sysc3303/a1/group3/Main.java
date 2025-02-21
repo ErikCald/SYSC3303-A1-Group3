@@ -34,9 +34,9 @@ public class Main {
         }
 
 
-        Drone drone1 = new Drone(scheduler);
-        Drone drone2 = new Drone(scheduler);
-        Drone drone3 = new Drone(scheduler);
+        Drone drone1 = new Drone("drone1", scheduler);
+        Drone drone2 = new Drone("drone2", scheduler);
+        Drone drone3 = new Drone("drone3", scheduler);
 
         //Ensure scheduler aggregation is complete
         scheduler.addDrone(drone1);
