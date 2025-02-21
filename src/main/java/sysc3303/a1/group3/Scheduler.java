@@ -42,7 +42,6 @@ public class Scheduler {
     private List<Zone> zones;
 
     private volatile boolean shutoff;
-    private volatile boolean prepareShutoff;
 
     //Constructor with no Zones (Iteration 1)
     public Scheduler() {
@@ -57,7 +56,6 @@ public class Scheduler {
         this.drones = new ArrayList<>();
 
         shutoff = false;
-        prepareShutoff = false;
     }
 
     public Scheduler(InputStream zoneFile) throws IOException {
