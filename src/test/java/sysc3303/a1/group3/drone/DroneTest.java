@@ -28,7 +28,7 @@ public class DroneTest {
         // Create a fresh Scheduler and Drone for each test
         fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
         scheduler = new Scheduler();
-        drone = new Drone(scheduler);
+        drone = new Drone("drone", scheduler);
         fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
         scheduler.addDrone(drone);
         scheduler.setSubsystem(fiSubsystem);

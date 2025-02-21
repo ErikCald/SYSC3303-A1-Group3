@@ -5,6 +5,8 @@ import sysc3303.a1.group3.Scheduler;
 
 public class Drone implements Runnable {
 
+    private final String name;
+
     private final Sensors sensors;
     private final Motors motors;
     private final WaterTank waterTank;
@@ -24,11 +26,12 @@ public class Drone implements Runnable {
     private final int positionX;
     private final int positionY;
 
-    public Drone(Scheduler scheduler) {
+    public Drone(String name, Scheduler scheduler) {
+        this.name = name;
         this.sensors = new Sensors();
         this.motors = new Motors();
         this.waterTank = new WaterTank();
-        this.nozzle = new Nozzle();
+        this.nozzle = new Nozzle(this.waterTank);
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
 
@@ -55,11 +58,11 @@ public class Drone implements Runnable {
     public void run() {
         while (!scheduler.getShutOff()) {
             requestEvent();
-            System.out.println(Thread.currentThread().getName() + " has been scheduled with event: \n" + currentEvent);
-            System.out.println("Sending back confirmation to Fire Incident Subsystem.\n");
 
             if (currentEvent != null){
-                scheduler.confirmWithSubsystem(currentEvent);
+                //System.out.println(name + " has been scheduled with event: \n" + currentEvent);
+                //System.out.println("Sending back confirmation to Fire Incident Subsystem.\n");
+                //scheduler.confirmWithSubsystem(currentEvent);
 
                 //simulate drone switching to enroute, and taking off
                 try {
@@ -72,16 +75,28 @@ public class Drone implements Runnable {
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
 
+    protected boolean InZoneSchedulerResponse(){
+        return (this.scheduler.confirmDroneInZone(this));
+    }
+
+    protected void extinguishFlames() throws InterruptedException {
+        System.out.println(name + " is extinguishing flames!");
+        nozzle.extinguish();
+    }
+
     // Note for Zane: If you are implementing movement, you should chance this to the actual x and y of the Drone.
     public int[] getPosition() {
         return new int[]{positionX, positionY};
     }
     public void requestEvent() {
-        currentEvent = scheduler.removeEvent();
+        scheduler.removeEvent();
     }
+    public Thread getCurrentThread(){ return Thread.currentThread(); }
     public Event getCurrentEvent(){ return currentEvent; }
     public void setCurrentEvent(Event event){ currentEvent = event;}
     public DroneState getState() { return state; }
+    public String getName(){ return name; }
+
 
     /**
      * @return the Scheduler that owns this Drone

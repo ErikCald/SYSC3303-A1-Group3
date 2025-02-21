@@ -3,8 +3,13 @@ package sysc3303.a1.group3.drone;
 public class DroneInZone implements BaseDroneState {
 
     @Override
-    public void triggerEntryWork(Drone drone) {
-        // todo inform scheduler that drone has arrived
+    public void triggerEntryWork(Drone drone) throws InterruptedException {
+        if (drone.InZoneSchedulerResponse()){
+            drone.transitionState(DroneDroppingFoam.class);
+        } else {
+            // In the future, alternate states can be met depending on scheduler confirmation
+            drone.transitionState(DroneFaulted.class);
+        }
     }
 
     @Override

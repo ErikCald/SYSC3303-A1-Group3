@@ -1,9 +1,11 @@
 package sysc3303.a1.group3.drone;
 
 public class WaterTank {
-    private int waterLevel = 15;
+    private int waterLevel;
 
-    public WaterTank() {}
+    public WaterTank() {
+        waterLevel = 15;
+    }
 
     public void releaseWater(int amount) {
         //This is where the water tank should be adjusted in the future.

@@ -4,6 +4,20 @@ public class Nozzle {
     boolean open;
     boolean stuck;
 
+    WaterTank tank;
+
+    public Nozzle(WaterTank tank) {
+        this.tank = tank;
+    }
+
+    public void extinguish() throws InterruptedException {
+        activate();
+        Thread.sleep(1000);
+        //Placeholder for where water should be released:
+        tank.releaseWater(0);
+        deactivate();
+    }
+
     public void activate() {
         open = true;
         stuck = false;
