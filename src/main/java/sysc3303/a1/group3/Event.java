@@ -1,7 +1,7 @@
 package sysc3303.a1.group3;
 
 import java.sql.Time;
-
+import java.util.Calendar;
 /**
  * Represents a fire incident event.
  * Stores when, where and by who it was requested.
@@ -35,7 +35,7 @@ public class Event {
 
     /**
      * Create a new event.
-     * 
+     *
      * @param time The time the event was requested.
      * @param zoneId The zone the event was requested from.
      * @param eventType The type of event.
@@ -50,12 +50,21 @@ public class Event {
 
     /**
      * Get the time the event was requested.
-     * 
+     *
      * @return The time the event was requested.
      */
-    public Time getTime() {
-        return time;
+    public int getTime() {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(time);
+
+        int hours = calendar.get(Calendar.HOUR_OF_DAY);
+        int minutes = calendar.get(Calendar.MINUTE);
+        int seconds = calendar.get(Calendar.SECOND);
+        return ((hours * 3600) + (minutes * 60) + seconds);
     }
+
+
 
     /**
      * Get the zone the event was requested from.
