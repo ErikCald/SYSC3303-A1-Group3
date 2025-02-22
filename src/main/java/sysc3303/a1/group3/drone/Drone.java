@@ -47,7 +47,7 @@ public class Drone implements Runnable {
      *
      * @param state the new state to transition to
      */
-    void transitionState(Class<? extends DroneState> state) throws InterruptedException {
+    public void transitionState(Class<? extends DroneState> state) throws InterruptedException {
         this.state.triggerExitWork(this);
         this.state = STATES.retrieve(state);
         this.state.triggerEntryWork(this);
