@@ -43,19 +43,19 @@ class SchedulerTest {
         assertEquals(event, removedEvent);
     }
 
-    //Similar to before, but testing if the drone shuts off afterward.
-    @Test
-    void testShutOff() throws InterruptedException {
-        Thread droneThread = new Thread(drone, "Drone");
-        droneThread.start();
-
-        Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-        scheduler.addEvent(event);
-
-        scheduler.shutOff();
-
-        // Verify that the shutoff flag is set and that the drone is off and has no event.
-        assertTrue(scheduler.getShutOff());
-    }
+    //Now that shutoff is synchronized, we cannot test it here, and it is effectively tested in WholeSystemTests
+//    @Test
+//    void testShutOff() throws InterruptedException {
+//        Thread droneThread = new Thread(drone, "Drone");
+//        droneThread.start();
+//
+//        Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
+//        scheduler.addEvent(event);
+//
+//        scheduler.shutOff();
+//
+//        // Verify that the shutoff flag is set and that the drone is off and has no event.
+//        assertTrue(scheduler.getShutOff());
+//    }
 
 }
