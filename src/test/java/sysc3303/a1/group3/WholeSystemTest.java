@@ -140,7 +140,7 @@ public class WholeSystemTest {
     }
 
     @Test
-    @Timeout(180)
+    @Timeout(60)
     public void twoDroneSystemTest() {
         scheduler.addDrone(drone1);
         scheduler.addDrone(drone2);
@@ -176,13 +176,6 @@ public class WholeSystemTest {
             fail("Failed to convert output stream to string.");
             throw new RuntimeException(e);
         }
-
-//        afterAll();
-        System.setOut(originalOut);
-        System.out.println("\n\nOutput:");
-        System.out.println(outContent.toString());
-        System.out.println("\n\nPrintedStrings:");
-        System.out.println(printedStrings);
 
         // Validate the output
         String[] expectedLines = {
