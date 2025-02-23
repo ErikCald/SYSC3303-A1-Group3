@@ -56,7 +56,7 @@ public class FireIncidentSubsystem implements Runnable {
             // It should not mess the implementation up at this iteration, but I agree it should be removed later.
 
         }
-        System.out.println("All events have been exhausted, " + Thread.currentThread().getName() + " , is closing.");
+        System.out.println("All events have been exhausted, " + Thread.currentThread().getName() + ", is closing.");
         sendShutOffSignal();
 
         //

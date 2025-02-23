@@ -39,7 +39,7 @@ public class Scheduler {
 
     private FireIncidentSubsystem subsystem;
     private final List<Drone> drones;
-    private List<Zone> zones;
+    private final List<Zone> zones;
 
     private volatile boolean shutoff;
 
@@ -54,6 +54,7 @@ public class Scheduler {
         this.incidentSubsystemReadable = false;
 
         this.drones = new ArrayList<>();
+        this.zones = new ArrayList<>();
 
         shutoff = false;
     }
@@ -73,6 +74,7 @@ public class Scheduler {
 
         Parser parser = new Parser();
         if (zoneFile == null) {
+            zones = new ArrayList<>();
             System.out.println("Zone file doesn't exist");
             return;
         }
