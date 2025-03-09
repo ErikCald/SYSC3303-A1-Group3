@@ -2,6 +2,13 @@ package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 
 public class Drone implements Runnable {
 
@@ -26,7 +33,12 @@ public class Drone implements Runnable {
     private final int positionX;
     private final int positionY;
 
-    public Drone(String name, Scheduler scheduler) {
+    private DatagramSocket droneSocket;
+    private InetAddress schedulerAddress;
+    private int schedulerPort;
+
+
+    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
         this.sensors = new Sensors();
         this.motors = new Motors();
@@ -38,7 +50,57 @@ public class Drone implements Runnable {
         droneCounter++;
         this.positionX = droneCounter;
         this.positionY = droneCounter;
+
+        try {
+            this.droneSocket = new DatagramSocket();
+            this.schedulerAddress = InetAddress.getByName(schedulerAddress);
+            this.schedulerPort = schedulerPort;
+        } catch (SocketException | UnknownHostException e) {
+            System.err.println("Error creating socket: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
+
+    // NEW METHOD: Serialize state to JSON
+    private String getStateAsJson() {
+        return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%d, \"y\":%d}",
+            name, state.getStateName(), positionX, positionY);
+    }
+
+    // NEW METHOD: Send state to the scheduler
+    private void sendStateToScheduler() {
+        try {
+            String stateData = getStateAsJson();
+            byte[] sendData = stateData.getBytes();
+            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            droneSocket.send(packet);
+        } catch (IOException e) {
+            System.err.println("Error sending state to scheduler: " + e.getMessage());
+        }
+    }
+
+    // NEW METHOD: Receive assignment from the scheduler
+    private void receiveAssignment() {
+        try {
+            byte[] receiveData = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+            droneSocket.receive(packet);
+            String assignmentData = new String(packet.getData(), 0, packet.getLength());
+
+            Event event = convertJsonToEvent(assignmentData); // Implement this method
+            setCurrentEvent(event); // set current event
+
+        } catch (IOException e) {
+            System.err.println("Error receiving assignments: " + e.getMessage());
+        }
+    }
+    private Event convertJsonToEvent(String assignmentData) {
+        // Implement JSON deserialization here (e.g., using Gson library)
+        return null;
+    }
+
+
+
 
     /**
      * Transitions from the current state to a new state.
@@ -56,8 +118,10 @@ public class Drone implements Runnable {
     //Start the Drone, wait for notifications.
     @Override
     public void run() {
+        receiveAssignment();
         while (!scheduler.getShutOff()) {
             requestEvent();
+            sendStateToScheduler();
 
             if (currentEvent != null){
                 //System.out.println(name + " has been scheduled with event: \n" + currentEvent);

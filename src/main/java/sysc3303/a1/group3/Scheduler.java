@@ -9,6 +9,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 
 /**
  * NOTE: notifyAll() is used as in the future, not all Drones will be ready to take new Events.
@@ -43,6 +50,8 @@ public class Scheduler {
 
     private volatile boolean shutoff;
 
+    private DatagramSocket socket;
+
     //Constructor with no Zones (Iteration 1)
     public Scheduler() {
         this.droneMessages = new ArrayDeque<>();
@@ -57,6 +66,16 @@ public class Scheduler {
         this.zones = new ArrayList<>();
 
         shutoff = false;
+
+        try {
+            this.socket = new DatagramSocket(schedulerPort);
+            receiveEvents();
+            receiveDroneStates();
+        } catch (SocketException e) {
+            System.err.println("Error creating socket: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+
     }
 
     public Scheduler(InputStream zoneFile) throws IOException {
@@ -81,6 +100,50 @@ public class Scheduler {
         zones = parser.parseZoneFile(zoneFile);
     }
 
+    //New Method
+    private void receiveEvents() {
+        try {
+            byte[] receiveData = new byte[1024];
+            while (!shutoff) {
+                DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                socket.receive(packet);
+                String eventData = new String(packet.getData(), 0, packet.getLength());
+                Event event = convertJsonToEvent(eventData); // Implement this method
+                addEvent(event); // Add to scheduler's queue
+            }
+        } catch (IOException e) {
+            System.err.println("Error receiving events: " + e.getMessage());
+        }
+    }
+    //New Method
+    private Event convertJsonToEvent(String eventData) {
+        // Implement JSON deserialization here (e.g., using Gson library)
+        // Create and return Event object from JSON
+        return null; // Replace with actual implementation
+    }
+    //New Method
+    private void receiveDroneStates() {
+        new Thread(() -> {
+            try {
+                byte[] receiveData = new byte[1024];
+                while (!shutoff) {
+                    DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                    socket.receive(packet);
+                    String droneState = new String(packet.getData(), 0, packet.getLength());
+
+                    // Process drone state data
+                    processDroneState(droneState);
+
+                }
+            } catch (IOException e) {
+                System.err.println("Error receiving drone state: " + e.getMessage());
+            }
+        }).start();
+    }
+    //New Method
+    private void processDroneState(String droneState) {
+        //Implement this method
+    }
 
 
     // Add the new event to Queue, Called by the Fire Subsystem

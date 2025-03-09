@@ -13,6 +13,9 @@ public class Main {
         // fileStream for scheduler, parses events in constructor
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
+        // Configuration
+        String schedulerAddress = "localhost"; // Change to Scheduler's IP
+        int schedulerPort = 5000; // Change to Scheduler's port
 
         //Create required objects for simulation
         Scheduler scheduler;
@@ -26,7 +29,7 @@ public class Main {
 
         FireIncidentSubsystem fiSubsystem;
         try {
-            fiSubsystem = new FireIncidentSubsystem(scheduler, incidentFile);
+            fiSubsystem = new FireIncidentSubsystem(scheduler, incidentFile, schedulerAddress, schedulerPort);
         } catch (IOException e) {
             System.err.println("Failed to parse incidentFile.csv, aborting.");
             e.printStackTrace();
@@ -34,9 +37,9 @@ public class Main {
         }
 
 
-        Drone drone1 = new Drone("drone1", scheduler);
-        Drone drone2 = new Drone("drone2", scheduler);
-        Drone drone3 = new Drone("drone3", scheduler);
+        Drone drone1 = new Drone("drone1", scheduler, schedulerAddress, schedulerPort);
+        Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort);
+        Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort);
 
         //Ensure scheduler aggregation is complete
         scheduler.addDrone(drone1);

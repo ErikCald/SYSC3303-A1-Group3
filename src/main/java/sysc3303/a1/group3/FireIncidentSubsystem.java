@@ -8,6 +8,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.time.Duration;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 
 
 /**
@@ -23,7 +29,13 @@ public class FireIncidentSubsystem implements Runnable {
     private int eventCount;
     private int currentSeconds = 0;
     Instant startTime;
-    public FireIncidentSubsystem(Scheduler s, InputStream fileStream) throws IOException {
+
+    private DatagramSocket socket;
+    private InetAddress schedulerAddress;
+    private int schedulerPort;
+
+
+    public FireIncidentSubsystem(Scheduler s, InputStream fileStream, String schedulerAddress, int schedulerPort) throws IOException {
         this.scheduler = s;
         eventCount = 0;
         events = new ArrayList<>();
@@ -34,6 +46,15 @@ public class FireIncidentSubsystem implements Runnable {
             return;
         }
         events = parser.parseIncidentFile(fileStream);
+
+        try {
+            this.socket = new DatagramSocket();
+            this.schedulerAddress = InetAddress.getByName(schedulerAddress);
+            this.schedulerPort = schedulerPort;
+        } catch (SocketException | UnknownHostException e) {
+            System.err.println("Error creating socket: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -77,5 +98,26 @@ public class FireIncidentSubsystem implements Runnable {
     // For JUnit, I'm leaving this as public as it's not a big security risk.
     public List<Event> getEvents() { return events; }
 
+
+    private void sendEventToScheduler(Event event) {
+        try {
+            String eventData = convertEventToJson(event);
+            byte[] sendData = eventData.getBytes();
+            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            socket.send(packet);
+        } catch (IOException e) {
+            System.err.println("Error sending event: " + e.getMessage());
+        }
+    }
+
+    private String convertEventToJson(Event event) {
+        return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
+            event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());
+    }
+
+
+
 }
+
+
 
