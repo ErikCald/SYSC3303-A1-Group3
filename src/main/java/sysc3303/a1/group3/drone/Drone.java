@@ -2,42 +2,55 @@ package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.physics.Kinematics;
+import sysc3303.a1.group3.physics.Vector2d;
+
+import java.time.Instant;
 
 public class Drone implements Runnable {
 
-    private final String name;
+    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Sensors sensors;
-    private final Motors motors;
+    private final String name;
+    private final Scheduler scheduler;
+
+    private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
-
-    private static final DroneStates STATES = DroneStates.withDefaults();;
-
-    private final Scheduler scheduler;
 
     // package private for testing purposes
     Event currentEvent;
 
     private DroneState state;
 
-    // Static counter to assign positions. This is just for testing before we get movement and actual positions
-    private static int droneCounter = 0;
-    private final int positionX;
-    private final int positionY;
+    private double lastTickTimeMillis;
 
-    public Drone(String name, Scheduler scheduler) {
+    /**
+     * Creates a new Drone.
+     *
+     * @param name the name of the drone
+     * @param scheduler the scheduler that is responsible for this Drone
+     * @param specifications the physical specifications of this Drone
+     */
+    public Drone(String name, Scheduler scheduler, DroneSpecifications specifications) {
         this.name = name;
-        this.sensors = new Sensors();
-        this.motors = new Motors();
+
+        this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
+
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
+    }
 
-        droneCounter++;
-        this.positionX = droneCounter;
-        this.positionY = droneCounter;
+    /**
+     * Creates a Drone with arbitrary specs.
+     *
+     * @param name the name of the drone
+     * @param scheduler the scheduler that is responsible for this Drone
+     */
+    public Drone(String name, Scheduler scheduler) {
+        this(name, scheduler, new DroneSpecifications(10, 30));
     }
 
     /**
@@ -75,6 +88,19 @@ public class Drone implements Runnable {
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
 
+    /**
+     * Ticks the physics of this Drone for the period of time since the last time it was ticked.
+     */
+    private void tickPhysics() {
+        // calculate & update timing
+        double now = Instant.now().toEpochMilli();
+        double tickTime = now - lastTickTimeMillis;
+        lastTickTimeMillis = now;
+
+        // Simulate physics for the period of (lastTickTimeMillis) to (now).
+        kinematics.tick(tickTime);
+    }
+
     protected boolean InZoneSchedulerResponse(){
         return (this.scheduler.confirmDroneInZone(this));
     }
@@ -85,8 +111,8 @@ public class Drone implements Runnable {
     }
 
     // Note for Zane: If you are implementing movement, you should chance this to the actual x and y of the Drone.
-    public int[] getPosition() {
-        return new int[]{positionX, positionY};
+    public Vector2d getPosition() {
+        return kinematics.getPosition();
     }
     public void requestEvent() {
         scheduler.removeEvent();

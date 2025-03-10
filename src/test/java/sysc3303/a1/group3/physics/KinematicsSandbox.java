@@ -14,13 +14,14 @@ import java.util.Queue;
 
 class KinematicsSandbox extends JPanel {
 
+    private static final int MAX_POINTS_DRAWN = 10;
+
     private final Kinematics kin;
 
     private final double graphScale = 20;
 
     private SpeedPoint newestPoint = null;
     private final Queue<SpeedPoint> oldPoints = new ArrayDeque<>();
-    private final int maxPointsDrawn = 10;
 
     public KinematicsSandbox(Kinematics kinematics) {
         this.kin = kinematics;
@@ -41,7 +42,7 @@ class KinematicsSandbox extends JPanel {
         }
         newestPoint = point;
 
-        while (oldPoints.size() > maxPointsDrawn) {
+        while (oldPoints.size() > MAX_POINTS_DRAWN) {
             oldPoints.remove();
         }
 
@@ -76,6 +77,7 @@ class KinematicsSandbox extends JPanel {
         g.setColor(oldColor);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void drawLine(Graphics g, Vector2d start, Vector2d line, Color color) {
         Color oldColor = g.getColor();
 
@@ -128,13 +130,18 @@ class KinematicsSandbox extends JPanel {
         frame.pack();
         frame.setVisible(true);
 
+        int tickMillis = 10;
+        double tickSeconds =  tickMillis / 1000d;
+
+        //noinspection InfiniteLoopStatement
         while (true) {
-            kinematics.setTarget(graph.getCursorPosition());
+            kinematics.setTarget(graph.getCursorPosition()); // assume this doesn't take much time
 
-            kinematics.tick(0.05);
-            graph.update();
+            kinematics.tick(tickSeconds);
+            graph.update(); // assume this doesn't take much time
 
-            Thread.sleep(10);
+            //noinspection BusyWait
+            Thread.sleep(tickMillis);
         }
     }
 }
