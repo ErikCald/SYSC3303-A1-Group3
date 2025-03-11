@@ -10,14 +10,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // fileStream for scheduler, parses events in constructor
+        // Load incident and zone files from resources.
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
-        // Configuration
-        String schedulerAddress = "localhost"; // Change to Scheduler's IP
-        int schedulerPort = 5000; // Change to Scheduler's port
+        String schedulerAddress = "localhost"; // Scheduler's IP
+        int schedulerPort = 5000; // Scheduler's port
 
-        //Create required objects for simulation
         Scheduler scheduler;
         try {
             scheduler = new Scheduler(zoneFile);
@@ -36,34 +34,31 @@ public class Main {
             return;
         }
 
-
+        // Create three drone instances.
         Drone drone1 = new Drone("drone1", scheduler, schedulerAddress, schedulerPort);
         Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort);
         Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort);
 
-        //Ensure scheduler aggregation is complete
         scheduler.addDrone(drone1);
         scheduler.addDrone(drone2);
         scheduler.addDrone(drone3);
         scheduler.setSubsystem(fiSubsystem);
 
-        //Make threads from the aforementioned objects
+        // Create threads for the subsystem and each drone.
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
-        Thread DroneThread1 = new Thread((drone1), "Drone1");
-        Thread DroneThread2 = new Thread((drone2), "Drone2");
-        Thread DroneThread3 = new Thread((drone3), "Drone3");
+        Thread DroneThread1 = new Thread(drone1, "Drone1");
+        Thread DroneThread2 = new Thread(drone2, "Drone2");
+        Thread DroneThread3 = new Thread(drone3, "Drone3");
 
-        // Wait for user to press Enter before starting
         System.out.println("\nPress Enter to start the simulation:");
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
         scanner.close();
 
-        // Start the simulation
+        // Start all threads.
         FIsubsystemThread.start();
         DroneThread1.start();
         DroneThread2.start();
         DroneThread3.start();
-
     }
 }

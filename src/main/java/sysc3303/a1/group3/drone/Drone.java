@@ -1,5 +1,6 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
 import java.io.IOException;
@@ -10,7 +11,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-
+/**
+ * Represents a drone that requests events via UDP.
+ */
 public class Drone implements Runnable {
 
     private final String name;
@@ -20,16 +23,15 @@ public class Drone implements Runnable {
     private final WaterTank waterTank;
     private final Nozzle nozzle;
 
-    private static final DroneStates STATES = DroneStates.withDefaults();;
+    private static final DroneStates STATES = DroneStates.withDefaults();
 
     private final Scheduler scheduler;
-
-    // package private for testing purposes
+    // The currently assigned event.
     Event currentEvent;
 
     private DroneState state;
 
-    // Static counter to assign positions. This is just for testing before we get movement and actual positions
+    // For testing: assign positions via a static counter.
     private static int droneCounter = 0;
     private final int positionX;
     private final int positionY;
@@ -37,7 +39,6 @@ public class Drone implements Runnable {
     private DatagramSocket droneSocket;
     private InetAddress schedulerAddress;
     private int schedulerPort;
-
 
     public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
@@ -62,14 +63,12 @@ public class Drone implements Runnable {
         }
     }
 
-    // NEW METHOD: Serialize state to JSON
     private String getStateAsJson() {
         return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%d, \"y\":%d}",
             name, state.getStateName(), positionX, positionY);
     }
 
-
-    // NEW METHOD: Send state to the scheduler
+    // Sends this drone's state to the scheduler.
     private void sendStateToScheduler() {
         try {
             String stateData = getStateAsJson();
@@ -81,71 +80,79 @@ public class Drone implements Runnable {
         }
     }
 
-
-    // NEW METHOD: Receive assignment from the scheduler
-    private void receiveAssignment() {
+    // The drone sends a "DRONE_REQ_EVENT" packet and waits for the scheduler's response.
+    public void requestEvent() {
         try {
+            String request = "DRONE_REQ_EVENT";
+            byte[] sendData = request.getBytes();
+            DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            droneSocket.send(requestPacket);
+
+            // Wait for the scheduler's response.
             byte[] receiveData = new byte[1024];
-            DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
-            droneSocket.receive(packet);
-            String assignmentData = new String(packet.getData(), 0, packet.getLength());
-
-            Event event = convertJsonToEvent(assignmentData); // Implement this method
-            setCurrentEvent(event); // set current event
-
+            DatagramPacket responsePacket = new DatagramPacket(receiveData, receiveData.length);
+            droneSocket.receive(responsePacket);
+            String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
+            if (response.equals("NO_EVENT")) {
+                currentEvent = null;
+            } else {
+                currentEvent = convertJsonToEvent(response);
+            }
         } catch (IOException e) {
-            System.err.println("Error receiving assignments: " + e.getMessage());
+            System.err.println("Error requesting event: " + e.getMessage());
         }
     }
-    private Event convertJsonToEvent(String assignmentData) {
-        // Implement JSON deserialization here (e.g., using Gson library)
-        return null;
+
+    // Simple parser to convert a JSON string to an Event object.
+    private Event convertJsonToEvent(String json) {
+        json = json.trim();
+        json = json.substring(1, json.length() - 1); // remove { and }
+        String[] tokens = json.split(",");
+        int time = 0;
+        int zoneId = 0;
+        String eventType = "";
+        String severity = "";
+        for (String token : tokens) {
+            String[] pair = token.split(":");
+            if (pair.length < 2) continue;
+            String key = pair[0].trim().replaceAll("\"", "");
+            String value = pair[1].trim().replaceAll("\"", "");
+            switch (key) {
+                case "time":
+                    time = Integer.parseInt(value);
+                    break;
+                case "zoneId":
+                    zoneId = Integer.parseInt(value);
+                    break;
+                case "eventType":
+                    eventType = value;
+                    break;
+                case "severity":
+                    severity = value;
+                    break;
+            }
+        }
+        String timeStr = convertSecondsToTimeString(time);
+        return new Event(java.sql.Time.valueOf(timeStr), zoneId, Event.EventType.fromString(eventType), Severity.fromString(severity));
     }
 
+    // Helper method to convert seconds to "hh:mm:ss" format.
+    private String convertSecondsToTimeString(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
 
-
-
-
-    /**
-     * Transitions from the current state to a new state.
-     * {@link DroneState#triggerExitWork(Drone)} is invoked on the current state before the transition,
-     * after which {@link DroneState#triggerEntryWork(Drone)} is invoked on the new state.
-     *
-     * @param state the new state to transition to
-     */
-    public void transitionState(Class<? extends DroneState> state) throws InterruptedException {
-        if (Objects.equals(this.state.getClass(), state)) {
+    // Transitions this drone's state.
+    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
+        if (Objects.equals(this.state.getClass(), newState)) {
             return;
         }
         this.state.triggerExitWork(this);
-        this.state = STATES.retrieve(state);
+        this.state = STATES.retrieve(newState);
         this.state.triggerEntryWork(this);
         sendStateToScheduler();
-    }
-
-    //Start the Drone, wait for notifications.
-    @Override
-    public void run() {
-        receiveAssignment();
-        while (!scheduler.getShutOff()) {
-            requestEvent();
-
-
-            if (currentEvent != null){
-                //System.out.println(name + " has been scheduled with event: \n" + currentEvent);
-                //System.out.println("Sending back confirmation to Fire Incident Subsystem.\n");
-                //scheduler.confirmWithSubsystem(currentEvent);
-
-                //simulate drone switching to enroute, and taking off
-                try {
-                    transitionState(DroneEnRoute.class);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            sendStateToScheduler();
-        }
-        System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
 
     protected boolean InZoneSchedulerResponse(){
@@ -157,25 +164,28 @@ public class Drone implements Runnable {
         nozzle.extinguish();
     }
 
-    // Note for Zane: If you are implementing movement, you should chance this to the actual x and y of the Drone.
+    @Override
+    public void run() {
+        while (!scheduler.getShutOff()) {
+            requestEvent();
+            if (currentEvent != null) {
+                try {
+                    transitionState(DroneEnRoute.class);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            sendStateToScheduler();
+        }
+        System.out.println(Thread.currentThread().getName() + " is shutting down.");
+    }
+
     public int[] getPosition() {
         return new int[]{positionX, positionY};
     }
-    public void requestEvent() {
-        scheduler.removeEvent();
-    }
-    public Thread getCurrentThread(){ return Thread.currentThread(); }
-    public Event getCurrentEvent(){ return currentEvent; }
-    public void setCurrentEvent(Event event){ currentEvent = event;}
+    public Event getCurrentEvent() { return currentEvent; }
+    public void setCurrentEvent(Event event) { currentEvent = event; }
     public DroneState getState() { return state; }
-    public String getName(){ return name; }
-
-
-    /**
-     * @return the Scheduler that owns this Drone
-     */
-    Scheduler getScheduler() {
-        return scheduler;
-    }
-
+    public String getName() { return name; }
+    Scheduler getScheduler() { return scheduler; }
 }
