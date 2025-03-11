@@ -13,6 +13,7 @@ public class Event {
 
         public static EventType fromString(String string) {
             switch (string.toUpperCase()) {
+                case "FIRED_DETECTED": // Added to support the current input
                 case "FIRE_DETECTED":
                     return FIRED_DETECTED;
                 case "DRONE_REQUEST":
@@ -21,6 +22,7 @@ public class Event {
                     throw new IllegalArgumentException("Invalid event type: " + string);
             }
         }
+
     }
 
     private final Time time;
