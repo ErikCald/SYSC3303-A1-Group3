@@ -8,14 +8,14 @@ import java.util.Calendar;
  */
 public class Event {
     public enum EventType {
-        FIRED_DETECTED,
+        FIRE_DETECTED,
         DRONE_REQUESTED;
 
         public static EventType fromString(String string) {
             switch (string.toUpperCase()) {
                 case "FIRE_DETECTED":
-                    return FIRED_DETECTED;
-                case "DRONE_REQUEST":
+                    return FIRE_DETECTED;
+                case "DRONE_REQUESTED":
                     return DRONE_REQUESTED;
                 default:
                     throw new IllegalArgumentException("Invalid event type: " + string);
