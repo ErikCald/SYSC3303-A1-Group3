@@ -110,10 +110,12 @@ public class FireIncidentSubsystem implements Runnable {
         }
     }
 
+
     private String convertEventToJson(Event event) {
         return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
             event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());
     }
+
 
 
 

@@ -8,6 +8,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Objects;
 
 
 public class Drone implements Runnable {
@@ -67,6 +68,7 @@ public class Drone implements Runnable {
             name, state.getStateName(), positionX, positionY);
     }
 
+
     // NEW METHOD: Send state to the scheduler
     private void sendStateToScheduler() {
         try {
@@ -78,6 +80,7 @@ public class Drone implements Runnable {
             System.err.println("Error sending state to scheduler: " + e.getMessage());
         }
     }
+
 
     // NEW METHOD: Receive assignment from the scheduler
     private void receiveAssignment() {
@@ -102,6 +105,7 @@ public class Drone implements Runnable {
 
 
 
+
     /**
      * Transitions from the current state to a new state.
      * {@link DroneState#triggerExitWork(Drone)} is invoked on the current state before the transition,
@@ -110,9 +114,13 @@ public class Drone implements Runnable {
      * @param state the new state to transition to
      */
     public void transitionState(Class<? extends DroneState> state) throws InterruptedException {
+        if (Objects.equals(this.state.getClass(), state)) {
+            return;
+        }
         this.state.triggerExitWork(this);
         this.state = STATES.retrieve(state);
         this.state.triggerEntryWork(this);
+        sendStateToScheduler();
     }
 
     //Start the Drone, wait for notifications.
@@ -121,7 +129,7 @@ public class Drone implements Runnable {
         receiveAssignment();
         while (!scheduler.getShutOff()) {
             requestEvent();
-            sendStateToScheduler();
+
 
             if (currentEvent != null){
                 //System.out.println(name + " has been scheduled with event: \n" + currentEvent);
@@ -135,6 +143,7 @@ public class Drone implements Runnable {
                     throw new RuntimeException(e);
                 }
             }
+            sendStateToScheduler();
         }
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }

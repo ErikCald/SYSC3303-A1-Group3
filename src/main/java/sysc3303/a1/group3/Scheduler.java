@@ -51,6 +51,7 @@ public class Scheduler {
     private volatile boolean shutoff;
 
     private DatagramSocket socket;
+    int schedulerPort = 5000;
 
     //Constructor with no Zones (Iteration 1)
     public Scheduler() {
@@ -144,6 +145,7 @@ public class Scheduler {
     private void processDroneState(String droneState) {
         //Implement this method
     }
+
 
 
     // Add the new event to Queue, Called by the Fire Subsystem
