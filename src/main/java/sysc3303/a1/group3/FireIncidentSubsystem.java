@@ -85,16 +85,13 @@ public class FireIncidentSubsystem implements Runnable {
         } catch (IOException e) {
             System.err.println("Error sending shutdown signal: " + e.getMessage());
         }
+//        socket.close();
     }
 
     // Converts an Event object to a JSON string.
     private String convertEventToJson(Event event) {
         return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
             event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());
-    }
-
-    public void manageResponse(Event event) {
-        System.out.println("The drone confirmed it has received the event: " + event + "\n");
     }
 
     public List<Event> getEvents() { return events; }

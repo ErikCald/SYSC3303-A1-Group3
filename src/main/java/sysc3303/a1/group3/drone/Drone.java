@@ -37,8 +37,12 @@ public class Drone implements Runnable {
     private final int positionY;
 
     private DatagramSocket droneSocket;
+    private DatagramSocket listenerSocket;
+
     private InetAddress schedulerAddress;
     private int schedulerPort;
+
+    private volatile boolean shutoff;
 
     public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
@@ -53,8 +57,12 @@ public class Drone implements Runnable {
         this.positionX = droneCounter;
         this.positionY = droneCounter;
 
+        shutoff = false;
+
         try {
             this.droneSocket = new DatagramSocket();
+            this.listenerSocket = new DatagramSocket();
+
             this.schedulerAddress = InetAddress.getByName(schedulerAddress);
             this.schedulerPort = schedulerPort;
         } catch (SocketException | UnknownHostException e) {
@@ -63,21 +71,24 @@ public class Drone implements Runnable {
         }
     }
 
-    private String getStateAsJson() {
-        return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%d, \"y\":%d}",
-            name, state.getStateName(), positionX, positionY);
-    }
+    private void startUDPListener() {
+        new Thread(() -> {
+            byte[] receiveData = new byte[1024];
+            while (!shutoff) {
+                DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                try {
+                    listenerSocket.receive(packet);
+                    String message = new String(packet.getData(), 0, packet.getLength());
+                    if (message.equals("SHUTOFF")) {
+                        this.shutoff();
+                    } else {
 
-    // Sends this drone's state to the scheduler.
-    private void sendStateToScheduler() {
-        try {
-            String stateData = getStateAsJson();
-            byte[] sendData = stateData.getBytes();
-            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-            droneSocket.send(packet);
-        } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
-        }
+                    }
+                } catch (IOException e) {
+
+                }
+            }
+        }).start();
     }
 
     // The drone sends a "DRONE_REQ_EVENT" packet and waits for the scheduler's response.
@@ -103,6 +114,73 @@ public class Drone implements Runnable {
         }
     }
 
+    // Transitions this drone's state.
+    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
+        sendStateToScheduler();
+        if (Objects.equals(this.state.getClass(), newState)) {
+            return;
+        }
+        this.state.triggerExitWork(this);
+        this.state = STATES.retrieve(newState);
+        this.state.triggerEntryWork(this);
+    }
+
+    protected boolean InZoneSchedulerResponse(){
+        return (this.scheduler.confirmDroneInZone(this));
+    }
+
+    protected void extinguishFlames() throws InterruptedException {
+        System.out.println(name + " is extinguishing flames!");
+        nozzle.extinguish();
+    }
+
+    @Override
+    public void run() {
+        String recordString = ("NEW_DRONE," + this.name + "," + this.state);
+        byte[] sendData = recordString.getBytes();
+        DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        try {
+            listenerSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        startUDPListener();
+        while (!shutoff) {
+            requestEvent();
+            if (currentEvent != null) {
+                try {
+                    transitionState(DroneEnRoute.class);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        System.out.println(Thread.currentThread().getName() + " is shutting down.");
+    }
+
+
+
+
+
+
+
+    // HELPERS and GETTERS/SETTERS:
+    private String getStateMessage() {
+        return String.format("STATE_CHANGE," + name + "," + state);
+    }
+
+    // Sends this drone's state to the scheduler.
+    private void sendStateToScheduler() {
+        try {
+            String stateData = getStateMessage();
+            byte[] sendData = stateData.getBytes();
+            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            droneSocket.send(packet);
+        } catch (IOException e) {
+            System.err.println("Error sending state to scheduler: " + e.getMessage());
+        }
+    }
     // Simple parser to convert a JSON string to an Event object.
     private Event convertJsonToEvent(String json) {
         json = json.trim();
@@ -143,45 +221,13 @@ public class Drone implements Runnable {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-
-    // Transitions this drone's state.
-    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
-        if (Objects.equals(this.state.getClass(), newState)) {
-            return;
-        }
-        this.state.triggerExitWork(this);
-        this.state = STATES.retrieve(newState);
-        this.state.triggerEntryWork(this);
-        sendStateToScheduler();
-    }
-
-    protected boolean InZoneSchedulerResponse(){
-        return (this.scheduler.confirmDroneInZone(this));
-    }
-
-    protected void extinguishFlames() throws InterruptedException {
-        System.out.println(name + " is extinguishing flames!");
-        nozzle.extinguish();
-    }
-
-    @Override
-    public void run() {
-        while (!scheduler.getShutOff()) {
-            requestEvent();
-            if (currentEvent != null) {
-                try {
-                    transitionState(DroneEnRoute.class);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            sendStateToScheduler();
-        }
-        System.out.println(Thread.currentThread().getName() + " is shutting down.");
-    }
-
     public int[] getPosition() {
         return new int[]{positionX, positionY};
+    }
+    private void shutoff(){
+        this.shutoff = true;
+//        droneSocket.close();
+//        listenerSocket.close();
     }
     public Event getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = event; }

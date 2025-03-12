@@ -26,8 +26,7 @@ public class Scheduler {
     private boolean incidentSubsystemWritable;
     private boolean incidentSubsystemReadable;
 
-    private FireIncidentSubsystem subsystem;
-    private final List<Drone> drones;
+    private final List<DroneRecord> drones;
     private final List<Zone> zones;
 
     private volatile boolean shutoff;
@@ -98,6 +97,30 @@ public class Scheduler {
                         }).start();
                     } else if (message.equals("SHUTDOWN")) {
                         shutOff();
+                    } else if (message.startsWith("NEW_DRONE")) {
+                        String[] parts = message.split(",");
+                        String name = parts[1];
+                        String state = parts[2];
+                        try {
+                            DroneRecord newDrone = new DroneRecord(name, state, packet.getPort(), packet.getAddress());
+                            System.out.println("New Drone Registered: " + newDrone.getDroneName() + " at address " + newDrone.getAddress() + " and port:" + newDrone.getPort());
+                            drones.add(newDrone);
+                        } catch (Exception e) {
+                            System.err.println("Failed to parse NEW_DRONE message: " + e.getMessage());
+                        }
+
+                    } if (message.startsWith("STATE_CHANGE")){
+                        String[] parts = message.split(",");
+                        String name = parts[1];
+                        String state = parts[2];
+
+                        for (DroneRecord record : drones) {
+                            if (record.getDroneName().equals(name)) {
+                                record.setState(state);
+                                break;
+                            }
+                        }
+
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
@@ -122,6 +145,12 @@ public class Scheduler {
         if (shutoff) {
             return;
         }
+
+        // Add 2 copies of the event if it requires 2 drones.
+        if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
+            droneMessages.add(event);
+        }
+
         droneMessages.add(event);
         droneMessagesReadable = true;
         if (droneMessages.size() >= MAX_SIZE) {
@@ -154,22 +183,11 @@ public class Scheduler {
         return event;
     }
 
-    public void setSubsystem(FireIncidentSubsystem subsystem) { this.subsystem = subsystem; }
-
     public boolean confirmDroneInZone(Drone drone) {
         // For iteration 1, always return true.
         return true;
     }
 
-    public static int[] getCenter(Zone zone) {
-        int centerX = (zone.start_x() + zone.end_x()) / 2;
-        int centerY = (zone.start_y() + zone.end_y()) / 2;
-        return new int[]{ centerX, centerY };
-    }
-
-    public void addDrone(Drone drone) { drones.add(drone); }
-
-    public boolean getShutOff() { return shutoff; }
 
     // Synchronized shutdown method using wait/notifyAll.
     public synchronized void shutOff() {
@@ -181,8 +199,34 @@ public class Scheduler {
             }
         }
         this.shutoff = true;
+
+        sendShutoffToDrones();
+//        socket.close();
+
         notifyAll();
     }
+
+    // Sends "SHUTOFF" to all drones
+    private void sendShutoffToDrones() {
+        String message = "SHUTOFF";
+        byte[] sendData = message.getBytes();
+
+        for (DroneRecord drone : drones) {
+            try {
+                InetAddress droneAddress = drone.getAddress();
+                int dronePort = drone.getPort();
+                DatagramPacket packet = new DatagramPacket(sendData, sendData.length, droneAddress, dronePort);
+                socket.send(packet);
+                System.out.println("Sent SHUTOFF to drone: " + drone.getDroneName() + " at " + droneAddress + ":" + dronePort);
+            } catch (IOException e) {
+                System.err.println("Failed to send SHUTOFF to drone: " + drone.getDroneName());
+            }
+        }
+    }
+
+
+
+    // HELPERS, GETTERS, SETTERS:
 
     // Converts an Event object to a JSON string.
     private String convertEventToJson(Event event) {
@@ -229,17 +273,5 @@ public class Scheduler {
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-    }
-
-    public synchronized void confirmWithSubsystem(Event event) {
-        while (!incidentSubsystemWritable) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                System.err.println(e);
-            }
-        }
-        incidentSubsystemQueue.add(event);
-        subsystem.manageResponse(incidentSubsystemQueue.remove());
     }
 }

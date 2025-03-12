@@ -4,7 +4,6 @@ import sysc3303.a1.group3.drone.Drone;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Scanner;
 
 public class Main {
 
@@ -39,21 +38,11 @@ public class Main {
         Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort);
         Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort);
 
-        scheduler.addDrone(drone1);
-        scheduler.addDrone(drone2);
-        scheduler.addDrone(drone3);
-        scheduler.setSubsystem(fiSubsystem);
-
         // Create threads for the subsystem and each drone.
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         Thread DroneThread1 = new Thread(drone1, "Drone1");
         Thread DroneThread2 = new Thread(drone2, "Drone2");
         Thread DroneThread3 = new Thread(drone3, "Drone3");
-
-        System.out.println("\nPress Enter to start the simulation:");
-        Scanner scanner = new Scanner(System.in);
-        scanner.nextLine();
-        scanner.close();
 
         // Start all threads.
         FIsubsystemThread.start();
