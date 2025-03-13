@@ -20,7 +20,7 @@ public class Main {
         try {
             scheduler = new Scheduler(zoneFile);
         } catch (IOException e) {
-            System.err.println("Failed to parse zone_location.csv, aborting.");
+            System.err.println("Failed to create scheduler, aborting.");
             e.printStackTrace();
             return;
         }

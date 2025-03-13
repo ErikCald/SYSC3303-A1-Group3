@@ -20,52 +20,39 @@ public class Scheduler {
 
     private final int MAX_SIZE = 10;
     // Queue for events coming from the subsystem.
-    private final Queue<Event> droneMessages;
-    private boolean droneMessagesWritable;
-    private boolean droneMessagesReadable;
+    private final Queue<Event> droneMessages = new ArrayDeque<>();
+    private boolean droneMessagesWritable = true;
+    private boolean droneMessagesReadable = false;
 
     // (For potential confirmation messages from the subsystem.)
-    private final Queue<Event> incidentSubsystemQueue;
-    private boolean incidentSubsystemWritable;
-    private boolean incidentSubsystemReadable;
+    private final Queue<Event> incidentSubsystemQueue = new ArrayDeque<>();
+    private boolean incidentSubsystemWritable = true;
+    private boolean incidentSubsystemReadable = false;
 
-    private final List<DroneRecord> drones;
+    private final List<DroneRecord> drones = Collections.synchronizedList(new ArrayList<>());
     private final List<Zone> zones;
 
-    private volatile boolean shutoff;
-    private volatile boolean allDronesShutoff;
+    private volatile boolean shutoff = false;
+    private volatile boolean allDronesShutoff = false;
 
     private DatagramSocket socket;
     private DatagramSocket sendSocket;
     private final int schedulerPort = 5000;
     private final int sendSchedulerPort = 6000;
 
+    /**
+     * Creates a new Scheduler
+     *
+     * @param zoneFile the zoneFile containing the fire zones
+     * @throws IOException if the zone file could not be parsed
+     * @throws SocketException if any of the required sockets could not be created
+     */
     public Scheduler(InputStream zoneFile) throws IOException {
-        this.droneMessages = new ArrayDeque<>();
-        this.incidentSubsystemQueue = new ArrayDeque<>();
-        this.droneMessagesWritable = true;
-        this.droneMessagesReadable = false;
-        this.incidentSubsystemWritable = true;
-        this.incidentSubsystemReadable = false;
-        this.drones = Collections.synchronizedList(new ArrayList<DroneRecord>());;
+        Objects.requireNonNull(zoneFile, "zoneFile");
+        this.zones = new Parser().parseZoneFile(zoneFile);
 
-        Parser parser = new Parser();
-        if (zoneFile == null) {
-            zones = new ArrayList<>();
-            System.out.println("Zone file doesn't exist");
-        } else {
-            zones = parser.parseZoneFile(zoneFile);
-        }
-        shutoff = false;
-        allDronesShutoff = false;
-
-        try {
-            this.socket = new DatagramSocket(schedulerPort);
-            this.sendSocket = new DatagramSocket(sendSchedulerPort);
-        } catch (SocketException e) {
-            System.err.println("Error creating socket: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
+        this.socket = new DatagramSocket(schedulerPort);
+        this.sendSocket = new DatagramSocket(sendSchedulerPort);
 
         startUDPListener();
     }
