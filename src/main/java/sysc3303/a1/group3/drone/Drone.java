@@ -3,6 +3,8 @@ package sysc3303.a1.group3.drone;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.physics.Kinematics;
+import sysc3303.a1.group3.physics.Vector2d;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -11,30 +13,29 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
+import java.time.Instant;
+
 /**
  * Represents a drone that requests events via UDP.
  */
 public class Drone implements Runnable {
 
-    private final String name;
+    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Sensors sensors;
-    private final Motors motors;
+    private final String name;
+    private final Scheduler scheduler;
+
+    private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
 
-    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Scheduler scheduler;
     // The currently assigned event.
     Event currentEvent;
 
     private DroneState state;
 
-    // For testing: assign positions via a static counter.
-    private static int droneCounter = 0;
-    private final int positionX;
-    private final int positionY;
+    private double lastTickTimeMillis;
 
     private DatagramSocket droneSocket;
     private DatagramSocket listenerSocket;
@@ -44,18 +45,15 @@ public class Drone implements Runnable {
 
     private volatile boolean shutoff;
 
-    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
-        this.sensors = new Sensors();
-        this.motors = new Motors();
+
+        this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
+
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
-
-        droneCounter++;
-        this.positionX = droneCounter;
-        this.positionY = droneCounter;
 
         shutoff = false;
 
@@ -69,6 +67,16 @@ public class Drone implements Runnable {
             System.err.println("Error creating socket: " + e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Creates a Drone with arbitrary specs.
+     *
+     * @param name the name of the drone
+     * @param scheduler the scheduler that is responsible for this Drone
+     */
+    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort);
     }
 
     private void startUDPListener() {
@@ -237,8 +245,8 @@ public class Drone implements Runnable {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-    public int[] getPosition() {
-        return new int[]{positionX, positionY};
+    public Vector2d getPosition() {
+        return kinematics.getPosition();
     }
     private void shutoff(){
         this.shutoff = true;

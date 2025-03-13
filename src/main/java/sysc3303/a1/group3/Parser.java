@@ -67,6 +67,6 @@ public class Parser {
         int starty = Integer.parseInt(values[2]);
         int endx = Integer.parseInt(values[3]);
         int endy = Integer.parseInt(values[4]);
-        return new Zone(zoneId, startx, starty, endx, endy);
+        return Zone.of(zoneId, startx, starty, endx, endy);
     }
 }
