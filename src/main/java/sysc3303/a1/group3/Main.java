@@ -25,9 +25,10 @@ public class Main {
             return;
         }
 
+        // Create Fire Incident Subsystem
         FireIncidentSubsystem fiSubsystem;
         try {
-            fiSubsystem = new FireIncidentSubsystem(scheduler, incidentFile, schedulerAddress, schedulerPort);
+            fiSubsystem = new FireIncidentSubsystem(incidentFile, schedulerAddress, schedulerPort);
         } catch (IOException e) {
             System.err.println("Failed to parse incidentFile.csv, aborting.");
             e.printStackTrace();
@@ -35,6 +36,7 @@ public class Main {
         }
 
         // Create three drone instances.
+        // No need to add them to scheduler anymore since they send sockets automatically
         Drone drone1 = new Drone("drone1", scheduler, schedulerAddress, schedulerPort);
         Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort);
         Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort);

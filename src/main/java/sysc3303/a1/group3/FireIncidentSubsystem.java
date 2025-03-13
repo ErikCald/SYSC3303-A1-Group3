@@ -18,9 +18,7 @@ import java.net.UnknownHostException;
  */
 public class FireIncidentSubsystem implements Runnable {
     volatile int elapsedSeconds;
-    private final Scheduler scheduler;
     private List<Event> events;
-    private List<Zone> zones;
     private int eventCount;
     Instant startTime;
 
@@ -28,8 +26,7 @@ public class FireIncidentSubsystem implements Runnable {
     private InetAddress schedulerAddress;
     private int schedulerPort;
 
-    public FireIncidentSubsystem(Scheduler s, InputStream fileStream, String schedulerAddress, int schedulerPort) throws IOException {
-        this.scheduler = s;
+    public FireIncidentSubsystem(InputStream fileStream, String schedulerAddress, int schedulerPort) throws IOException {
         eventCount = 0;
         events = new ArrayList<>();
         startTime = Instant.now();
@@ -50,6 +47,7 @@ public class FireIncidentSubsystem implements Runnable {
         }
     }
 
+    // Now sends events with sockets
     @Override
     public void run() {
         for (Event event: events) {
