@@ -39,6 +39,7 @@ public class Drone implements Runnable {
 
     private DatagramSocket droneSocket;
     private DatagramSocket listenerSocket;
+    private DatagramSocket stateSocket;
 
     private InetAddress schedulerAddress;
     private int schedulerPort;
@@ -60,6 +61,7 @@ public class Drone implements Runnable {
         try {
             this.droneSocket = new DatagramSocket();
             this.listenerSocket = new DatagramSocket();
+            this.stateSocket = new DatagramSocket();
 
             this.schedulerAddress = InetAddress.getByName(schedulerAddress);
             this.schedulerPort = schedulerPort;
@@ -110,6 +112,8 @@ public class Drone implements Runnable {
             DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
             droneSocket.send(requestPacket);
 
+            Thread.sleep(300);
+
             // Wait for the scheduler's response.
             byte[] receiveData = new byte[1024];
             DatagramPacket responsePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -122,6 +126,8 @@ public class Drone implements Runnable {
             }
         } catch (IOException e) {
             System.err.println("Error requesting event: " + e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -167,8 +173,8 @@ public class Drone implements Runnable {
             throw new RuntimeException(e);
         }
 
-
         startUDPListener();
+
         while (!shutoff) {
             requestEvent();
             if (currentEvent != null) {
@@ -180,7 +186,8 @@ public class Drone implements Runnable {
             }
         }
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
-         droneSocket.close();
+        droneSocket.close();
+        stateSocket.close();
     }
 
 
@@ -197,11 +204,11 @@ public class Drone implements Runnable {
         try {
             byte[] sendData = msg.getBytes();
             DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-            droneSocket.send(packet);
+            stateSocket.send(packet);
 
             byte[] confirmData = new byte[1024];
             DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
-            droneSocket.receive(confirmPacket);
+            stateSocket.receive(confirmPacket);
 
         } catch (IOException e) {
             System.err.println("Error sending state to scheduler: " + e.getMessage());

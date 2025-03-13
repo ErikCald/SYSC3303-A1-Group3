@@ -6,7 +6,7 @@ public class DroneEnRoute implements BaseDroneState {
     public void triggerEntryWork(Drone drone) throws InterruptedException {
         //Simulate movement
         System.out.println(drone.getName() + " on the way!");
-        Thread.sleep(500);
+        Thread.sleep(1000);
         drone.transitionState(DroneInZone.class);
     }
 

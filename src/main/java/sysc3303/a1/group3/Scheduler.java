@@ -128,11 +128,10 @@ public class Scheduler {
                             // CONT HERE. DRONES NOT CLEARING EVENTS CORRECTLY?
                             if (Objects.equals(state, "DroneIdle")){
                                 getDroneByName(name).setEvent(null);
-                                System.out.println("areAllDroneEventsNull: " + areAllDroneEventsNull());
-                                System.out.println("shutoff: " + shutoff);
+                                //System.out.println("areAllDroneEventsNull: " + areAllDroneEventsNull());
+                                //System.out.println("shutoff: " + shutoff);
                                 if (areAllDroneEventsNull() && shutoff){
                                     allDronesShutoff = true;
-                                    System.out.println("HERE");
                                 }
                             }
 
@@ -167,9 +166,10 @@ public class Scheduler {
         }
 
         // Add 2 copies of the event if it requires 2 drones.
-        if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
-            droneMessages.add(event);
-        }
+        // Temp commented out for debug
+//        if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
+//            droneMessages.add(event);
+//        }
 
         droneMessages.add(event);
         droneMessagesReadable = true;
@@ -198,10 +198,6 @@ public class Scheduler {
         Event event = droneMessages.remove();
         List<DroneRecord> availableDrones = getAvailableDrones();
 
-        for (DroneRecord drone : availableDrones){
-            System.out.println("Available Drone: " + drone.getDroneName());
-        }
-
         distributeEvent(event, availableDrones);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
@@ -224,6 +220,7 @@ public class Scheduler {
         String selectedDrone = null;
         Event previousEvent = null;
         boolean only1Drone = false;
+        String redistributedDrone = null;
 
         if (availableDrones.size() == 1) {
             // If there's only one available drone, assign the event to that drone
@@ -276,22 +273,26 @@ public class Scheduler {
                 String secondEventData;
                 if (previousEvent != null) {
                     secondEventData = convertEventToJson(previousEvent);
-                } else {
-                    secondEventData = "NO_EVENT";
-                }
-                String redistributedDrone = findClosestDrone(updatedAvailableDrones).getDroneName();
-                DatagramPacket secondResponse = new DatagramPacket(secondEventData.getBytes(), secondEventData.getBytes().length, getListenerAddressByName(redistributedDrone), getListenerPortByName(redistributedDrone));
-                try {
-                    setDroneEventByName(redistributedDrone, previousEvent);
-                    socket.send(secondResponse);
-                } catch (IOException e) {
-                    System.err.println("Error sending event to second drone: " + e.getMessage());
+                    redistributedDrone = findClosestDrone(updatedAvailableDrones).getDroneName();
+
+                    DatagramPacket secondResponse = new DatagramPacket(secondEventData.getBytes(), secondEventData.getBytes().length, getListenerAddressByName(redistributedDrone), getListenerPortByName(redistributedDrone));
+                    try {
+                        setDroneEventByName(redistributedDrone, previousEvent);
+                        socket.send(secondResponse);
+                    } catch (IOException e) {
+                        System.err.println("Error sending event to second drone: " + e.getMessage());
+                    }
                 }
             }
         } else {
             System.out.println("No available drone without an event.");
         }
-        System.out.println(selectedDrone + " is scheduled with event, " + event);
+        if (redistributedDrone != null && previousEvent != null){
+            System.out.println(selectedDrone + " is scheduled with newest event, " + event);
+            System.out.println(redistributedDrone + " is scheduled with older event, " + previousEvent + "\n");
+        } else {
+            System.out.println(selectedDrone + " is scheduled with event, " + event + "\n");
+        }
     }
 
     private List<DroneRecord> getAvailableDrones() {
@@ -506,7 +507,7 @@ public class Scheduler {
     public boolean areAllDroneEventsNull() {
         for (DroneRecord drone : drones) {
             if (drone.getEvent() != null) {
-                System.out.println("NON NULL EVENT IN: " + drone.getDroneName() + " which has event: " + drone.getEvent());
+                // System.out.println("NON NULL EVENT IN: " + drone.getDroneName() + " which has event: " + drone.getEvent());
                 return false;
             }
         }

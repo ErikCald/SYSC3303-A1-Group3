@@ -60,7 +60,7 @@ public class FireIncidentSubsystem implements Runnable {
             } while (elapsedSeconds <= event.getTime());
 
             ++eventCount;
-            System.out.println("Sending Event " + eventCount + " to Scheduler: \n" + event + "\n");
+            System.out.println("\nSending Event " + eventCount + " to Scheduler: \n" + event + "\n");
             // Send event via UDP with a prefix.
             String eventData = "SUBSYSTEM_EVENT:" + convertEventToJson(event);
             byte[] sendData = eventData.getBytes();
