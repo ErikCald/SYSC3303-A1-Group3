@@ -148,6 +148,8 @@ public class Drone implements Runnable {
 
     @Override
     public void run() {
+        double positionX = getPosition().getX();
+        double positionY = getPosition().getY();
         String listenerRecordString = ("NEW_DRONE_LISTENER," + this.name + "," + this.state + "," + positionX + "," + positionY);
         byte[] listenerSendData = listenerRecordString.getBytes();
         DatagramPacket requestPacket = new DatagramPacket(listenerSendData, listenerSendData.length, schedulerAddress, schedulerPort);

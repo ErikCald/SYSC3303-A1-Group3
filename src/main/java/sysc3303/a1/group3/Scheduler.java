@@ -1,6 +1,7 @@
 package sysc3303.a1.group3;
 
 import sysc3303.a1.group3.drone.*;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,8 +99,8 @@ public class Scheduler {
                         String[] parts = message.split(",");
                         String name = parts[1];
                         String state = parts[2];
-                        int x = Integer.parseInt(parts[3]);
-                        int y = Integer.parseInt(parts[4]);
+                        double x = Double.parseDouble(parts[3]);
+                        double y = Double.parseDouble(parts[4]);
                         if (getDroneByName(name) == null){
                             // If record doesn't exist, add it
                             DroneRecord newDrone = new DroneRecord(name, state, x, y);
@@ -116,8 +117,8 @@ public class Scheduler {
                         String[] parts = message.split(",");
                         String name = parts[1];
                         String state = parts[2];
-                        int x = Integer.parseInt(parts[3]);
-                        int y = Integer.parseInt(parts[4]);
+                        double x = Double.parseDouble(parts[3]);
+                        double y = Double.parseDouble(parts[4]);
                         if (getDroneByName(name) == null){
                             // If record doesn't exist, add it
                             DroneRecord newDrone = new DroneRecord(name, state, x, y);
@@ -421,17 +422,10 @@ public class Scheduler {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-    //Get the x and y of the center of the zone.
-    //We could move this later, but only Scheduler needs it right now.
-    public static int[] getCenter(Zone zone) {
-        int centerX = (zone.start_x() + zone.end_x()) / 2;
-        int centerY = (zone.start_y() + zone.end_y()) / 2;
 
-        return new int[] { centerX, centerY };
-    }
     //Should be changed when movement and location for drones is implemented.
     //Gets the distance from the zone to the event's zone
-    private int getDistanceFromZone(int droneX, int droneY , Event event) {
+    private double getDistanceFromZone(Vector2d dronePosition, Event event) {
         // Find the Zone corresponding to the event's zoneId
         Zone zone = null;
         for (Zone z : zones) {
@@ -447,15 +441,8 @@ public class Scheduler {
         }
 
         // Get the center of the zone and position of drone:
-        int[] zoneCenter = getCenter(zone);
-        int centerX = zoneCenter[0];
-        int centerY = zoneCenter[1];
-
-        // Calculate the distance between the drone and the zone center.
-        // See "Euclidean distance" (https://en.wikipedia.org/wiki/Euclidean_distance)
-        // redundant variable declaration for debug
-        int distance = (int) Math.sqrt(Math.pow(centerX - droneX, 2) + Math.pow(centerY - droneY, 2));
-        return distance;
+        Vector2d zoneCentre = zone.centre();
+        return zoneCentre.subtract(dronePosition).magnitude();
     }
     public void setDroneStateByName(String droneName, String newState) {
         for (DroneRecord drone : drones) {
@@ -547,8 +534,8 @@ public class Scheduler {
         double minDistanceSquared = Double.MAX_VALUE;
 
         for (DroneRecord drone : availableDrones) {
-            int x = drone.getXY()[0];
-            int y = drone.getXY()[1];
+            double x = drone.getXY()[0];
+            double y = drone.getXY()[1];
             double distanceSquared = (x * x) + (y * y);
 
             if (distanceSquared < minDistanceSquared) {

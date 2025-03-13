@@ -14,9 +14,9 @@ public class DroneRecord {
     private int listenerPort;
     private InetAddress listenerAddress;
     private Event event;
-    private int x,y;
+    private double x,y;
 
-    public DroneRecord(String n, String s, int x, int y){
+    public DroneRecord(String n, String s, double x, double y){
         this.droneName = n;
         this.state = s;
 
@@ -48,7 +48,7 @@ public class DroneRecord {
 
     public Event getEvent(){ return event; }
     public void setEvent(Event e){ this.event = e; }
-    public int[] getXY(){ return new int[]{x, y}; }
+    public double[] getXY(){ return new double[]{x, y}; }
     public void setXY(int[] newXY){
         this.x = newXY[0];
         this.y = newXY[1];
