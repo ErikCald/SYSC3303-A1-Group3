@@ -161,12 +161,6 @@ public class Scheduler {
         return true;
     }
 
-    public static int[] getCenter(Zone zone) {
-        int centerX = (zone.start_x() + zone.end_x()) / 2;
-        int centerY = (zone.start_y() + zone.end_y()) / 2;
-        return new int[]{ centerX, centerY };
-    }
-
     public void addDrone(Drone drone) { drones.add(drone); }
 
     public boolean getShutOff() { return shutoff; }

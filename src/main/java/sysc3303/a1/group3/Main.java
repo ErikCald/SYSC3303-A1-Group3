@@ -1,6 +1,7 @@
 package sysc3303.a1.group3;
 
 import sysc3303.a1.group3.drone.Drone;
+import sysc3303.a1.group3.drone.DroneSpecifications;
 
 import java.io.IOException;
 import java.io.InputStream;

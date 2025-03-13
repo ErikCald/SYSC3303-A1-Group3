@@ -3,6 +3,8 @@ package sysc3303.a1.group3.drone;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.physics.Kinematics;
+import sysc3303.a1.group3.physics.Vector2d;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -11,47 +13,43 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
+import java.time.Instant;
+
 /**
  * Represents a drone that requests events via UDP.
  */
 public class Drone implements Runnable {
 
-    private final String name;
+    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Sensors sensors;
-    private final Motors motors;
+    private final String name;
+    private final Scheduler scheduler;
+
+    private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
 
-    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Scheduler scheduler;
     // The currently assigned event.
     Event currentEvent;
 
     private DroneState state;
 
-    // For testing: assign positions via a static counter.
-    private static int droneCounter = 0;
-    private final int positionX;
-    private final int positionY;
+    private double lastTickTimeMillis;
 
     private DatagramSocket droneSocket;
     private InetAddress schedulerAddress;
     private int schedulerPort;
 
-    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
-        this.sensors = new Sensors();
-        this.motors = new Motors();
+
+        this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
+
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
-
-        droneCounter++;
-        this.positionX = droneCounter;
-        this.positionY = droneCounter;
 
         try {
             this.droneSocket = new DatagramSocket();
@@ -63,9 +61,20 @@ public class Drone implements Runnable {
         }
     }
 
+    /**
+     * Creates a Drone with arbitrary specs.
+     *
+     * @param name the name of the drone
+     * @param scheduler the scheduler that is responsible for this Drone
+     */
+    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort);
+    }
+
     private String getStateAsJson() {
-        return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%d, \"y\":%d}",
-            name, state.getStateName(), positionX, positionY);
+        Vector2d position = kinematics.getPosition();
+        return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%f, \"y\":%f}",
+            name, state.getStateName(), position.getX(), position.getY());
     }
 
     // Sends this drone's state to the scheduler.
@@ -180,8 +189,21 @@ public class Drone implements Runnable {
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
     }
 
-    public int[] getPosition() {
-        return new int[]{positionX, positionY};
+    /**
+     * Ticks the physics of this Drone for the period of time since the last time it was ticked.
+     */
+    private void tickPhysics() {
+        // calculate & update timing
+        double now = Instant.now().toEpochMilli();
+        double tickTime = now - lastTickTimeMillis;
+        lastTickTimeMillis = now;
+
+        // Simulate physics for the period of (lastTickTimeMillis) to (now).
+        kinematics.tick(tickTime);
+    }
+
+    public Vector2d getPosition() {
+        return kinematics.getPosition();
     }
     public Event getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = event; }
