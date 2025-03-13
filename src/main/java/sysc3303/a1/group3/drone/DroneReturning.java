@@ -8,7 +8,7 @@ public class DroneReturning implements BaseDroneState {
     public void triggerEntryWork(Drone drone) throws InterruptedException {
         //Simulate movement
         System.out.println(drone.getName() + " returning!");
-        Thread.sleep(500);
+        Thread.sleep(1000);
         drone.transitionState(DroneIdle.class);
     }
 
