@@ -122,9 +122,10 @@ public class Drone implements Runnable {
         if (Objects.equals(this.state.getClass(), newState)) {
             return;
         }
+
         this.state.triggerExitWork(this);
+        sendStateToScheduler(newState.getSimpleName());
         this.state = STATES.retrieve(newState);
-        sendStateToScheduler();
         this.state.triggerEntryWork(this);
     }
 
@@ -179,17 +180,19 @@ public class Drone implements Runnable {
 
 
     // HELPERS and GETTERS/SETTERS:
-    private String getStateMessage() {
-        return String.format("STATE_CHANGE," + name + "," + state);
-    }
 
     // Sends this drone's state to the scheduler.
-    private void sendStateToScheduler() {
+    private void sendStateToScheduler(String stateMsg) {
+        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg);
         try {
-            String stateData = getStateMessage();
-            byte[] sendData = stateData.getBytes();
+            byte[] sendData = msg.getBytes();
             DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
             droneSocket.send(packet);
+
+            byte[] confirmData = new byte[1024];
+            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+            droneSocket.receive(confirmPacket);
+
         } catch (IOException e) {
             System.err.println("Error sending state to scheduler: " + e.getMessage());
         }

@@ -8,6 +8,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -31,6 +32,7 @@ public class Scheduler {
     private final List<Zone> zones;
 
     private volatile boolean shutoff;
+    private volatile boolean allDronesShutoff;
 
     private DatagramSocket socket;
     private DatagramSocket sendSocket;
@@ -54,6 +56,7 @@ public class Scheduler {
             zones = parser.parseZoneFile(zoneFile);
         }
         shutoff = false;
+        allDronesShutoff = false;
 
         try {
             this.socket = new DatagramSocket(schedulerPort);
@@ -70,7 +73,7 @@ public class Scheduler {
     private void startUDPListener() {
         new Thread(() -> {
             byte[] receiveData = new byte[1024];
-            while (!shutoff) {
+            while (!shutoff || !allDronesShutoff) {
                 DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     socket.receive(packet);
@@ -133,6 +136,22 @@ public class Scheduler {
                             String state = parts[2];
 
                             setDroneStateByName(name, state);
+
+                            // CONT HERE. DRONES NOT CLEARING EVENTS CORRECTLY?
+                            if (Objects.equals(state, "DroneIdle")){
+                                getDroneByName(name).setEvent(null);
+                                System.out.println("areAllDroneEventsNull: " + areAllDroneEventsNull());
+                                System.out.println("shutoff: " + shutoff);
+                                if (areAllDroneEventsNull() && shutoff){
+                                    allDronesShutoff = true;
+                                    System.out.println("HERE");
+                                }
+                            }
+
+                            String confirm = "STATE_CHANGE_OK";
+                            byte[] confirmData = confirm.getBytes();
+                            DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                            socket.send(confirmChangePacket);
                         }
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
@@ -190,6 +209,11 @@ public class Scheduler {
 
         Event event = droneMessages.remove();
         List<DroneRecord> availableDrones = getAvailableDrones();
+
+        for (DroneRecord drone : availableDrones){
+            System.out.println("Available Drone: " + drone.getDroneName());
+        }
+
         distributeEvent(event, availableDrones);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
@@ -307,12 +331,10 @@ public class Scheduler {
 
     // Synchronized shutdown method using wait/notifyAll.
     public synchronized void shutOff() throws InterruptedException {
-        while (!droneMessages.isEmpty()) {
+        while (!droneMessages.isEmpty() ) {
             try {
                 wait();
-            } catch (InterruptedException e) {
-                System.err.println(e);
-            }
+            } catch (InterruptedException e) {}
         }
         this.shutoff = true;
         notifyAll();
@@ -507,8 +529,19 @@ public class Scheduler {
         }
         return null;
     }
+    public boolean areAllDroneEventsNull() {
+        for (DroneRecord drone : drones) {
+            if (drone.getEvent() != null) {
+                System.out.println("NON NULL EVENT IN: " + drone.getDroneName() + " which has event: " + drone.getEvent());
+                return false;
+            }
+        }
+        return true; // All elements were null
+    }
 
 
+    // Right now, closest drone determines which drone is closer to 0,0, which obviously doesn't make
+    // practical sense, but since movement is being integrated, I'm making the actual calculation then
     private DroneRecord findClosestDrone(List<DroneRecord> availableDrones) {
         DroneRecord closestDrone = null;
         double minDistanceSquared = Double.MAX_VALUE;
