@@ -81,13 +81,16 @@ public class Drone implements Runnable {
                     String message = new String(packet.getData(), 0, packet.getLength());
                     if (message.equals("SHUTOFF")) {
                         this.shutoff();
+                    } else if (message.equals("NO_EVENT")) {
+                        currentEvent = null;
                     } else {
-
+                        currentEvent = convertJsonToEvent(message);
                     }
                 } catch (IOException e) {
 
                 }
             }
+            listenerSocket.close();
         }).start();
     }
 
@@ -116,12 +119,12 @@ public class Drone implements Runnable {
 
     // Transitions this drone's state.
     public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
-        sendStateToScheduler();
         if (Objects.equals(this.state.getClass(), newState)) {
             return;
         }
         this.state.triggerExitWork(this);
         this.state = STATES.retrieve(newState);
+        sendStateToScheduler();
         this.state.triggerEntryWork(this);
     }
 
@@ -136,14 +139,23 @@ public class Drone implements Runnable {
 
     @Override
     public void run() {
-        String recordString = ("NEW_DRONE," + this.name + "," + this.state);
-        byte[] sendData = recordString.getBytes();
-        DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        String listenerRecordString = ("NEW_DRONE_LISTENER," + this.name + "," + this.state + "," + positionX + "," + positionY);
+        byte[] listenerSendData = listenerRecordString.getBytes();
+        DatagramPacket requestPacket = new DatagramPacket(listenerSendData, listenerSendData.length, schedulerAddress, schedulerPort);
         try {
             listenerSocket.send(requestPacket);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + positionX + "," + positionY);
+        byte[] droneSendData = droneRecordString.getBytes();
+        requestPacket = new DatagramPacket(droneSendData, droneSendData.length, schedulerAddress, schedulerPort);
+        try {
+            droneSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
         startUDPListener();
         while (!shutoff) {
@@ -157,6 +169,7 @@ public class Drone implements Runnable {
             }
         }
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
+         droneSocket.close();
     }
 
 
@@ -226,8 +239,6 @@ public class Drone implements Runnable {
     }
     private void shutoff(){
         this.shutoff = true;
-//        droneSocket.close();
-//        listenerSocket.close();
     }
     public Event getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = event; }

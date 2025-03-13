@@ -85,7 +85,7 @@ public class FireIncidentSubsystem implements Runnable {
         } catch (IOException e) {
             System.err.println("Error sending shutdown signal: " + e.getMessage());
         }
-//        socket.close();
+        socket.close();
     }
 
     // Converts an Event object to a JSON string.
