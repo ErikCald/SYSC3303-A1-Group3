@@ -19,6 +19,7 @@ import java.net.SocketException;
 public class Scheduler {
 
     private final int MAX_SIZE = 10;
+
     // Queue for events coming from the subsystem.
     private final Queue<Event> droneMessages = new ArrayDeque<>();
     private boolean droneMessagesWritable = true;
@@ -29,14 +30,24 @@ public class Scheduler {
     private boolean incidentSubsystemWritable = true;
     private boolean incidentSubsystemReadable = false;
 
+    // Drone List is now a List of DroneRecords to hold info about drones the scheulder has contact to
     private final List<DroneRecord> drones = Collections.synchronizedList(new ArrayList<>());
+
     private final List<Zone> zones;
 
+    // Boolean for if the system should shut down
     private volatile boolean shutoff = false;
+
+    // Boolean for if all drones have no events, only to be set after shutdown is true.
+    // Ensures that the scheduler doesn't shut down while the drone still needs to send packets to it.
     private volatile boolean allDronesShutoff = false;
 
+    // general purpose socket
     private DatagramSocket socket;
+
+    // socket to exclusive send packets when the main socket is busy listening
     private DatagramSocket sendSocket;
+
     private final int schedulerPort = 5000;
     private final int sendSchedulerPort = 6000;
 
@@ -54,10 +65,12 @@ public class Scheduler {
         this.socket = new DatagramSocket(schedulerPort);
         this.sendSocket = new DatagramSocket(sendSchedulerPort);
 
+        // start the main listener/handler
         startUDPListener();
     }
 
     // Starts one UDP listener thread that continuously receives packets.
+    // Based on the packet info, respond and react accordingly
     private void startUDPListener() {
         new Thread(() -> {
             byte[] receiveData = new byte[1024];
@@ -81,8 +94,10 @@ public class Scheduler {
                             }
                         }).start();
                     } else if (message.equals("SHUTDOWN")) {
+                        // Received a shutdown request from FiSubsystem.
                         shutOff();
                     } else if (message.startsWith("NEW_DRONE_LISTENER")) {
+                        // New Drone registering, the one has information about its listener socket
                         String[] parts = message.split(",");
                         String name = parts[1];
                         String state = parts[2];
@@ -101,6 +116,7 @@ public class Scheduler {
                         }
 
                     } else if (message.startsWith("NEW_DRONE_PORT")){
+                        // New Drone registering, the one has information about its main drone socket
                         String[] parts = message.split(",");
                         String name = parts[1];
                         String state = parts[2];
@@ -118,23 +134,22 @@ public class Scheduler {
                             getDroneByName(name).setDronePort(packet.getPort());
                         }
                     } if (message.startsWith("STATE_CHANGE")) {
+                        // Drone wants to update scheduler about a state change
                         synchronized (drones){
                             String[] parts = message.split(",");
                             String name = parts[1];
                             String state = parts[2];
 
+                            // Update the drone records accordingly
                             setDroneStateByName(name, state);
-
-                            // CONT HERE. DRONES NOT CLEARING EVENTS CORRECTLY?
                             if (Objects.equals(state, "DroneIdle")){
                                 getDroneByName(name).setEvent(null);
-                                //System.out.println("areAllDroneEventsNull: " + areAllDroneEventsNull());
-                                //System.out.println("shutoff: " + shutoff);
                                 if (areAllDroneEventsNull() && shutoff){
                                     allDronesShutoff = true;
                                 }
                             }
 
+                            // Confirm with the drone that it updated the info and the drone can continue to run.
                             String confirm = "STATE_CHANGE_OK";
                             byte[] confirmData = confirm.getBytes();
                             DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
@@ -195,6 +210,8 @@ public class Scheduler {
             return null;
         }
 
+
+        // Get the event and re-distribute events as needed (scheduling algorithm)
         Event event = droneMessages.remove();
         List<DroneRecord> availableDrones = getAvailableDrones();
 
@@ -211,6 +228,8 @@ public class Scheduler {
         return event;
     }
 
+    // Give the newest event to the drone closest to the zone
+    // If that drone already had an event, give that event to the second-closest drone to it
     private void distributeEvent(Event event, List<DroneRecord> availableDrones) {
         if (availableDrones.isEmpty()) {
             System.out.println("No available drones to assign the event. Something has gone wrong!");
@@ -295,6 +314,7 @@ public class Scheduler {
         }
     }
 
+    // get all drones that are idle or EnRoute
     private List<DroneRecord> getAvailableDrones() {
         List<DroneRecord> availableDrones = new ArrayList<>();
 
@@ -507,7 +527,6 @@ public class Scheduler {
     public boolean areAllDroneEventsNull() {
         for (DroneRecord drone : drones) {
             if (drone.getEvent() != null) {
-                // System.out.println("NON NULL EVENT IN: " + drone.getDroneName() + " which has event: " + drone.getEvent());
                 return false;
             }
         }
