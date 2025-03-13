@@ -218,7 +218,7 @@ public class Scheduler {
         distributeEvent(event, availableDrones, originalAddress, originalPort);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
-        Thread.sleep(1000);
+        Thread.sleep(500);
 
         droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
@@ -264,7 +264,8 @@ public class Scheduler {
             }
         } else {
             // If multiple drones are available, find the one closest to the zone
-            selectedDroneName = findClosestDrone(availableDrones).getDroneName();
+            selectedDroneName = findClosestDrone(drones).getDroneName();
+
             previousEvent = getDroneEventByName(selectedDroneName);
             if (selectedDroneName != null) {
                 // Check if the selected drone already had an event
