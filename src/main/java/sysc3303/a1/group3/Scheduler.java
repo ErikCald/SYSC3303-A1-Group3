@@ -88,7 +88,7 @@ public class Scheduler {
                         // Received a request from a drone.
                         new Thread(() -> {
                             try {
-                                removeEvent();
+                                removeEvent(packet.getAddress(), packet.getPort());
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
@@ -182,9 +182,9 @@ public class Scheduler {
 
         // Add 2 copies of the event if it requires 2 drones.
         // Temp commented out for debug
-//        if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
-//            droneMessages.add(event);
-//        }
+        if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
+            droneMessages.add(event);
+        }
 
         droneMessages.add(event);
         droneMessagesReadable = true;
@@ -195,7 +195,7 @@ public class Scheduler {
     }
 
     // Synchronized method to remove (i.e. get) the next available event.
-    public synchronized Event removeEvent() throws InterruptedException {
+    public synchronized Event removeEvent(InetAddress originalAddress, int originalPort) throws InterruptedException {
         while (droneMessages.isEmpty() && !shutoff) {
             try {
                 wait();
@@ -215,7 +215,7 @@ public class Scheduler {
         Event event = droneMessages.remove();
         List<DroneRecord> availableDrones = getAvailableDrones();
 
-        distributeEvent(event, availableDrones);
+        distributeEvent(event, availableDrones, originalAddress, originalPort);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
         Thread.sleep(1000);
@@ -230,87 +230,84 @@ public class Scheduler {
 
     // Give the newest event to the drone closest to the zone
     // If that drone already had an event, give that event to the second-closest drone to it
-    private void distributeEvent(Event event, List<DroneRecord> availableDrones) {
+    private void distributeEvent(Event event, List<DroneRecord> availableDrones, InetAddress originalAddress, int originalPort) {
         if (availableDrones.isEmpty()) {
             System.out.println("No available drones to assign the event. Something has gone wrong!");
             return;
         }
 
-        String selectedDrone = null;
+        DroneRecord selectedDrone;
+        String selectedDroneName;
         Event previousEvent = null;
-        boolean only1Drone = false;
         String redistributedDrone = null;
-
-        if (availableDrones.size() == 1) {
-            // If there's only one available drone, assign the event to that drone
-            // This means this is the drone that just asked for an Event, which means it shouldn't have one.
-            // So, just assign it and return.
-            selectedDrone = availableDrones.getFirst().getDroneName();
-            only1Drone = true;
-            if (availableDrones.getFirst().getEvent() != null) {
-                System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
-            }
+        String eventData;
+        if (event != null) {
+            eventData = convertEventToJson(event);
         } else {
-            // If multiple drones are available, find the one closest to the zone
-            selectedDrone = findClosestDrone(availableDrones).getDroneName();
+            eventData = "NO_EVENT";
         }
 
-        if (selectedDrone != null) {
-            // Check if the selected drone already had an event
-            if (getDroneEventByName(selectedDrone) != null) {
-                previousEvent = getDroneEventByName(selectedDrone);
-            }
-
-            // Assign the new event to the selected drone either way
-            String eventData;
-            if (event != null) {
-                eventData = convertEventToJson(event);
+        if (availableDrones.size() == 1) {
+            String originalDroneName = getDroneByPort(originalPort).getDroneName();
+            if (getDroneByName(originalDroneName).getEvent() != null) {
+                System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
             } else {
-                eventData = "NO_EVENT";
-            }
-
-            DatagramPacket response;
-            if (only1Drone){
-                response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, getDroneAddressByName(selectedDrone), getDronePortByName(selectedDrone));
-            } else {
-                response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, getListenerAddressByName(selectedDrone), getDronePortByName(selectedDrone));
-            }
-            try {
-                setDroneEventByName(selectedDrone, event);
-                sendSocket.send(response);
-            } catch (IOException e) {
-                System.err.println("Error sending event to drone: " + e.getMessage());
-            }
-
-            // Redistribute the previous event recursively (if there was one)
-            // Be sure to exclude the drone that was just selected!
-            if (!only1Drone) {
-                List<DroneRecord> updatedAvailableDrones = new ArrayList<>(availableDrones);
-                String finalSelectedDrone1 = selectedDrone;
-                updatedAvailableDrones.removeIf(drone -> drone.getDroneName().equals(finalSelectedDrone1));
-
-                String secondEventData;
-                if (previousEvent != null) {
-                    secondEventData = convertEventToJson(previousEvent);
-                    redistributedDrone = findClosestDrone(updatedAvailableDrones).getDroneName();
-
-                    DatagramPacket secondResponse = new DatagramPacket(secondEventData.getBytes(), secondEventData.getBytes().length, getListenerAddressByName(redistributedDrone), getListenerPortByName(redistributedDrone));
-                    try {
-                        setDroneEventByName(redistributedDrone, previousEvent);
-                        socket.send(secondResponse);
-                    } catch (IOException e) {
-                        System.err.println("Error sending event to second drone: " + e.getMessage());
-                    }
+                //send packet to the drone:
+                DatagramPacket response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, originalAddress, originalPort);
+                try {
+                    sendSocket.send(response);
+                    setDroneEventByName(originalDroneName, event);
+                    System.out.println(originalDroneName + " is scheduled with event, " + event + "\n");
+                } catch (IOException e) {
+                    System.err.println("Error sending event to drone: " + e.getMessage());
                 }
             }
         } else {
-            System.out.println("No available drone without an event.");
-        }
-        if (redistributedDrone != null && previousEvent != null){
-            System.out.println(selectedDrone + " is scheduled with newest event, " + event);
-            System.out.println(redistributedDrone + " is scheduled with older event, " + previousEvent + "\n");
-        } else {
-            System.out.println(selectedDrone + " is scheduled with event, " + event + "\n");
+            // If multiple drones are available, find the one closest to the zone
+            selectedDroneName = findClosestDrone(availableDrones).getDroneName();
+            previousEvent = getDroneEventByName(selectedDroneName);
+            if (selectedDroneName != null) {
+                // Check if the selected drone already had an event
+                if (previousEvent != null) {
+                    // if the drone already had an event, redistribute
+
+                    // First, send the original drone the redistributed event
+                    previousEvent = getDroneEventByName(selectedDroneName);
+                    String secondEventData = convertEventToJson(previousEvent);
+                    DatagramPacket response = new DatagramPacket(secondEventData.getBytes(), secondEventData.getBytes().length, originalAddress, originalPort);
+
+                    try {
+                        String originalDroneName = getDroneByPort(originalPort).getDroneName();
+                        sendSocket.send(response);
+                        setDroneEventByName(originalDroneName, previousEvent);
+                        System.out.println(originalDroneName + " is re-scheduled with older event, " + previousEvent);
+                    } catch (IOException e) {
+                        System.err.println("Error sending event to drone: " + e.getMessage());
+                    }
+
+                    // Next, send the newest event to the closer drone:
+                    response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, getListenerAddressByName(selectedDroneName), getListenerPortByName(selectedDroneName));
+                    try {
+                        sendSocket.send(response);
+                        setDroneEventByName(selectedDroneName, event);
+                        System.out.println(selectedDroneName + " is scheduled with newer event, " + event + "\n");
+                    } catch (IOException e) {
+                        System.err.println("Error sending event to drone: " + e.getMessage());
+                    }
+                } else {
+                    //send packet to the drone:
+                    String originalDroneName = getDroneByPort(originalPort).getDroneName();
+                    DatagramPacket response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, originalAddress, originalPort);
+                    try {
+                        sendSocket.send(response);
+                        setDroneEventByName(originalDroneName, event);
+                        System.out.println(originalDroneName + " is scheduled with event, " + event + "\n");
+                    } catch (IOException e) {
+                        System.err.println("Error sending event to drone: " + e.getMessage());
+                    }
+                    return;
+                }
+            }
         }
     }
 
@@ -322,7 +319,8 @@ public class Scheduler {
         synchronized (drones) {
             for (DroneRecord drone : drones) {
                 String state = drone.getState();
-                if (state.equals("DroneIdle") || state.equals("DroneEnRoute")) {
+                Event event = drone.getEvent();
+                if ((state.equals("DroneIdle") || state.equals("DroneEnRoute")) && (event == null)) {
                     availableDrones.add(drone);
                 }
             }
@@ -519,6 +517,14 @@ public class Scheduler {
     public DroneRecord getDroneByName(String droneName) {
         for (DroneRecord drone : drones) {
             if (drone.getDroneName().equals(droneName)) {
+                return drone;
+            }
+        }
+        return null;
+    }
+    public DroneRecord getDroneByPort(int dronePort) {
+        for (DroneRecord drone : drones) {
+            if (drone.getDronePort() == dronePort) {
                 return drone;
             }
         }
