@@ -38,10 +38,10 @@ class ParserTest {
         List<Event> events = ParserTest.parser.parseIncidentFile(fileStream);
 
         List<Event> expectedEvents = new ArrayList<>();
-        expectedEvents.add(new Event(Time.valueOf("0:00:05"), 3, EventType.FIRED_DETECTED, Severity.Low));
-        expectedEvents.add(new Event(Time.valueOf("0:00:24"), 1, EventType.FIRED_DETECTED, Severity.High));
+        expectedEvents.add(new Event(Time.valueOf("0:00:05"), 3, EventType.FIRE_DETECTED, Severity.Low));
+        expectedEvents.add(new Event(Time.valueOf("0:00:24"), 1, EventType.FIRE_DETECTED, Severity.High));
         expectedEvents.add(new Event(Time.valueOf("0:00:51"), 2, EventType.DRONE_REQUESTED, Severity.Moderate));
-        expectedEvents.add(new Event(Time.valueOf("0:01:13"), 4, EventType.FIRED_DETECTED, Severity.Low));
+        expectedEvents.add(new Event(Time.valueOf("0:01:13"), 4, EventType.FIRE_DETECTED, Severity.Low));
         expectedEvents.add(new Event(Time.valueOf("0:01:31"), 1, EventType.DRONE_REQUESTED, Severity.Moderate));   
         
         assertEquals(expectedEvents.size(), events.size(), "Test file has a mismatching quantity of events with the expected events.");
