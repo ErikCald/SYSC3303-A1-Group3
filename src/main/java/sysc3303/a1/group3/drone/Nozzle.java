@@ -1,8 +1,11 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Severity;
+
 public class Nozzle {
     boolean open;
     boolean stuck;
+    final int droneNozzleOpenTime = 1000;
 
     WaterTank tank;
 
@@ -10,20 +13,24 @@ public class Nozzle {
         this.tank = tank;
     }
 
-    public void extinguish() throws InterruptedException {
+    public void extinguish(Severity severity, String name) throws InterruptedException {
         activate();
-        Thread.sleep(1000);
-        //Placeholder for where water should be released:
-        tank.releaseWater(0);
+        if (severity.equals(Severity.High)){
+            tank.releaseWater(15, name);
+        }else {
+            tank.releaseWater(10, name);
+        }
         deactivate();
     }
 
-    public void activate() {
+    public void activate() throws InterruptedException {
         open = true;
+        Thread.sleep(droneNozzleOpenTime);
         stuck = false;
     }
 
-    public void deactivate() {
+    public void deactivate() throws InterruptedException {
+        Thread.sleep(droneNozzleOpenTime);
         open = false;
     }
 

@@ -3,6 +3,8 @@ package sysc3303.a1.group3.drone;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.physics.Kinematics;
+import sysc3303.a1.group3.physics.Vector2d;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -11,50 +13,65 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
+import java.time.Instant;
+
 /**
  * Represents a drone that requests events via UDP.
  */
 public class Drone implements Runnable {
 
-    private final String name;
+    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Sensors sensors;
-    private final Motors motors;
+    private final String name;
+    private final Scheduler scheduler;
+
+    // Drone Components
+    private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
 
-    private static final DroneStates STATES = DroneStates.withDefaults();
 
-    private final Scheduler scheduler;
     // The currently assigned event.
     Event currentEvent;
 
     private DroneState state;
 
-    // For testing: assign positions via a static counter.
-    private static int droneCounter = 0;
-    private final int positionX;
-    private final int positionY;
+    private double lastTickTimeMillis;
 
-    private DatagramSocket droneSocket;
-    private InetAddress schedulerAddress;
-    private int schedulerPort;
 
-    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+    // Socket for main control flow, requesting events, elc.
+    private final DatagramSocket droneSocket;
+
+    // Socket for constantly listening for updates that can come at any time (e.g. rescheduled with new events)
+    private final DatagramSocket listenerSocket;
+
+    // Socket for exchanging state information whenever the drone changes state
+    private final DatagramSocket stateSocket;
+
+
+    // Scheduler address information
+    private final InetAddress schedulerAddress;
+    private final int schedulerPort;
+
+    private volatile boolean shutoff;
+
+    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
         this.name = name;
-        this.sensors = new Sensors();
-        this.motors = new Motors();
+
+        this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
+
         this.scheduler = scheduler;
         this.state = STATES.retrieve(DroneIdle.class);
 
-        droneCounter++;
-        this.positionX = droneCounter;
-        this.positionY = droneCounter;
+        shutoff = false;
 
         try {
             this.droneSocket = new DatagramSocket();
+            this.listenerSocket = new DatagramSocket();
+            this.stateSocket = new DatagramSocket();
+
             this.schedulerAddress = InetAddress.getByName(schedulerAddress);
             this.schedulerPort = schedulerPort;
         } catch (SocketException | UnknownHostException e) {
@@ -63,21 +80,42 @@ public class Drone implements Runnable {
         }
     }
 
-    private String getStateAsJson() {
-        return String.format("{\"name\":\"%s\", \"state\":\"%s\", \"x\":%d, \"y\":%d}",
-            name, state.getStateName(), positionX, positionY);
+    /**
+     * Creates a Drone with arbitrary specs.
+     *
+     * @param name the name of the drone
+     * @param scheduler the scheduler that is responsible for this Drone
+     */
+    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort);
     }
 
-    // Sends this drone's state to the scheduler.
-    private void sendStateToScheduler() {
-        try {
-            String stateData = getStateAsJson();
-            byte[] sendData = stateData.getBytes();
-            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-            droneSocket.send(packet);
-        } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
-        }
+    // Listener for updates from the scheduler, e.g. changing drone event when the drone is EnRoute
+    private void startUDPListener() {
+        new Thread(() -> {
+            byte[] receiveData = new byte[1024];
+            while (!shutoff) {
+                DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                try {
+                    listenerSocket.receive(packet);
+                    String message = new String(packet.getData(), 0, packet.getLength());
+
+                    // If the message is SHUTOFF, close the startUDPListener
+                    if (message.equals("SHUTOFF")) {
+                        this.shutoff();
+                    } else if (message.equals("NO_EVENT")) {
+                        currentEvent = null;
+
+                    // If none of the above, then it is an event to tell the drone to change course
+                    } else {
+                        currentEvent = convertJsonToEvent(message);
+                    }
+                } catch (IOException e) {
+
+                }
+            }
+            listenerSocket.close();
+        }).start();
     }
 
     // The drone sends a "DRONE_REQ_EVENT" packet and waits for the scheduler's response.
@@ -88,11 +126,15 @@ public class Drone implements Runnable {
             DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
             droneSocket.send(requestPacket);
 
+            Thread.sleep(300);
+
             // Wait for the scheduler's response.
             byte[] receiveData = new byte[1024];
             DatagramPacket responsePacket = new DatagramPacket(receiveData, receiveData.length);
             droneSocket.receive(responsePacket);
             String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
+
+            // Handle/parse the event
             if (response.equals("NO_EVENT")) {
                 currentEvent = null;
             } else {
@@ -100,6 +142,104 @@ public class Drone implements Runnable {
             }
         } catch (IOException e) {
             System.err.println("Error requesting event: " + e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Transitions this drone's state
+    // Sends its state to scheduler and blocks until the scheduler confirms it received the message so they do not desync
+    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
+        if (Objects.equals(this.state.getClass(), newState)) {
+            return;
+        }
+
+        this.state.triggerExitWork(this);
+        sendStateToScheduler(newState.getSimpleName());
+        this.state = STATES.retrieve(newState);
+        this.state.triggerEntryWork(this);
+    }
+
+    protected boolean InZoneSchedulerResponse(){
+        return (this.scheduler.confirmDroneInZone(this));
+    }
+
+    protected void extinguishFlames() throws InterruptedException {
+        System.out.println(name + " is extinguishing flames!");
+        nozzle.extinguish(currentEvent.getSeverity(), name);
+    }
+
+    protected void fillWaterTank(){
+        waterTank.fillWaterLevel();
+        System.out.println(name + "'s tank filled up to full!");
+    }
+
+    // Main run() function
+    @Override
+    public void run() {
+        // First, send the scheduler it's information so it can add the drone to its records
+        // Register the listener port
+        double positionX = getPosition().getX();
+        double positionY = getPosition().getY();
+        String listenerRecordString = ("NEW_DRONE_LISTENER," + this.name + "," + this.state + "," + positionX + "," + positionY);
+        byte[] listenerSendData = listenerRecordString.getBytes();
+        DatagramPacket requestPacket = new DatagramPacket(listenerSendData, listenerSendData.length, schedulerAddress, schedulerPort);
+        try {
+            listenerSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // Register the drone port (main port for asking for events)
+        String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + positionX + "," + positionY);
+        byte[] droneSendData = droneRecordString.getBytes();
+        requestPacket = new DatagramPacket(droneSendData, droneSendData.length, schedulerAddress, schedulerPort);
+        try {
+            droneSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // start the Listener socket handler
+        startUDPListener();
+
+        // main event request loop
+        while (!shutoff) {
+            requestEvent();
+
+            // If received an event successfully, start moving towards it
+            if (currentEvent != null) {
+                try {
+                    transitionState(DroneEnRoute.class);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        System.out.println(Thread.currentThread().getName() + " is shutting down.");
+        droneSocket.close();
+        stateSocket.close();
+    }
+
+
+
+
+    // HELPERS and GETTERS/SETTERS:
+
+    // Sends this drone's state to the scheduler.
+    private void sendStateToScheduler(String stateMsg) {
+        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg);
+        try {
+            byte[] sendData = msg.getBytes();
+            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            stateSocket.send(packet);
+
+            // Waits for a response before moving again to not desync with the scheduler's records
+            byte[] confirmData = new byte[1024];
+            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+            stateSocket.receive(confirmPacket);
+
+        } catch (IOException e) {
+            System.err.println("Error sending state to scheduler: " + e.getMessage());
         }
     }
 
@@ -143,45 +283,11 @@ public class Drone implements Runnable {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-
-    // Transitions this drone's state.
-    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
-        if (Objects.equals(this.state.getClass(), newState)) {
-            return;
-        }
-        this.state.triggerExitWork(this);
-        this.state = STATES.retrieve(newState);
-        this.state.triggerEntryWork(this);
-        sendStateToScheduler();
+    public Vector2d getPosition() {
+        return kinematics.getPosition();
     }
-
-    protected boolean InZoneSchedulerResponse(){
-        return (this.scheduler.confirmDroneInZone(this));
-    }
-
-    protected void extinguishFlames() throws InterruptedException {
-        System.out.println(name + " is extinguishing flames!");
-        nozzle.extinguish();
-    }
-
-    @Override
-    public void run() {
-        while (!scheduler.getShutOff()) {
-            requestEvent();
-            if (currentEvent != null) {
-                try {
-                    transitionState(DroneEnRoute.class);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            sendStateToScheduler();
-        }
-        System.out.println(Thread.currentThread().getName() + " is shutting down.");
-    }
-
-    public int[] getPosition() {
-        return new int[]{positionX, positionY};
+    private void shutoff(){
+        this.shutoff = true;
     }
     public Event getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = event; }

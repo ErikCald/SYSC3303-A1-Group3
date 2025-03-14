@@ -18,7 +18,10 @@ public class Parser {
     public List<Event> parseIncidentFile(InputStream file) throws IOException {
         List<Event> events = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
-            String line = br.readLine(); // skip header
+
+            br.readLine(); // skip header -- called separately to avoid erroneous warning.
+
+            String line;
             while ((line = br.readLine()) != null) {
                 try {
                     events.add(parseIncidentLine(line));
@@ -45,7 +48,10 @@ public class Parser {
     public List<Zone> parseZoneFile(InputStream file) throws IOException {
         List<Zone> zones = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(file))) {
-            String line = br.readLine(); // skip header
+
+            br.readLine(); // skip header -- called separately to avoid erroneous warning.
+
+            String line;
             while ((line = br.readLine()) != null) {
                 try {
                     zones.add(parseZoneFileLine(line));
@@ -67,6 +73,6 @@ public class Parser {
         int starty = Integer.parseInt(values[2]);
         int endx = Integer.parseInt(values[3]);
         int endy = Integer.parseInt(values[4]);
-        return new Zone(zoneId, startx, starty, endx, endy);
+        return Zone.of(zoneId, startx, starty, endx, endy);
     }
 }

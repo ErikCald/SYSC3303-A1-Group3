@@ -12,14 +12,7 @@ public class Event {
         DRONE_REQUESTED;
 
         public static EventType fromString(String string) {
-            switch (string.toUpperCase()) {
-                case "FIRE_DETECTED":
-                    return FIRE_DETECTED;
-                case "DRONE_REQUESTED":
-                    return DRONE_REQUESTED;
-                default:
-                    throw new IllegalArgumentException("Invalid event type: " + string);
-            }
+            return EventType.valueOf(string);
         }
     }
 
@@ -57,10 +50,12 @@ public class Event {
         return severity;
     }
 
+    @Override
     public String toString() {
         return String.format("Event: %s, Zone: %d, Type: %s, Severity: %s", time, zoneId, eventType, severity);
     }
 
+    @Override
     public boolean equals(Object other) {
         if(other == this) {
             return true;
