@@ -161,7 +161,12 @@ public class Drone implements Runnable {
 
     protected void extinguishFlames() throws InterruptedException {
         System.out.println(name + " is extinguishing flames!");
-        nozzle.extinguish();
+        nozzle.extinguish(currentEvent.getSeverity());
+    }
+
+    protected void fillWaterTank(){
+        waterTank.fillWaterLevel();
+        System.out.println(name + "'s tank filled up to full!");
     }
 
     @Override

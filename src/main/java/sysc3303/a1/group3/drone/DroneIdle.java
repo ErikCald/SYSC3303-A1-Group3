@@ -5,6 +5,7 @@ public class DroneIdle implements BaseDroneState {
     @Override
     public void triggerEntryWork(Drone drone) {
         // todo tell scheduler that drone arrived at the base? does the scheduler or the drone initiate foam reloading?
+        drone.fillWaterTank();
         //For now, testing, remove event when getting back
         drone.setCurrentEvent(null);
     }
