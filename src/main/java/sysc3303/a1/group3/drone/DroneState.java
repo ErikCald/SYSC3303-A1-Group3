@@ -1,86 +1,44 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Event;
+
 /**
  * A type of drone state, allowing for customizable event handling related to drones.
  */
 public interface DroneState {
+    /**
+     * Run the state's logic.
+     * 
+     * @param drone the drone in this state
+     */
+    void runState(Drone drone);
 
     /**
-     * Trigger for when this state becomes the current state.
-     *
-     * @param drone the Drone entering this state
+     * Check if the drone should transition to a new state.
+     * 
+     * @param drone the drone in this state
+     * @return the next state to transition to, or the current state if no transition is needed
      */
-    void triggerEntryWork(Drone drone) throws InterruptedException;
+    DroneState getNextState(Drone drone);
 
-    /**
-     * Trigger for when this state is no longer the current state.
-     *
-     * @param drone the Drone exiting this state
-     */
-    void triggerExitWork(Drone drone);
-
-    /**
-     * Event handler for the Scheduler instructing a drone that it should go to a zone.
-     *
-     * @param drone the drone being instructed
-     */
-    void onZoneInstruction(Drone drone) throws InterruptedException;
-    // todo more parameters needed?
-
-    /**
-     * Event handler for when a drone arrives at the destination zone.
-     *
-     * @param drone the drone that arrived
-     */
-    void onZoneArrival(Drone drone) throws InterruptedException;
-
-    /**
-     * Event handler for the Scheduler instructing a drone to begin dropping foam.
-     *
-     * @param drone the drone being instructed
-     */
-    void onDropInstruction(Drone drone) throws InterruptedException;
-
-    /**
-     * Event handler for a drone completing a foam drop.
-     *
-     * @param drone the drone that completed a foam drop
-     */
-    void onDropComplete(Drone drone);
-
-    /**
-     * Event handler for a drone arriving at the base
-     *
-     * @param drone the drone that arrived at the base
-     */
-    void onBaseArrival(Drone drone);
-
-    /**
-     * Event handler for the system beginning shutdown
-     *
-     * @param drone the drone being instructed to comply with the shutdown
-     */
-    void onShutdown(Drone drone) throws InterruptedException;
-
-    /**
-     * Event handler for a drone experiencing a fault
-     *
-     * @param drone experiencing a fault
-     */
-    void onFault(Drone drone);
-
-    default String getStateName() {
-        return this.getClass().getSimpleName();
+    default void onNewEvent(Drone drone, Event event) {
+        throw new UnsupportedOperationException("This state does not handle new events");
     }
 
     /**
-     * Throws an {@link IllegalArgumentException} with a message indicating
-     * that an event handler method was invoked in an unexpected state.
-     *
-     * @param drone the drone that the event handler was invoked for
-     * @throws IllegalStateException always thrown
+     * Action to run when the drone occurs a fault.
+     * 
+     * @param drone the drone that faulted
      */
-    default void throwIllegalState(Drone drone) throws IllegalStateException {
-        throw new IllegalStateException(drone + " is in inappropriate state " + this.getClass().getSimpleName());
+    default void onFault(Drone drone) {
+        throw new UnsupportedOperationException("To be implemented in iteration 4");
+    }
+
+    /**
+     * Get the name of the state.
+     * @return
+     */
+    default String getStateName() {
+        return this.getClass().getSimpleName();
     }
 }

@@ -1,25 +1,19 @@
 package sysc3303.a1.group3.drone;
 
-public class DroneInZone implements BaseDroneState {
+public class DroneInZone implements DroneState {
 
     @Override
-    public void triggerEntryWork(Drone drone) throws InterruptedException {
-        if (drone.InZoneSchedulerResponse()){
-            drone.transitionState(DroneDroppingFoam.class);
-        } else {
-            // In the future, alternate states can be met depending on scheduler confirmation
-            drone.transitionState(DroneFaulted.class);
-        }
-    }
-
-    @Override
-    public void triggerExitWork(Drone drone) {
+    public void runState(Drone drone) {
         // do nothing
     }
 
     @Override
-    public void onDropInstruction(Drone drone) throws InterruptedException {
-        drone.transitionState(DroneDroppingFoam.class);
+    public DroneState getNextState(Drone drone) {
+        if (drone.InZoneSchedulerResponse()){
+            return new DroneDroppingFoam();
+        } else {
+            return new DroneFaulted();
+        }
     }
 
     @Override

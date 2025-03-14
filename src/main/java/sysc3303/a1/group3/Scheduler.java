@@ -48,8 +48,8 @@ public class Scheduler {
     // socket to exclusive send packets when the main socket is busy listening
     private DatagramSocket sendSocket;
 
-    private final int schedulerPort = 5000;
-    private final int sendSchedulerPort = 6000;
+    private final int schedulerPort = 6002;
+    private final int sendSchedulerPort = 6003;
 
     /**
      * Creates a new Scheduler

@@ -1,21 +1,21 @@
 package sysc3303.a1.group3.drone;
 
-public class DroneReturning implements BaseDroneState {
+public class DroneReturning implements DroneState {
 
-    // similar to DroneEnRoute?
 
     @Override
-    public void triggerEntryWork(Drone drone) throws InterruptedException {
-        //Simulate movement
-        System.out.println(drone.getName() + " returning!");
-        Thread.sleep(1000);
-        drone.transitionState(DroneIdle.class);
+    public void runState(Drone drone) {
+        drone.moveToHome();
     }
 
     @Override
-    public void triggerExitWork(Drone drone) {
-        drone.setCurrentEvent(null);
-        System.out.println(drone.getName() + " is back!");
+    public DroneState getNextState(Drone drone) {
+        if (drone.isAtHome()) {
+            System.out.println(drone.getName() + " is back!");
+            return new DroneIdle();
+        }
+
+        return this;
     }
 
     @Override

@@ -1,17 +1,21 @@
 package sysc3303.a1.group3.drone;
 
-public class DroneDroppingFoam implements BaseDroneState {
+public class DroneDroppingFoam implements DroneState {
 
     @Override
-    public void triggerEntryWork(Drone drone) throws InterruptedException {
+    public void runState(Drone drone) {
         drone.extinguishFlames();
-        drone.transitionState(DroneReturning.class);
     }
 
     @Override
-    public void triggerExitWork(Drone drone) {
-        // todo close nozzles/doors?
+    public DroneState getNextState(Drone drone) {
+        if (drone.isTankEmpty()) {
+            return new DroneReturning();
+        }
+
+        return this;
     }
+
 
     @Override
     public String toString() {

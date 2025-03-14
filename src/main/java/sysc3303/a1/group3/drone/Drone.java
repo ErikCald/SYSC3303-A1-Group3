@@ -1,26 +1,25 @@
 package sysc3303.a1.group3.drone;
 
-import sysc3303.a1.group3.Severity;
-import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.Scheduler;
-import sysc3303.a1.group3.physics.Kinematics;
-import sysc3303.a1.group3.physics.Vector2d;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Objects;
+import java.util.Optional;
 
-import java.time.Instant;
+import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.physics.Kinematics;
+import sysc3303.a1.group3.physics.Vector2d;
 
 /**
  * Represents a drone that requests events via UDP.
  */
 public class Drone implements Runnable {
-
-    private static final DroneStates STATES = DroneStates.withDefaults();
 
     private final String name;
     private final Scheduler scheduler;
@@ -30,14 +29,11 @@ public class Drone implements Runnable {
     private final WaterTank waterTank;
     private final Nozzle nozzle;
 
+    // The currently assigned event
+    private Event currentEvent;
 
-    // The currently assigned event.
-    Event currentEvent;
-
+    // The current state of the drone
     private DroneState state;
-
-    private double lastTickTimeMillis;
-
 
     // Socket for main control flow, requesting events, elc.
     private final DatagramSocket droneSocket;
@@ -47,7 +43,6 @@ public class Drone implements Runnable {
 
     // Socket for exchanging state information whenever the drone changes state
     private final DatagramSocket stateSocket;
-
 
     // Scheduler address information
     private final InetAddress schedulerAddress;
@@ -63,7 +58,7 @@ public class Drone implements Runnable {
         this.nozzle = new Nozzle(this.waterTank);
 
         this.scheduler = scheduler;
-        this.state = STATES.retrieve(DroneIdle.class);
+        this.state = new DroneIdle();
 
         shutoff = false;
 
@@ -118,8 +113,12 @@ public class Drone implements Runnable {
         }).start();
     }
 
-    // The drone sends a "DRONE_REQ_EVENT" packet and waits for the scheduler's response.
-    public void requestEvent() {
+    /**
+     * Requests a new event from the scheduler.
+     * 
+     * @return an {@link Optional} containing the new event if one is available, or an empty {@link Optional} if no event is available.
+     */
+    public Optional<Event> requestNewEvent() {
         try {
             String request = "DRONE_REQ_EVENT";
             byte[] sendData = request.getBytes();
@@ -136,37 +135,61 @@ public class Drone implements Runnable {
 
             // Handle/parse the event
             if (response.equals("NO_EVENT")) {
-                currentEvent = null;
+                return Optional.empty();
             } else {
-                currentEvent = convertJsonToEvent(response);
+                return Optional.of(convertJsonToEvent(response));
             }
         } catch (IOException e) {
             System.err.println("Error requesting event: " + e.getMessage());
+            return Optional.empty();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // Transitions this drone's state
-    // Sends its state to scheduler and blocks until the scheduler confirms it received the message so they do not desync
-    public void transitionState(Class<? extends DroneState> newState) throws InterruptedException {
-        if (Objects.equals(this.state.getClass(), newState)) {
+    public Optional<Event> requestEventUpdate() {
+        byte[] receiveData = new byte[1024];
+        DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            listenerSocket.setSoTimeout(200);
+            listenerSocket.receive(packet);
+            String message = new String(packet.getData(), 0, packet.getLength());
+
+            // If the message is SHUTOFF, close the startUDPListener
+            if (message.equals("SHUTOFF")) {
+                this.shutoff(); 
+                return Optional.empty();
+            } else if (message.equals("NO_EVENT")) {
+                return Optional.empty();
+
+            // If none of the above, then it is an event to tell the drone to change course
+            } else {
+                return Optional.of(convertJsonToEvent(message));
+            }
+        } catch (SocketTimeoutException e) {
+            return Optional.empty();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } 
+    }
+
+    /**
+     * Transitions this drone's state to a new state.
+     * Sends its state to the scheduler and blocks until the scheduler confirms it received the message so they do not desync.
+     * 
+     * @param newState the new state to transition to.
+     */
+    public void transitionState(DroneState newState) {
+        if (Objects.equals(this.state.getClass(), newState.getClass())) {
             return;
         }
 
-        this.state.triggerExitWork(this);
-        sendStateToScheduler(newState.getSimpleName());
-        this.state = STATES.retrieve(newState);
-        this.state.triggerEntryWork(this);
+        sendStateToScheduler(newState.getStateName());
+        this.state = newState;
     }
 
     protected boolean InZoneSchedulerResponse(){
         return (this.scheduler.confirmDroneInZone(this));
-    }
-
-    protected void extinguishFlames() throws InterruptedException {
-        System.out.println(name + " is extinguishing flames!");
-        nozzle.extinguish(currentEvent.getSeverity(), name);
     }
 
     protected void fillWaterTank(){
@@ -174,9 +197,7 @@ public class Drone implements Runnable {
         System.out.println(name + "'s tank filled up to full!");
     }
 
-    // Main run() function
-    @Override
-    public void run() {
+    private void registerDroneToScheduler(){
         // First, send the scheduler it's information so it can add the drone to its records
         // Register the listener port
         double positionX = getPosition().getX();
@@ -198,21 +219,28 @@ public class Drone implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        // start the Listener socket handler
+    @Override
+    public void run() {
+        registerDroneToScheduler();
         startUDPListener();
 
-        // main event request loop
         while (!shutoff) {
-            requestEvent();
+            Optional<Event> newEvent = requestNewEvent();
+            if(newEvent.isPresent()){
+                state.onNewEvent(this, newEvent.get());
+            }
 
-            // If received an event successfully, start moving towards it
-            if (currentEvent != null) {
-                try {
-                    transitionState(DroneEnRoute.class);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            state.runState(this);
+            if (state.getNextState(this) != this) {
+                transitionState(state);
+            }
+
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                System.err.println("Drone thread interrupted: " + e.getMessage());
             }
         }
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
@@ -289,9 +317,43 @@ public class Drone implements Runnable {
     private void shutoff(){
         this.shutoff = true;
     }
+
+    // GETTERS/SETTERS
     public Event getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = event; }
     public DroneState getState() { return state; }
     public String getName() { return name; }
     Scheduler getScheduler() { return scheduler; }
+
+    // NEW DRONE STATE MACHINE METHODS
+    protected void extinguishFlames() {
+        System.out.println(name + " is extinguishing flames!");
+        try {
+            nozzle.extinguish(currentEvent.getSeverity(), name);
+        } catch (InterruptedException e) {
+            System.err.println("Error extinguishing flames: " + e.getMessage());
+        }
+    }
+
+    public boolean isTankEmpty() {
+        return waterTank.waterLevelEmpty();
+    }
+
+    public void moveToZone() {
+        kinematics.setTarget(Vector2d.of(3, 3)); // TODO: Replace with actual zone location
+        kinematics.tick(0.1);
+    }
+    
+    public void moveToHome() {
+        kinematics.setTarget(Vector2d.of(0, 0)); // TODO: Replace with actual home location
+        kinematics.tick(0.1);
+    }
+
+    public boolean isAtZone() {
+        return kinematics.getPosition().equals(Vector2d.of(3, 3)); // TODO: Replace with actual zone location
+    }
+
+    public boolean isAtHome() {
+        return kinematics.getPosition().equals(Vector2d.of(0, 0)); // TODO: Replace with actual home location
+    }
 }
