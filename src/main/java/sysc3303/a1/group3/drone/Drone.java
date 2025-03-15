@@ -129,6 +129,7 @@ public class Drone implements Runnable {
         byte[] receiveData = new byte[1024];
         DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
         try {
+            listenerSocket.setSoTimeout(100);
             listenerSocket.receive(packet);
             String message = new String(packet.getData(), 0, packet.getLength());
 
