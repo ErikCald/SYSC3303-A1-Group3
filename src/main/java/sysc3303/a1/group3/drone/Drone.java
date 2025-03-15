@@ -186,9 +186,13 @@ public class Drone implements Runnable {
     private void registerDroneToScheduler(){
         // First, send the scheduler it's information so it can add the drone to its records
         // Register the listener port
-        double positionX = getPosition().getX();
-        double positionY = getPosition().getY();
-        String listenerRecordString = ("NEW_DRONE_LISTENER," + this.name + "," + this.state + "," + positionX + "," + positionY);
+
+        Vector2d startingPosition = getPosition();
+        String x = String.valueOf(startingPosition.getX());
+        String y = String.valueOf(startingPosition.getY());
+
+        System.out.println(name + " is being initialized by the scheduler with info : " + this.name + "," + this.state + "," + x + "," + y);
+        String listenerRecordString = ("NEW_DRONE_LISTENER," + this.name + "," + this.state + "," + x + "," + y);
         byte[] listenerSendData = listenerRecordString.getBytes();
         DatagramPacket requestPacket = new DatagramPacket(listenerSendData, listenerSendData.length, schedulerAddress, schedulerPort);
         try {
@@ -197,7 +201,7 @@ public class Drone implements Runnable {
             throw new RuntimeException(e);
         }
         // Register the drone port (main port for asking for events)
-        String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + positionX + "," + positionY);
+        String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + x + "," + y);
         byte[] droneSendData = droneRecordString.getBytes();
         requestPacket = new DatagramPacket(droneSendData, droneSendData.length, schedulerAddress, schedulerPort);
         try {
@@ -314,7 +318,7 @@ public class Drone implements Runnable {
     public Nozzle getNozzle() { return nozzle; }
     public DroneState getState() { return state; }
     public String getName() { return name; }
-    Scheduler getScheduler() { return scheduler; }
+    public void setPosition(Vector2d p){ kinematics.setPosition(p); }
 
     public boolean isTankEmpty() {
         return waterTank.waterLevelEmpty();

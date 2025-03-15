@@ -1,5 +1,6 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
 
 public class Nozzle {
@@ -30,8 +31,8 @@ public class Nozzle {
         return tank.getWaterLevel() <= targetWaterLevel;
     }
 
-    public void finishExtinguishing(String droneName) {
-        deactivate(droneName);
+    public void finishExtinguishing(String droneName, Event event) {
+        deactivate(droneName, event);
     }
 
     private void activate(String droneName) {
@@ -45,7 +46,7 @@ public class Nozzle {
         stuck = false;
     }
 
-    private void deactivate(String droneName) {
+    private void deactivate(String droneName, Event event) {
         try {
             Thread.sleep(DRONE_NOZZLE_OPEN_TIME);
         } catch (InterruptedException e) {
@@ -53,9 +54,9 @@ public class Nozzle {
         }
 
         if(tank.getWaterLevel() <= 0.0) {
-            System.out.println("Drone " + droneName + " has run out of foam and is returning.");
+            System.out.println("Drone " + droneName + " has run out of foam in the middle of extinguishing the flames of event: " + event + " and is returning.");
         } else {
-            System.out.println("Drone " + droneName + " has finished extinguishing flames and is returning.");
+            System.out.println("Drone " + droneName + " has finished extinguishing the flames of event: " + event + " and is returning.");
         }
         
         open = false;
