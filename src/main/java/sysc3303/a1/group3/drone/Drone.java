@@ -245,8 +245,6 @@ public class Drone implements Runnable {
     }
 
 
-
-
     // HELPERS and GETTERS/SETTERS:
 
     // Sends this drone's state to the scheduler.
@@ -319,10 +317,6 @@ public class Drone implements Runnable {
     public DroneState getState() { return state; }
     public String getName() { return name; }
     public void setPosition(Vector2d p){ kinematics.setPosition(p); }
-
-    public boolean isTankEmpty() {
-        return waterTank.waterLevelEmpty();
-    }
 
     private void setTargetZone() {
         int zoneId = currentEvent.get().getZoneId();

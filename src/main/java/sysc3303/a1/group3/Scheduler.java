@@ -27,11 +27,6 @@ public class Scheduler {
     private boolean droneMessagesWritable = true;
     private boolean droneMessagesReadable = false;
 
-    // (For potential confirmation messages from the subsystem.)
-    private final Queue<Event> incidentSubsystemQueue = new ArrayDeque<>();
-    private boolean incidentSubsystemWritable = true;
-    private boolean incidentSubsystemReadable = false;
-
     // Drone List is now a List of DroneRecords to hold info about drones the scheulder has contact to
     private final List<DroneRecord> drones = Collections.synchronizedList(new ArrayList<>());
 
@@ -335,7 +330,7 @@ public class Scheduler {
 
 
     public boolean confirmDroneInZone(Drone drone) {
-        // For iteration 1, always return true.
+        // For current iteration when errors cannot happen yet, always return true.
         return true;
     }
 
@@ -456,22 +451,6 @@ public class Scheduler {
             }
         }
         return null;
-    }
-    public InetAddress getDroneAddressByName(String droneName) {
-        for (DroneRecord drone : drones) {
-            if (drone.getDroneName().equals(droneName)) {
-                return drone.getDroneAddress();
-            }
-        }
-        return null;  // Return null if droneName is not found
-    }
-    public int getDronePortByName(String droneName) {
-        for (DroneRecord drone : drones) {
-            if (drone.getDroneName().equals(droneName)) {
-                return drone.getDronePort();
-            }
-        }
-        return -1;  // Return -1 if droneName is not found
     }
     public InetAddress getListenerAddressByName(String droneName) {
         for (DroneRecord drone : drones) {
