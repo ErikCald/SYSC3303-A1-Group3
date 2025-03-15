@@ -91,7 +91,7 @@ public class Scheduler {
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
-                        }).start();
+                        }, "Scheduler-RemoveEvent").start();
                     } else if (message.equals("SHUTDOWN")) {
                         // Received a shutdown request from FiSubsystem.
                         shutOff();
@@ -160,7 +160,7 @@ public class Scheduler {
                     System.err.println("Error in UDP listener: " + e.getMessage());
                 }
             }
-        }).start();
+        }, "Scheduler-UPDListener").start();
     }
 
     // Synchronized method to add an event to the queue.

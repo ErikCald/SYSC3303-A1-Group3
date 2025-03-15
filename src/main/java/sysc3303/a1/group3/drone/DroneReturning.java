@@ -1,5 +1,7 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Event;
+
 public class DroneReturning implements DroneState {
 
 
@@ -16,6 +18,11 @@ public class DroneReturning implements DroneState {
         }
 
         return this;
+    }
+
+    @Override
+    public void onNewEvent(Drone drone, Event event) {
+        drone.setCurrentEvent(event);
     }
 
     @Override

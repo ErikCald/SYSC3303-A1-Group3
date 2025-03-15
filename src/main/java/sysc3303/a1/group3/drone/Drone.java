@@ -22,7 +22,8 @@ import sysc3303.a1.group3.physics.Vector2d;
  */
 public class Drone implements Runnable {
     public static final int DRONE_LOOP_SLEEP_MS = 100; // milliseconds
-    public static final int DRONE_TRAVEL_SPEEDUP = 18; // times faster than real time
+    public static final int DRONE_TRAVEL_SPEEDUP = 30; // times faster than real time
+    public static final boolean PRINT_DRONE_ITERATIONS = false; // Prints the drone's position every iteration
 
     private final String name;
     private final Scheduler scheduler;
@@ -52,7 +53,7 @@ public class Drone implements Runnable {
     private final InetAddress schedulerAddress;
     private final int schedulerPort;
 
-    private volatile boolean shutoff;
+    private boolean shutoff;
 
     public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort, List<Zone> zones) {
         this.name = name;
@@ -128,13 +129,13 @@ public class Drone implements Runnable {
         byte[] receiveData = new byte[1024];
         DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
         try {
-            listenerSocket.setSoTimeout(200);
             listenerSocket.receive(packet);
             String message = new String(packet.getData(), 0, packet.getLength());
 
             // If the message is SHUTOFF, close the startUDPListener
             if (message.equals("SHUTOFF")) {
-                this.shutoff(); 
+                shutoff = true;
+                System.out.println("Drone " + name + " recieved SHUTOFF message. Finishing current event and shutting down.");
                 return Optional.empty();
             } else if (message.equals("NO_EVENT")) {
                 return Optional.empty();
@@ -158,10 +159,13 @@ public class Drone implements Runnable {
      */
     public void transitionState(DroneState newState) {
         if (newState == state) {
-            System.out.println("ERRORROROR: " + name + " is already in state " + state.getStateName() + " when " + newState + " was requested.");
+            System.out.println("[Error3303]: " + name + " is already in state " + state.getStateName() + " when " + newState + " was requested.");
             return;
         }
-        System.out.println(name + " is transitioning from " + state.getStateName() + " to " + newState.getStateName() + ".");
+        if (PRINT_DRONE_ITERATIONS) {
+            System.out.println(name + " is transitioning from " + state.getStateName() + " to " + newState.getStateName() + ".");
+        }
+
         sendStateToScheduler(newState.getStateName());
         this.state = newState;
     }
@@ -204,9 +208,12 @@ public class Drone implements Runnable {
     @Override
     public void run() {
         registerDroneToScheduler();
-
-        while (!shutoff) {
-            System.out.println("Drone " + name + ", state: " + state.getStateName() + ", position: " + kinematics.getPosition());
+        
+        while ((!shutoff) || (!(state instanceof DroneIdle))) {
+            if (PRINT_DRONE_ITERATIONS) {
+                System.out.printf("Drone %s, state: %s, liters: %.0f, position: %s\n",
+                        name, state.getStateName(), waterTank.getWaterLevel(), kinematics.getPosition());
+            }
 
             Optional<Event> newEvent = (currentEvent == null) ? requestNewEvent() : checkEventUpdate();
             if(newEvent.isPresent()){
@@ -296,9 +303,6 @@ public class Drone implements Runnable {
     }
     public Vector2d getPosition() {
         return kinematics.getPosition();
-    }
-    private void shutoff(){
-        this.shutoff = true;
     }
 
     // GETTERS/SETTERS
