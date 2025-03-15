@@ -1,16 +1,14 @@
 package sysc3303.a1.group3;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.io.InputStream;
-import java.util.List;
-import java.time.Duration;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 
 /**
  * Represents the Fire Incident Subsystem, which reads fire incident events from an input file and sends them
@@ -26,16 +24,10 @@ public class FireIncidentSubsystem implements Runnable {
     private InetAddress schedulerAddress;
     private int schedulerPort;
 
-    public FireIncidentSubsystem(InputStream fileStream, String schedulerAddress, int schedulerPort) throws IOException {
+    public FireIncidentSubsystem(List<Event> events, String schedulerAddress, int schedulerPort) {
         eventCount = 0;
-        events = new ArrayList<>();
         startTime = Instant.now();
-        Parser parser = new Parser();
-        if (fileStream == null) {
-            System.out.println("Incident file doesn't exist");
-            return;
-        }
-        events = parser.parseIncidentFile(fileStream);
+        this.events = events;
 
         try {
             this.socket = new DatagramSocket();

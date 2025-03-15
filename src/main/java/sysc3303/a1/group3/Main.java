@@ -14,11 +14,21 @@ public class Main {
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
-        int schedulerPort = 5000; // Scheduler's port
+        int schedulerPort = 6002; // Scheduler's port
+
+        Parser parser = new Parser();
+        try {
+            parser.parseIncidentFile(incidentFile);
+            parser.parseZoneFile(zoneFile);
+        } catch (IOException e) {
+            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            e.printStackTrace();
+            return;
+        }
 
         Scheduler scheduler;
         try {
-            scheduler = new Scheduler(zoneFile);
+            scheduler = new Scheduler(parser.getZones());
         } catch (IOException e) {
             System.err.println("Failed to create scheduler, aborting.");
             e.printStackTrace();
@@ -27,19 +37,13 @@ public class Main {
 
         // Create Fire Incident Subsystem
         FireIncidentSubsystem fiSubsystem;
-        try {
-            fiSubsystem = new FireIncidentSubsystem(incidentFile, schedulerAddress, schedulerPort);
-        } catch (IOException e) {
-            System.err.println("Failed to parse incidentFile.csv, aborting.");
-            e.printStackTrace();
-            return;
-        }
+        fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
         // Create three drone instances.
         // No need to add them to scheduler anymore since they send sockets automatically
-        Drone drone1 = new Drone("drone1", scheduler, schedulerAddress, schedulerPort);
-        Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort);
-        Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort);
+        Drone drone1 = new Drone("drone1", scheduler, schedulerAddress, schedulerPort, parser.getZones());
+        Drone drone2 = new Drone("drone2", scheduler, schedulerAddress, schedulerPort, parser.getZones());
+        Drone drone3 = new Drone("drone3", scheduler, schedulerAddress, schedulerPort, parser.getZones());
 
         // Create threads for the subsystem and each drone.
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
