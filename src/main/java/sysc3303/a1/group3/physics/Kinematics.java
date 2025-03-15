@@ -26,9 +26,18 @@ public class Kinematics {
         this.maxAcceleration = Math.abs(maxAcceleration);
     }
 
+    public Kinematics(double maxSpeed, double maxAcceleration, Vector2d position) {
+        this.maxSpeed = Math.abs(maxSpeed);
+        this.maxSpeedSquared = this.maxSpeed * this.maxSpeed;
+        this.maxAcceleration = Math.abs(maxAcceleration);
+        this.position = position;
+    }
+
     public Vector2d getPosition() {
         return position;
     }
+
+    public void setPosition(Vector2d p) { position = p;}
 
     public Vector2d getVelocity() {
         return velocity;
