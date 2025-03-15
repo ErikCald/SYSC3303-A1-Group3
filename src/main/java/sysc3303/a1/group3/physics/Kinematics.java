@@ -142,7 +142,7 @@ public class Kinematics {
 
         double time = smallestNonNegativeRoot(a, b, c);
         if (Double.isNaN(time)) {
-            System.out.println(System.currentTimeMillis() + ": timeToReachSpeed failed to early-check velocity already being at the max.");
+            // System.out.println(System.currentTimeMillis() + ": timeToReachSpeed failed to early-check velocity already being at the max.");
             return 0;
         }
         return time;

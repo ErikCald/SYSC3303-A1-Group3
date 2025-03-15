@@ -65,6 +65,7 @@ public class Drone implements Runnable {
 
         this.scheduler = scheduler;
         this.state = new DroneIdle();
+        this.currentEvent = Optional.empty();
 
         shutoff = false;
 
@@ -216,7 +217,7 @@ public class Drone implements Runnable {
                         name, state.getStateName(), waterTank.getWaterLevel(), kinematics.getPosition());
             }
 
-            Optional<Event> newEvent = (currentEvent == null) ? requestNewEvent() : checkEventUpdate();
+            Optional<Event> newEvent = (currentEvent.isEmpty()) ? requestNewEvent() : checkEventUpdate();
             if(newEvent.isPresent()){
                 state.onNewEvent(this, newEvent.get());
             }
@@ -321,11 +322,15 @@ public class Drone implements Runnable {
 
     private void setTargetZone() {
         int zoneId = currentEvent.get().getZoneId();
-        if (zoneId < 0 || zoneId >= zones.size()) {
-            throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
+
+        for(int i = 0; i < zones.size(); i++){
+            if(zones.get(i).zoneID() == zoneId){
+                kinematics.setTarget(zones.get(i).centre());
+                return;
+            }
         }
 
-        kinematics.setTarget(zones.get(zoneId).centre());
+        throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
     }
 
     public void moveToZone() {
