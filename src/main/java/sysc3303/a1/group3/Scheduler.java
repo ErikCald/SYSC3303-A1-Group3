@@ -55,12 +55,11 @@ public class Scheduler {
      * Creates a new Scheduler
      *
      * @param zoneFile the zoneFile containing the fire zones
-     * @throws IOException if the zone file could not be parsed
      * @throws SocketException if any of the required sockets could not be created
      */
-    public Scheduler(InputStream zoneFile) throws IOException {
-        Objects.requireNonNull(zoneFile, "zoneFile");
-        this.zones = new Parser().parseZoneFile(zoneFile);
+    public Scheduler(List<Zone> zones) throws SocketException {
+        Objects.requireNonNull(zones, "ListOfZones");
+        this.zones = zones;
 
         this.socket = new DatagramSocket(schedulerPort);
         this.sendSocket = new DatagramSocket(sendSchedulerPort);

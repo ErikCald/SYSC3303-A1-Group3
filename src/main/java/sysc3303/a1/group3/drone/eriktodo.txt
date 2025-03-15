@@ -2,10 +2,12 @@
 
 # Erik todo
 
-Change Event event in Drone to Optional<Event> event;
+DONE Change Event event in Drone to Optional<Event> event;
 
-Change InZoneSchedulerResponse to isInZoneSchedulerResponse
+DONE Change InZoneSchedulerResponse to isInZoneSchedulerResponse
 
-Change isInZone to check if kinematics says we are there
+DONE Change isInZone to check if kinematics says we are there
+
+Add zone positions to kinematics
 
 Move event string parsing into Event class. And throw an exception if it fails.

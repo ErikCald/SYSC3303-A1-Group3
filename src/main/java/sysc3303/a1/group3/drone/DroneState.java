@@ -22,7 +22,7 @@ public interface DroneState {
     DroneState getNextState(Drone drone);
 
     default void onNewEvent(Drone drone, Event event) {
-        throw new UnsupportedOperationException("This state does not handle new events");
+        throw new UnsupportedOperationException("This state (" + getStateName() + ") does not handle new events");
     }
 
     /**

@@ -7,12 +7,13 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
 import sysc3303.a1.group3.physics.Vector2d;
 
@@ -20,6 +21,8 @@ import sysc3303.a1.group3.physics.Vector2d;
  * Represents a drone that requests events via UDP.
  */
 public class Drone implements Runnable {
+    public static final int DRONE_LOOP_SLEEP_MS = 100; // milliseconds
+    public static final int DRONE_TRAVEL_SPEEDUP = 18; // times faster than real time
 
     private final String name;
     private final Scheduler scheduler;
@@ -28,9 +31,10 @@ public class Drone implements Runnable {
     private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
+    private final List<Zone> zones;
 
     // The currently assigned event
-    private Event currentEvent;
+    private Optional<Event> currentEvent;
 
     // The current state of the drone
     private DroneState state;
@@ -50,12 +54,13 @@ public class Drone implements Runnable {
 
     private volatile boolean shutoff;
 
-    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
+    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort, List<Zone> zones) {
         this.name = name;
 
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
+        this.zones = zones;
 
         this.scheduler = scheduler;
         this.state = new DroneIdle();
@@ -81,36 +86,8 @@ public class Drone implements Runnable {
      * @param name the name of the drone
      * @param scheduler the scheduler that is responsible for this Drone
      */
-    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort) {
-        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort);
-    }
-
-    // Listener for updates from the scheduler, e.g. changing drone event when the drone is EnRoute
-    private void startUDPListener() {
-        new Thread(() -> {
-            byte[] receiveData = new byte[1024];
-            while (!shutoff) {
-                DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
-                try {
-                    listenerSocket.receive(packet);
-                    String message = new String(packet.getData(), 0, packet.getLength());
-
-                    // If the message is SHUTOFF, close the startUDPListener
-                    if (message.equals("SHUTOFF")) {
-                        this.shutoff();
-                    } else if (message.equals("NO_EVENT")) {
-                        currentEvent = null;
-
-                    // If none of the above, then it is an event to tell the drone to change course
-                    } else {
-                        currentEvent = convertJsonToEvent(message);
-                    }
-                } catch (IOException e) {
-
-                }
-            }
-            listenerSocket.close();
-        }).start();
+    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort, zones);
     }
 
     /**
@@ -147,7 +124,7 @@ public class Drone implements Runnable {
         }
     }
 
-    public Optional<Event> requestEventUpdate() {
+    public Optional<Event> checkEventUpdate() {
         byte[] receiveData = new byte[1024];
         DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
         try {
@@ -180,21 +157,24 @@ public class Drone implements Runnable {
      * @param newState the new state to transition to.
      */
     public void transitionState(DroneState newState) {
-        if (Objects.equals(this.state.getClass(), newState.getClass())) {
+        if (newState == state) {
+            System.out.println("ERRORROROR: " + name + " is already in state " + state.getStateName() + " when " + newState + " was requested.");
             return;
         }
-
+        System.out.println(name + " is transitioning from " + state.getStateName() + " to " + newState.getStateName() + ".");
         sendStateToScheduler(newState.getStateName());
         this.state = newState;
     }
 
-    protected boolean InZoneSchedulerResponse(){
+    protected boolean isInZoneSchedulerResponse(){
         return (this.scheduler.confirmDroneInZone(this));
     }
 
     protected void fillWaterTank(){
-        waterTank.fillWaterLevel();
-        System.out.println(name + "'s tank filled up to full!");
+        if(!waterTank.isFull()) {
+            waterTank.fillWaterLevel();
+            System.out.println(name + "'s tank filled up to full!");
+        }
     }
 
     private void registerDroneToScheduler(){
@@ -224,25 +204,28 @@ public class Drone implements Runnable {
     @Override
     public void run() {
         registerDroneToScheduler();
-        startUDPListener();
 
         while (!shutoff) {
-            Optional<Event> newEvent = requestNewEvent();
+            System.out.println("Drone " + name + ", state: " + state.getStateName() + ", position: " + kinematics.getPosition());
+
+            Optional<Event> newEvent = (currentEvent == null) ? requestNewEvent() : checkEventUpdate();
             if(newEvent.isPresent()){
                 state.onNewEvent(this, newEvent.get());
             }
 
             state.runState(this);
-            if (state.getNextState(this) != this) {
-                transitionState(state);
+            DroneState nextState = state.getNextState(this);
+            if (nextState != state) {
+                transitionState(nextState);
             }
 
             try {
-                Thread.sleep(200);
+                Thread.sleep(DRONE_LOOP_SLEEP_MS);
             } catch (InterruptedException e) {
                 System.err.println("Drone thread interrupted: " + e.getMessage());
             }
         }
+
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
         droneSocket.close();
         stateSocket.close();
@@ -319,41 +302,41 @@ public class Drone implements Runnable {
     }
 
     // GETTERS/SETTERS
-    public Event getCurrentEvent() { return currentEvent; }
-    public void setCurrentEvent(Event event) { currentEvent = event; }
+    public Optional<Event> getCurrentEvent() { return currentEvent; }
+    public void setCurrentEvent(Event event) { currentEvent = Optional.of(event); }
+    public Nozzle getNozzle() { return nozzle; }
     public DroneState getState() { return state; }
     public String getName() { return name; }
     Scheduler getScheduler() { return scheduler; }
-
-    // NEW DRONE STATE MACHINE METHODS
-    protected void extinguishFlames() {
-        System.out.println(name + " is extinguishing flames!");
-        try {
-            nozzle.extinguish(currentEvent.getSeverity(), name);
-        } catch (InterruptedException e) {
-            System.err.println("Error extinguishing flames: " + e.getMessage());
-        }
-    }
 
     public boolean isTankEmpty() {
         return waterTank.waterLevelEmpty();
     }
 
+    private void setTargetZone() {
+        int zoneId = currentEvent.get().getZoneId();
+        if (zoneId < 0 || zoneId >= zones.size()) {
+            throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
+        }
+
+        kinematics.setTarget(zones.get(zoneId).centre());
+    }
+
     public void moveToZone() {
-        kinematics.setTarget(Vector2d.of(3, 3)); // TODO: Replace with actual zone location
-        kinematics.tick(0.1);
+        setTargetZone();
+        kinematics.tick();
     }
     
     public void moveToHome() {
-        kinematics.setTarget(Vector2d.of(0, 0)); // TODO: Replace with actual home location
-        kinematics.tick(0.1);
+        kinematics.setTarget(Vector2d.of(0, 0));
+        kinematics.tick();
     }
 
     public boolean isAtZone() {
-        return kinematics.getPosition().equals(Vector2d.of(3, 3)); // TODO: Replace with actual zone location
+        return kinematics.isAtTarget();
     }
 
     public boolean isAtHome() {
-        return kinematics.getPosition().equals(Vector2d.of(0, 0)); // TODO: Replace with actual home location
+        return kinematics.getTarget().equals(Vector2d.of(0, 0)) && kinematics.isAtTarget();
     }
 }

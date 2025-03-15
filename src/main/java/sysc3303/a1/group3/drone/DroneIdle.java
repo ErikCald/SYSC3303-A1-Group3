@@ -7,12 +7,12 @@ public class DroneIdle implements DroneState {
     @Override
     public void runState(Drone drone) {
         drone.fillWaterTank();
-        drone.setCurrentEvent(null);
     }
 
     @Override
     public DroneState getNextState(Drone drone) {
-        if (drone.getCurrentEvent() != null) {
+        if (drone.getCurrentEvent().isPresent()) {
+            System.out.println(drone.getName() + " is now en route to Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
             return new DroneEnRoute();
         }
 
@@ -21,7 +21,6 @@ public class DroneIdle implements DroneState {
 
     @Override
     public void onNewEvent(Drone drone, Event event) {
-        System.out.println(drone.getName() + " is now en route to zone " + event.getZoneId());
         drone.setCurrentEvent(event);
     }
 

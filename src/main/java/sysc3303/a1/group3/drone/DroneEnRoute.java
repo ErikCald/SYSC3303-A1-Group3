@@ -12,6 +12,12 @@ public class DroneEnRoute implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if (drone.isAtZone()) {
+            if(drone.getCurrentEvent().isEmpty()) {
+                System.err.println("[Error3303]: Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + " but has no event. Returning.");
+                return new DroneReturning();
+            }
+
+            System.out.println("Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
             return new DroneInZone();
         }
 
@@ -20,7 +26,7 @@ public class DroneEnRoute implements DroneState {
 
     @Override
     public void onNewEvent(Drone drone, Event event) {
-        System.out.println(drone.getName() + " changed routes and is now en route to Zone " + event.getZoneId());
+        System.out.println(drone.getName() + " changed routes and is now en route to Zone " + event.getZoneId() + ".");
         drone.setCurrentEvent(event);
     }
 

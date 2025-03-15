@@ -1,8 +1,13 @@
 package sysc3303.a1.group3.physics;
 
+import sysc3303.a1.group3.drone.Drone;
+
 public class Kinematics {
+    private static final int TICK_QTY = Drone.DRONE_TRAVEL_SPEEDUP;
+    private static final double SECONDS_PER_TICK = Drone.DRONE_LOOP_SLEEP_MS / 1000.0;
 
     static final double EPSILON = Math.ulp(1.0d);
+    private final double ALLOWABLE_ERROR = 50; // zones are general 100x100 so 50 is a good error from center
 
     private final double maxSpeed;
     private final double maxSpeedSquared;
@@ -45,13 +50,25 @@ public class Kinematics {
         return maxSpeed;
     }
 
-    public void tick(double seconds) {
-        // Weird "algorithm" that works alright at lower tick amounts
-        Vector2d targetDirection = target.subtract(position);
-        Vector2d accelerationDirection = targetDirection.subtract(velocity); // the main choice
-        Vector2d acceleration = accelerationDirection.withMagnitude(maxAcceleration);
+    public boolean isAtTarget() {
+        return (target != null) 
+            && (Math.abs(position.getX() - target.getX()) < ALLOWABLE_ERROR) 
+            && (Math.abs(position.getY() - target.getY()) < ALLOWABLE_ERROR);
+    }
 
-        updateMotion(seconds, acceleration);
+    public void tick() {
+        for (int i = 0; i < TICK_QTY; i++) {
+            // Weird "algorithm" that works alright at lower tick amounts
+            Vector2d targetDirection = target.subtract(position);
+            Vector2d accelerationDirection = targetDirection.subtract(velocity); // the main choice
+            Vector2d acceleration = accelerationDirection.withMagnitude(maxAcceleration);
+
+            updateMotion(SECONDS_PER_TICK, acceleration);
+
+            if(isAtTarget()) {
+                break;
+            }
+        }
     }
 
     private void updateMotion(double duration, Vector2d acceleration) {
