@@ -17,9 +17,9 @@ public class Nozzle {
     }
 
     public void setupExtinguishing(Severity severity, String droneName) {
-        activate(droneName);
         targetWaterLevel = Math.max(0, tank.getWaterLevel() - severity.getRequiredLetersOfFoam());
         litersDropped = tank.getWaterLevel() - targetWaterLevel;
+        activate(droneName);
     }
 
     public void extinguish(String name) {
