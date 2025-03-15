@@ -309,6 +309,7 @@ public class Drone implements Runnable {
     // GETTERS/SETTERS
     public Optional<Event> getCurrentEvent() { return currentEvent; }
     public void setCurrentEvent(Event event) { currentEvent = Optional.of(event); }
+    public void clearEvent() { currentEvent = Optional.empty(); }
     public Nozzle getNozzle() { return nozzle; }
     public DroneState getState() { return state; }
     public String getName() { return name; }

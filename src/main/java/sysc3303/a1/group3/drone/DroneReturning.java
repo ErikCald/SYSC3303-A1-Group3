@@ -14,6 +14,7 @@ public class DroneReturning implements DroneState {
     public DroneState getNextState(Drone drone) {
         if (drone.isAtHome()) {
             System.out.println(drone.getName() + " is back!");
+            drone.clearEvent();
             return new DroneIdle();
         }
 

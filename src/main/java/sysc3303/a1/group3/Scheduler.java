@@ -94,7 +94,13 @@ public class Scheduler {
                         }, "Scheduler-RemoveEvent").start();
                     } else if (message.equals("SHUTDOWN")) {
                         // Received a shutdown request from FiSubsystem.
-                        shutOff();
+                        new Thread(() -> {
+                            try {
+                                shutOff();
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }).start();
                     } else if (message.startsWith("NEW_DRONE_LISTENER")) {
                         // New Drone registering, the one has information about its listener socket
                         String[] parts = message.split(",");
@@ -156,7 +162,7 @@ public class Scheduler {
                         }
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     System.err.println("Error in UDP listener: " + e.getMessage());
                 }
             }
