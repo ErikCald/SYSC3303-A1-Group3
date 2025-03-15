@@ -269,7 +269,7 @@ public class Scheduler {
             }
         } else {
             // If multiple drones are available, find the one closest to the zone
-            selectedDroneName = findClosestDrone(drones).getDroneName();
+            selectedDroneName = findClosestDrone(availableDrones).getDroneName();
 
             previousEvent = getDroneEventByName(selectedDroneName);
             if (selectedDroneName != null) {

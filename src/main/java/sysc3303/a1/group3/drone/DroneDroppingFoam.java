@@ -1,5 +1,9 @@
 package sysc3303.a1.group3.drone;
 
+import sysc3303.a1.group3.Event;
+
+import java.util.Optional;
+
 public class DroneDroppingFoam implements DroneState {
     private boolean isDroppingFoam = false;
 
@@ -21,7 +25,9 @@ public class DroneDroppingFoam implements DroneState {
     public DroneState getNextState(Drone drone) {
         if (drone.getNozzle().isFinishedExtinguishing()) {
             isDroppingFoam = false;
-            drone.getNozzle().finishExtinguishing(drone.getName());
+            Event event = drone.getCurrentEvent().orElseThrow(() -> new IllegalStateException("No event found in DroneDroppingFoam"));
+            drone.getNozzle().finishExtinguishing(drone.getName(), event);
+
             return new DroneReturning();
         }
 
