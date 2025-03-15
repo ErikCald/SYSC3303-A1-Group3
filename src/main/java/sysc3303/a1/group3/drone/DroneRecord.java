@@ -1,6 +1,7 @@
 package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import java.net.InetAddress;
 
@@ -14,7 +15,7 @@ public class DroneRecord {
     private int listenerPort;
     private InetAddress listenerAddress;
     private Event event;
-    private double x,y;
+    Vector2d position;
 
     public DroneRecord(String n, String s, double x, double y){
         this.droneName = n;
@@ -27,8 +28,7 @@ public class DroneRecord {
         this.listenerAddress = null;
 
         this.event = null;
-        this.x = x;
-        this.y = y;
+        position = new Vector2d(x, y);
     }
 
     public String getDroneName(){ return droneName; }
@@ -48,10 +48,9 @@ public class DroneRecord {
 
     public Event getEvent(){ return event; }
     public void setEvent(Event e){ this.event = e; }
-    public double[] getXY(){ return new double[]{x, y}; }
-    public void setXY(int[] newXY){
-        this.x = newXY[0];
-        this.y = newXY[1];
+    public Vector2d getPosition(){ return position; }
+    public void setPosition(Vector2d newPosition){
+        this.position = newPosition;
     }
 
 }

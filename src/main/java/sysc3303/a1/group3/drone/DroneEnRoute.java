@@ -1,23 +1,33 @@
 package sysc3303.a1.group3.drone;
 
-public class DroneEnRoute implements BaseDroneState {
+import sysc3303.a1.group3.Event;
+
+public class DroneEnRoute implements DroneState {
 
     @Override
-    public void triggerEntryWork(Drone drone) throws InterruptedException {
-        //Simulate movement
-        System.out.println(drone.getName() + " on the way!");
-        Thread.sleep(1000);
-        drone.transitionState(DroneInZone.class);
+    public void runState(Drone drone) {
+        drone.moveToZone();
     }
 
     @Override
-    public void triggerExitWork(Drone drone) {
-        // todo ?
+    public DroneState getNextState(Drone drone) {
+        if (drone.isAtZone()) {
+            if(drone.getCurrentEvent().isEmpty()) {
+                System.err.println("[Error3303]: Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + " but has no event. Returning.");
+                return new DroneReturning();
+            }
+
+            System.out.println("Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
+            return new DroneInZone();
+        }
+
+        return this;
     }
 
     @Override
-    public void onZoneArrival(Drone drone) throws InterruptedException {
-        drone.transitionState(DroneInZone.class);
+    public void onNewEvent(Drone drone, Event event) {
+        System.out.println(drone.getName() + " changed routes and is now en route to Zone " + event.getZoneId() + ".");
+        drone.setCurrentEvent(event);
     }
 
     @Override
