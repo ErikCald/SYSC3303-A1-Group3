@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
