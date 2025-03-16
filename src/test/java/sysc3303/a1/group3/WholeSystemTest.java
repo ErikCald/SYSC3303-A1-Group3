@@ -33,7 +33,7 @@ public class WholeSystemTest {
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
-        int schedulerPort = 6002; // Scheduler's port
+        int schedulerPort = 6014; // Scheduler's port
 
         Parser parser = new Parser();
         try {
@@ -47,7 +47,7 @@ public class WholeSystemTest {
 
         Scheduler scheduler;
         try {
-            scheduler = new Scheduler(parser.getZones());
+            scheduler = new Scheduler(parser.getZones(), schedulerPort);
         } catch (IOException e) {
             System.err.println("Failed to create scheduler, aborting.");
             e.printStackTrace();

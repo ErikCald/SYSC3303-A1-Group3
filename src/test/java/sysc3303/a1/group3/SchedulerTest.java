@@ -20,8 +20,7 @@ class SchedulerTest {
     private FireIncidentSubsystem fiSubsystem;
 
     private static final String schedulerAddress = "localhost"; // Scheduler's IP
-    private static final int schedulerPort = 6002; // Scheduler's main port
-    private static final int SCHEDULER_SEND_PORT = 6003; // Sending port
+    private static final int schedulerPort = 6013; // Scheduler's main port
 
     private DatagramSocket testSocket;
 
@@ -40,7 +39,7 @@ class SchedulerTest {
             return;
         }
 
-        scheduler = new Scheduler(parser.getZones());
+        scheduler = new Scheduler(parser.getZones(), schedulerPort);
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
         // Create a UDP socket for testing

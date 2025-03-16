@@ -29,7 +29,7 @@ public class Main {
 
         Scheduler scheduler;
         try {
-            scheduler = new Scheduler(parser.getZones());
+            scheduler = new Scheduler(parser.getZones(), schedulerPort);
         } catch (IOException e) {
             System.err.println("Failed to create scheduler, aborting.");
             e.printStackTrace();

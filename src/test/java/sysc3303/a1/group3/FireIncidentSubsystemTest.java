@@ -20,7 +20,7 @@ class FireIncidentSubsystemTest {
     Parser parser;
 
     String schedulerAddress = "localhost"; // Scheduler's IP
-    int schedulerPort = 6002; // Scheduler's port
+    int schedulerPort = 6012; // Scheduler's port
 
     InputStream fileStream;
     final InputStream incidentFile = Main.class.getResourceAsStream("/quickEvent.csv");
@@ -39,7 +39,7 @@ class FireIncidentSubsystemTest {
         parser.parseIncidentFile(incidentFile);
         parser.parseZoneFile(zoneFile);
 
-        scheduler = new Scheduler(parser.getZones());
+        scheduler = new Scheduler(parser.getZones(), schedulerPort);
         drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZones());
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
     }

@@ -45,21 +45,18 @@ public class Scheduler {
     // socket to exclusive send packets when the main socket is busy listening
     private DatagramSocket sendSocket;
 
-    private int schedulerPort = 6002;
-    private int sendSchedulerPort = 6003;
-
     /**
      * Creates a new Scheduler
      *
      * @param zones the zoneFile containing the fire zones
      * @throws SocketException if any of the required sockets could not be created
      */
-    public Scheduler(List<Zone> zones) throws SocketException {
+    public Scheduler(List<Zone> zones, int schedulerPort) throws SocketException {
         Objects.requireNonNull(zones, "ListOfZones");
         this.zones = zones;
 
         this.socket = new DatagramSocket(schedulerPort);
-        this.sendSocket = new DatagramSocket(sendSchedulerPort);
+        this.sendSocket = new DatagramSocket();
 
         // start the main listener/handler
         startUDPListener();
