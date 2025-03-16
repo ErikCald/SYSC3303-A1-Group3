@@ -113,35 +113,35 @@ class KinematicsSandbox extends JPanel {
     }
 
     public static void main(String[] args) throws Exception {
-        Kinematics kinematics = new Kinematics(10, 30);
-
-        kinematics.setTarget(Vector2d.of(10, 10));
-
-
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Container container = frame.getContentPane();
-
-        KinematicsSandbox graph = new KinematicsSandbox(kinematics);
-        container.add(graph);
-
-        graph.setPreferredSize(new Dimension(500, 500));
-
-        frame.pack();
-        frame.setVisible(true);
-
-        int tickMillis = 10;
-        double tickSeconds =  tickMillis / 1000d;
-
-        //noinspection InfiniteLoopStatement
-        while (true) {
-            kinematics.setTarget(graph.getCursorPosition()); // assume this doesn't take much time
-
-            kinematics.tick(tickSeconds);
-            graph.update(); // assume this doesn't take much time
-
-            //noinspection BusyWait
-            Thread.sleep(tickMillis);
-        }
+//        Kinematics kinematics = new Kinematics(10, 30);
+//
+//        kinematics.setTarget(Vector2d.of(10, 10));
+//
+//
+//        JFrame frame = new JFrame();
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        Container container = frame.getContentPane();
+//
+//        KinematicsSandbox graph = new KinematicsSandbox(kinematics);
+//        container.add(graph);
+//
+//        graph.setPreferredSize(new Dimension(500, 500));
+//
+//        frame.pack();
+//        frame.setVisible(true);
+//
+//        int tickMillis = 10;
+//        double tickSeconds =  tickMillis / 1000d;
+//
+//        //noinspection InfiniteLoopStatement
+//        while (true) {
+//            kinematics.setTarget(graph.getCursorPosition()); // assume this doesn't take much time
+//
+//            kinematics.tick(tickSeconds);
+//            graph.update(); // assume this doesn't take much time
+//
+//            //noinspection BusyWait
+//            Thread.sleep(tickMillis);
+//        }
     }
 }

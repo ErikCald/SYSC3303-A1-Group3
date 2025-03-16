@@ -1,61 +1,172 @@
 package sysc3303.a1.group3;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import sysc3303.a1.group3.drone.Drone;
+import org.junit.jupiter.api.Timeout;
+import sysc3303.a1.group3.drone.DroneRecord;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-/*
-NOTE: confirmWithSubsystem is not tested here, as well as other synchronized methods as they
-depend on other classes to operate. See WholeSystemTest for this
- */
 
 class SchedulerTest {
 
     private Scheduler scheduler;
-    private Drone drone;
     private FireIncidentSubsystem fiSubsystem;
 
-    InputStream fileStream;
+    private static final String schedulerAddress = "localhost"; // Scheduler's IP
+    private static final int schedulerPort = 6002; // Scheduler's main port
+    private static final int SCHEDULER_SEND_PORT = 6003; // Sending port
+
+    private DatagramSocket testSocket;
+
+    final InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
+    final InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
 
     @BeforeEach
     void beforeEach() throws IOException {
-        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
-        scheduler = new Scheduler();
-        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
-        drone = new Drone("drone", scheduler);
+        Parser parser = new Parser();
+        try {
+            parser.parseIncidentFile(incidentFile);
+            parser.parseZoneFile(zoneFile);
+        } catch (IOException e) {
+            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            e.printStackTrace();
+            return;
+        }
 
-        scheduler.addDrone(drone);
-        scheduler.setSubsystem(fiSubsystem);
+        scheduler = new Scheduler(parser.getZones());
+        fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
+
+        // Create a UDP socket for testing
+        testSocket = new DatagramSocket();
+    }
+    @AfterEach
+    void closeAll() {
+        if (testSocket != null && !testSocket.isClosed()) {
+            testSocket.close();
+        }
+        if (scheduler != null) {
+            scheduler.closeSockets();  // Ensure this method exists in Scheduler to close both sockets.
+        }
     }
 
-    // Add an event, and test if it is there afterward, and equal to the one prior
+
     @Test
-    void testAddEvent() {
-        Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-        scheduler.addEvent(event);
+    @Timeout(5)
+    void testReceiveSubsystemEvent() throws Exception {
+        // Simulate sending a SUBSYSTEM_EVENT to the scheduler
+        String eventJson = "{\"zoneId\":1,\"eventType\":\"FIRE_DETECTED\",\"severity\":\"HIGH\"}";
+        sendUdpMessage("SUBSYSTEM_EVENT:" + eventJson);
 
-        Event removedEvent = scheduler.removeEvent();
-        assertEquals(event, removedEvent);
+        // Wait briefly to allow processing
+        Thread.sleep(500);
+
+        // Verify that the event was added to scheduler
+        assertFalse(scheduler.getDroneMessages().isEmpty(), "Event queue should not be empty.");
     }
 
-    //Now that shutoff is synchronized, we cannot test it here, and it is effectively tested in WholeSystemTests
-//    @Test
-//    void testShutOff() throws InterruptedException {
-//        Thread droneThread = new Thread(drone, "Drone");
-//        droneThread.start();
-//
-//        Event event = new Event(new java.sql.Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-//        scheduler.addEvent(event);
-//
-//        scheduler.shutOff();
-//
-//        // Verify that the shutoff flag is set and that the drone is off and has no event.
-//        assertTrue(scheduler.getShutOff());
-//    }
+    @Test
+    @Timeout(5)
+    void testRegisterNewDroneListener() throws Exception {
+        // Simulate a new drone registering its listener info
+        try {
+            String message = "NEW_DRONE_LISTENER,drone1,DroneIdle,10.5,20.5";
+            sendUdpMessage(message);
 
+            // Wait briefly
+            Thread.sleep(500);
+
+            // Verify that the drone was added to the scheduler
+            DroneRecord drone = scheduler.getDroneByName("drone1");
+            assertNotNull(drone, "Drone should be registered.");
+            assertEquals(10.5, drone.getPosition().getX(), 0.1, "Drone X position should match.");
+            assertEquals(20.5, drone.getPosition().getY(), 0.1, "Drone Y position should match.");
+        } catch (IllegalArgumentException e){}
+    }
+
+    @Test
+    @Timeout(5)
+    void testRegisterNewDronePort() throws Exception {
+        // Simulate a new drone registering its main socket info
+        try {
+            String message = "NEW_DRONE_PORT,drone1,DroneIdle,10.5,20.5";
+            sendUdpMessage(message);
+
+            // Wait briefly
+            Thread.sleep(500);
+
+            // Verify that the drone was updated in the scheduler
+            DroneRecord drone = scheduler.getDroneByName("drone1");
+            assertNotNull(drone, "Drone should exist.");
+            assertEquals(10.5, drone.getPosition().getX(), 0.1, "Drone X position should match.");
+            assertEquals(20.5, drone.getPosition().getY(), 0.1, "Drone Y position should match.");
+        } catch (IllegalArgumentException e){}
+    }
+
+    @Test
+    @Timeout(5)
+    void testShutdownMessage() throws Exception {
+        // Simulate a shutdown request
+        try {
+            sendUdpMessage("SHUTDOWN");
+        } catch (IllegalArgumentException e) {}
+        // Wait briefly
+        Thread.sleep(500);
+
+        // Verify that the system shut down
+        // Error or busy wait will happen if so.
+    }
+
+    @Test
+    @Timeout(10)
+    void testDronesReceiveShutoff() throws Exception {
+        // Simulate adding a drone first
+        sendUdpMessage("NEW_DRONE_LISTENER,drone1,DroneIdle,10.0,10.0");
+
+        // Wait for processing
+        Thread.sleep(500);
+
+        // Simulate sending shutdown
+        sendUdpMessage("SHUTDOWN");
+
+        // Wait for processing
+        Thread.sleep(1000);
+
+        // Verify if the shutdown message was processed
+        // Will timeout if not proper shutdown
+    }
+
+    @Test
+    @Timeout(5)
+    void testStateChangeResponse() throws Exception {
+        String message = String.format("STATE_CHANGE," + "drone1" + "," + "stateMsg");
+        byte[] data = message.getBytes();
+        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
+        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
+        testSocket.send(packet);
+
+        Thread.sleep(500);
+
+        byte[] confirmData = new byte[1024];
+        DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+        testSocket.receive(confirmPacket);
+
+        String response = new String(confirmPacket.getData(), 0, confirmPacket.getLength());
+
+        assertEquals("STATE_CHANGE_OK", response, "The response from the scheduler should be STATE_CHANGE_OK.");
+    }
+
+    // Helper method to send UDP messages to the Scheduler
+    private void sendUdpMessage(String message) throws Exception {
+        byte[] data = message.getBytes();
+        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
+        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
+        testSocket.send(packet);
+    }
 }

@@ -2,45 +2,38 @@ package sysc3303.a1.group3.drone;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sysc3303.a1.group3.Parser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DroneStatesTest {
 
-    DroneStates droneStates;
+
+    Drone drone1;
     DroneState droneIdle;
+
+    String schedulerAddress = "localhost"; // Scheduler's IP
+    int schedulerPort = 6002; // Scheduler's port
+
+    Parser parser;
 
     @BeforeEach
     void beforeEach() {
-        droneStates = new DroneStates();
+        parser = new Parser();
         droneIdle = new DroneIdle();
+
+        drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZones());
     }
 
     @Test
     void testRetrieve() {
-        droneStates.register(droneIdle);
         // Ensure an instance can be registered and retrieved
-        assertSame(droneIdle, droneStates.retrieve(DroneIdle.class));
+        assertSame(droneIdle, drone1.getState());
     }
 
     @Test
-    void testNotRegistered() {
+    void testStateSequence() {
         // Ensure an instance is not retrieved if it hasn't been registered
-        assertThrows(IllegalArgumentException.class, () -> droneStates.retrieve(DroneIdle.class));
-    }
-
-    @Test
-    void testAlreadyRegistered() {
-        droneStates.register(droneIdle);
-        // Ensure no instance of the same type can be registered
-        assertThrows(IllegalArgumentException.class, () -> droneStates.register(droneIdle));
-        assertThrows(IllegalArgumentException.class, () -> droneStates.register(new DroneIdle()));
-    }
-
-    @Test
-    void testWithDefaults() {
-        // Ensure that static factory provides defaults
-        droneStates = DroneStates.withDefaults();
-        assertInstanceOf(DroneIdle.class, droneStates.retrieve(DroneIdle.class));
+        drone1.getState().runState(drone1);
     }
 }

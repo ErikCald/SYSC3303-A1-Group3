@@ -1,102 +1,143 @@
 package sysc3303.a1.group3.drone;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.FireIncidentSubsystem;
-import sysc3303.a1.group3.Main;
 import sysc3303.a1.group3.Scheduler;
-import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.Zone;
+import sysc3303.a1.group3.drone.Drone;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Time;
-import java.util.concurrent.TimeoutException;
-import java.util.function.BooleanSupplier;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DroneTest {
+class DroneTest {
 
-    Scheduler scheduler;
-    Drone drone;
-    FireIncidentSubsystem fiSubsystem;
-    InputStream fileStream;
+    private Scheduler scheduler;
+    private Drone drone;
+    private List<Zone> zones;
+    private DatagramSocket schedulerSocket;
+    private DatagramSocket droneSocket;
+    private InetAddress schedulerAddress;
+    private int schedulerPort = 6002;
 
     @BeforeEach
-    void beforeEach() throws IOException {
-        // Create a fresh Scheduler and Drone for each test
-        fileStream = Main.class.getResourceAsStream("/incidentFile.csv");
-        scheduler = new Scheduler();
-        drone = new Drone("drone", scheduler);
-        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
-        scheduler.addDrone(drone);
-        scheduler.setSubsystem(fiSubsystem);
-    }
+    void setUp() throws IOException {
+        // Set up the Scheduler that listens for requests
+        schedulerSocket = new DatagramSocket(schedulerPort);
+        schedulerAddress = InetAddress.getByName("localhost");
 
-    @Test
-    void testIdlingDrone() {
-        // A newly created drone should have no event/task
-        assertNull(drone.currentEvent);
-    }
+        // Mock zones (simple zones for testing)
+        zones = new ArrayList<>();
+        zones.add(new Zone(1, 0, 0, 10, 10, Vector2d.of(5, 5)));
 
-    @Test
-    void testDroneThreadBlocked() throws TimeoutException {
-        // Schedule the drone thread
-        Thread droneThread = new Thread(drone, "Drone");
-        droneThread.start();
+        // Initialize the Drone with real sockets
+        droneSocket = new DatagramSocket();
+        drone = new Drone("drone1", "localhost", schedulerPort, zones);
 
-        // Since the Scheduler hasn't been populated with anything, the drone thread should enter a waiting state
-        // shortly after running. There is no assertion here, but if the droneThread doesn't enter a WAITING state
-        // within 10ms, then the test fails (exception).
-        busyWaitUntil(() -> droneThread.getState() == Thread.State.WAITING, 10);
-    }
+        // Start the scheduler
+        new Thread(() -> {
+            try {
+                byte[] receiveData = new byte[1024];
+                while (true) {
+                    DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
+                    schedulerSocket.receive(packet);
 
-    @Test
-    void testRequestEvent() {
-        // Dummy event
-        Event event = new Event(new Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
+                    // Simulate the Scheduler response based on the message
+                    String message = new String(packet.getData(), 0, packet.getLength());
 
-        // Populate the Scheduler with a single event
-        scheduler.addEvent(event);
-        // Request the single event from the scheduler
-        drone.requestEvent();
-
-        // Ensure the event is the same
-        assertEquals(event, drone.currentEvent);
-    }
-
-    @Test
-    void testRequestEventThreaded() throws TimeoutException {
-        // Schedule the drone thread, which will request events when running
-        Thread droneThread = new Thread(drone, "Drone");
-        droneThread.start();
-
-        // Populate the Scheduler with a single event
-        Event event = new Event(new Time(0), 0, Event.EventType.DRONE_REQUESTED, Severity.High);
-        scheduler.addEvent(event);
-
-        // Wait until the drone's event field is filled
-        busyWaitUntil(() -> drone.currentEvent != null, 10);
-
-        // Ensure the event that the drone received is the same as what was put in the scheduler
-        assertEquals(event, drone.currentEvent);
-    }
-
-    /**
-     * This method runs until the provided condition returns true.
-     *
-     * @param condition the condition to await
-     * @param timeout the maximum amount of time in milliseconds to wait for
-     * @throws TimeoutException if the timeout is exceeded
-     */
-    private void busyWaitUntil(BooleanSupplier condition, long timeout) throws TimeoutException {
-        // todo: will they let us use https://github.com/awaitility/awaitility for testing?
-        long start = System.currentTimeMillis();
-        while (!condition.getAsBoolean()) {
-            if (start - System.currentTimeMillis() >= timeout) {
-                throw new TimeoutException("Wait time exceeded %sms".formatted(timeout));
+                    if (message.equals("DRONE_REQ_EVENT")) {
+                        String eventJson = "{\"time\":5, \"zoneId\":1, \"eventType\":\"FIRE_DETECTED\", \"severity\":\"HIGH\"}";
+                        String response = eventJson;
+                        byte[] sendData = response.getBytes();
+                        DatagramPacket responsePacket = new DatagramPacket(sendData, sendData.length, packet.getAddress(), packet.getPort());
+                        schedulerSocket.send(responsePacket);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }).start();
+    }
+
+    @AfterEach
+    void closeAll() {
+        if (droneSocket != null && !droneSocket.isClosed()) {
+            drone.closeSockets();
+        }
+        if (schedulerSocket != null && !schedulerSocket.isClosed()) {
+            schedulerSocket.close();
         }
     }
+
+
+    @Test
+    @Timeout(5)
+    void testRequestNewEvent_successfulEvent() throws Exception {
+        // Start the Drone in its own thread (simulating real-time behavior)
+        Thread droneThread = new Thread(drone);
+        droneThread.start();
+
+        // Simulate the Drone requesting a new event
+        Optional<Event> event = drone.requestNewEvent();
+
+        // Wait briefly for the event to be received
+        Thread.sleep(500);
+
+        // Assert that the event was received correctly
+        assertTrue(event.isPresent(), "The drone should receive an event.");
+        Event e = event.get();
+        assertEquals(1, e.getZoneId(), "ZoneId should match");
+        assertEquals(Event.EventType.FIRE_DETECTED, e.getEventType(), "EventType should match");
+    }
+
+    @Test
+    @Timeout(5)
+    void testCheckEventUpdate_shutdown() throws Exception {
+        Thread droneThread = new Thread(drone);
+        droneThread.start();
+
+        // Simulate the SHUTOFF message
+        String shutdownMessage = "SHUTOFF";
+        byte[] sendData = shutdownMessage.getBytes();
+        DatagramPacket shutdownPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        schedulerSocket.send(shutdownPacket);
+
+        Thread.sleep(500);
+
+        // Also, check if no event is returned after shutdown
+        Optional<Event> event = drone.checkEventUpdate();
+        assertFalse(event.isPresent(), "The drone should not return an event after receiving SHUTOFF.");
+    }
+
+    @Test
+    @Timeout(5)
+    void testFillWaterTank() throws InterruptedException {
+        // Create WaterTank and reduce its level to simulate usage
+        WaterTank waterTank = new WaterTank();
+
+        // Reduce water level
+        waterTank.reduceWaterLevel("drone1");
+        waterTank.reduceWaterLevel("drone1");
+
+        // Check if the water tank is not full initially
+        assertEquals(13, waterTank.getWaterLevel(), "Initial water level should be 13");
+
+        // Now call fillWaterTank to fill the water tank
+        waterTank.fillWaterLevel();
+
+        // Check if the water tank is full now
+        assertEquals(15, waterTank.getWaterLevel(), "Water level should be 15 after filling");
+    }
+
+
+
+
 }

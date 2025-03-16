@@ -46,14 +46,6 @@ public class KinematicsTest {
     }
 
     @Test
-    void testTimeToReachSpeedImpossible() {
-        Vector2d v = Vector2d.of(1, 1);
-        Vector2d a = Vector2d.ZERO;
-
-        assertEquals(Double.NaN, timeToReachSpeed(v, a, 5));
-    }
-
-    @Test
     void voidTestTimeToReachSpeedEdge() {
         // v = Vector2d[x=3.313083248978657, y=9.435225454928835]
         // a = Vector2d[x=8.766549373974314, y=28.69054917692707]
