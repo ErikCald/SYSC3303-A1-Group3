@@ -1,2 +1,2 @@
 Time,Zone ID,Event type,Severity
-0:00:05,2,DRONE_REQUEST,Low
+0:00:05,2,DRONE_REQUESTED,Low
