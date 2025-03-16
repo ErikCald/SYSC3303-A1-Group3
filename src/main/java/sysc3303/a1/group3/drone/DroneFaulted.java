@@ -1,15 +1,14 @@
 package sysc3303.a1.group3.drone;
 
-public class DroneFaulted implements BaseDroneState {
-
+public class DroneFaulted implements DroneState {
 
     @Override
-    public void triggerEntryWork(Drone drone) {
+    public void runState(Drone drone) {
         throw new UnsupportedOperationException("To be implemented in iteration 4");
     }
 
     @Override
-    public void triggerExitWork(Drone drone) {
+    public DroneState getNextState(Drone drone) {
         throw new UnsupportedOperationException("To be implemented in iteration 4");
     }
 

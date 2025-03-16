@@ -1,16 +1,43 @@
 package sysc3303.a1.group3.drone;
 
 public class WaterTank {
-    private int waterLevel;
+    private final double RATE_OF_FLOW = 1;
+
+    private double waterLevel;
 
     public WaterTank() {
         waterLevel = 15;
     }
 
-    public void releaseWater(int amount) {
-        //This is where the water tank should be adjusted in the future.
-        System.out.println("the drone releases some water.");
+    public void releaseWater(int amount, String droneName) throws InterruptedException {
+        double timeToWait = amount / RATE_OF_FLOW;
+        for (int i = 0; (double) i < timeToWait; i++){
+            Thread.sleep(1000);
+            reduceWaterLevel(droneName);
+            
+            if (waterLevelEmpty()){
+                break;
+            }
+        }
     }
 
-    public int getWaterLevel() {return waterLevel;}
+    public double getWaterLevel() {
+        return waterLevel;
+    }
+
+    public void reduceWaterLevel(String droneName) {
+        this.waterLevel -= RATE_OF_FLOW;
+    }
+
+    public void fillWaterLevel(){
+        this.waterLevel = 15;
+    }
+
+    public boolean isFull() {
+        return waterLevel == 15;
+    }
+
+    public boolean waterLevelEmpty(){
+        return waterLevel <= 0;
+    }
 }
