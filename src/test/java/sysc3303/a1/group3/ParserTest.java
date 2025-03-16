@@ -30,24 +30,29 @@ class ParserTest {
      */
     @Test
     public void testParseIncidentFile() throws IOException {
+        // Load the incident file for testing
         InputStream fileStream = ParserTest.class.getResourceAsStream("/validIncidentFileForTesting.csv");
-        if(fileStream == null) {
+        if (fileStream == null) {
             throw new RuntimeException("Failed to load incident file for testing");
         }
+        // Parse the incident file
+        List<Event> events = parser.parseIncidentFile(fileStream);
 
-        List<Event> events = ParserTest.parser.parseIncidentFile(fileStream);
-
+        // Define the expected events
         List<Event> expectedEvents = new ArrayList<>();
-        expectedEvents.add(new Event(Time.valueOf("0:00:05"), 3, EventType.FIRE_DETECTED, Severity.Low));
-        expectedEvents.add(new Event(Time.valueOf("0:00:24"), 1, EventType.FIRE_DETECTED, Severity.High));
-        expectedEvents.add(new Event(Time.valueOf("0:00:51"), 2, EventType.DRONE_REQUESTED, Severity.Moderate));
-        expectedEvents.add(new Event(Time.valueOf("0:01:13"), 4, EventType.FIRE_DETECTED, Severity.Low));
-        expectedEvents.add(new Event(Time.valueOf("0:01:31"), 1, EventType.DRONE_REQUESTED, Severity.Moderate));   
-        
+        expectedEvents.add(new Event(Time.valueOf("00:00:03"), 3, EventType.FIRE_DETECTED, Severity.Low));
+        expectedEvents.add(new Event(Time.valueOf("00:00:04"), 1, EventType.FIRE_DETECTED, Severity.High));
+        expectedEvents.add(new Event(Time.valueOf("00:00:15"), 2, EventType.DRONE_REQUESTED, Severity.Moderate));
+        expectedEvents.add(new Event(Time.valueOf("00:00:20"), 4, EventType.FIRE_DETECTED, Severity.Low));
+        expectedEvents.add(new Event(Time.valueOf("00:00:25"), 1, EventType.DRONE_REQUESTED, Severity.Moderate));
+
+
+        // Assert that the number of events parsed matches the expected count
         assertEquals(expectedEvents.size(), events.size(), "Test file has a mismatching quantity of events with the expected events.");
 
-        for(int i = 0; i < events.size(); ++i) {
-            assertEquals(expectedEvents.get(i), events.get(i), "Event " + (i+1) + " does not match the expected event");
+        // Assert that each parsed event matches the expected event
+        for (int i = 0; i < events.size(); ++i) {
+            assertEquals(expectedEvents.get(i), events.get(i), "Event " + (i + 1) + " does not match the expected event");
         }
     }
 

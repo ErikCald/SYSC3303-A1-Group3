@@ -45,24 +45,22 @@ public class Scheduler {
     // socket to exclusive send packets when the main socket is busy listening
     private DatagramSocket sendSocket;
 
-    private final int schedulerPort = 6002;
-    private final int sendSchedulerPort = 6003;
-
     /**
      * Creates a new Scheduler
      *
      * @param zones the zoneFile containing the fire zones
      * @throws SocketException if any of the required sockets could not be created
      */
-    public Scheduler(List<Zone> zones) throws SocketException {
+    public Scheduler(List<Zone> zones, int schedulerPort) throws SocketException {
         Objects.requireNonNull(zones, "ListOfZones");
         this.zones = zones;
 
         this.socket = new DatagramSocket(schedulerPort);
-        this.sendSocket = new DatagramSocket(sendSchedulerPort);
+        this.sendSocket = new DatagramSocket();
 
         // start the main listener/handler
         startUDPListener();
+
     }
 
     // Starts one UDP listener thread that continuously receives packets.
@@ -160,9 +158,11 @@ public class Scheduler {
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
-                    System.err.println("Error in UDP listener: " + e.getMessage());
+                    break;
                 }
             }
+            socket.close();
+            sendSocket.close();
         }, "Scheduler-UPDListener").start();
     }
 
@@ -492,6 +492,10 @@ public class Scheduler {
         }
         return true; // All elements were null
     }
+    public Queue<Event> getDroneMessages() {
+        return droneMessages;
+    }
+
 
     private DroneRecord findClosestDrone(List<DroneRecord> availableDrones, Event event) {
         if (availableDrones.isEmpty()) {
@@ -545,6 +549,15 @@ public class Scheduler {
 
         // Return true if the new event is further away than the older event
         return newEventDistance > olderEventDistance;
+    }
+
+    public void closeSockets() {
+        if (socket != null && !socket.isClosed()) {
+            socket.close();
+        }
+        if (sendSocket != null && !sendSocket.isClosed()) {
+            sendSocket.close();
+        }
     }
 
 

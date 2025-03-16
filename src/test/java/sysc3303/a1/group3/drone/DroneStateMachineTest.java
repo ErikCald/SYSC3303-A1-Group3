@@ -1,4 +1,4 @@
-package sysc3303.a1.group3;
+package sysc3303.a1.group3.drone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -6,39 +6,33 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import sysc3303.a1.group3.drone.Drone;
-import sysc3303.a1.group3.drone.DroneDroppingFoam;
-import sysc3303.a1.group3.drone.DroneEnRoute;
-import sysc3303.a1.group3.drone.DroneIdle;
-import sysc3303.a1.group3.drone.DroneInZone;
-import sysc3303.a1.group3.drone.DroneReturning;
-import sysc3303.a1.group3.drone.DroneState;
+import sysc3303.a1.group3.FireIncidentSubsystem;
+import sysc3303.a1.group3.Parser;
+import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.Zone;
 
-public class StateMachineTest {
+public class DroneStateMachineTest {
 
     /**
      * A testable version of the Drone class that allows for the onStateChange callback to be set.
      */
-    public class TestableDrone extends Drone {
-        public TestableDrone(String name, Scheduler scheduler) {
-            super(name, scheduler);
+    public static class TestableDrone extends Drone {
+        public TestableDrone(String name, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+            super(name, schedulerAddress, schedulerPort, zones);
             stateHistory.add(DroneIdle.class);
         }
 
         ArrayList<Class<? extends DroneState>> stateHistory = new ArrayList<>();
 
         @Override
-        public void transitionState(Class<? extends DroneState> state) {
-            stateHistory.add(state);
-            try {
-                super.transitionState(state);
-            } catch (InterruptedException e) {
-                fail("Transitioning state failed");
-            }
+        public void transitionState(DroneState state) {
+            stateHistory.add(state.getClass());
+            super.transitionState(state);
         }
 
         public ArrayList<Class<? extends DroneState>> getStateHistory() {
@@ -46,20 +40,30 @@ public class StateMachineTest {
         }
     }
 
-    private Scheduler scheduler;
+    public Scheduler scheduler;
     private TestableDrone drone;
     private FireIncidentSubsystem fiSubsystem;
-    private InputStream fileStream;
 
     @BeforeEach
     void beforeEach() throws IOException {
         // Create a fresh Scheduler and Drone for each test
-        fileStream = StateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv");
-        scheduler = new Scheduler();
-        drone = new TestableDrone("drone", scheduler);
-        fiSubsystem = new FireIncidentSubsystem(scheduler, fileStream);
-        scheduler.addDrone(drone);
-        scheduler.setSubsystem(fiSubsystem);
+
+        InputStream incidentFile = DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv");
+        InputStream zoneFile = DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv");
+        String schedulerAddress = "localhost"; // Scheduler's IP
+        int schedulerPort = 6011; // Scheduler's port
+
+        Parser parser = new Parser();
+        try {
+            parser.parseIncidentFile(incidentFile);
+            parser.parseZoneFile(zoneFile);
+        } catch (IOException e) {
+            fail("Failed to parse incident file or zone location file, aborting.");
+        }
+
+        drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZones());
+        scheduler = new Scheduler(parser.getZones(), schedulerPort);
+        fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
     }
 
     @Test
@@ -81,7 +85,7 @@ public class StateMachineTest {
         assertEquals(expectedStatesInOrder.getFirst(), currentState.getClass());
         droneThread.start();
 
-        // Start the simulation which will send a event to the drone and change its state
+        // Start the simulation which will send an event to the drone and change its state
         fiSubsystemThread.start();
       
         // Wait for the threads to finish
@@ -89,7 +93,7 @@ public class StateMachineTest {
             fiSubsystemThread.join();
             droneThread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            fail("Thread interrupted while waiting for completion. Exception: " + e);
         }
 
         // Ensure the drone's state history matches the expected states

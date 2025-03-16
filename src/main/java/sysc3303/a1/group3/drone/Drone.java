@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
@@ -26,7 +25,6 @@ public class Drone implements Runnable {
     public static final boolean PRINT_DRONE_ITERATIONS = false; // Prints the drone's position every iteration
 
     private final String name;
-    private final Scheduler scheduler;
 
     // Drone Components
     private final Kinematics kinematics;
@@ -55,7 +53,7 @@ public class Drone implements Runnable {
 
     private boolean shutoff;
 
-    public Drone(String name, DroneSpecifications specifications, Scheduler scheduler, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, List<Zone> zones) {
         this.name = name;
 
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
@@ -63,7 +61,6 @@ public class Drone implements Runnable {
         this.nozzle = new Nozzle(this.waterTank);
         this.zones = zones;
 
-        this.scheduler = scheduler;
         this.state = new DroneIdle();
         this.currentEvent = Optional.empty();
 
@@ -86,10 +83,9 @@ public class Drone implements Runnable {
      * Creates a Drone with arbitrary specs.
      *
      * @param name the name of the drone
-     * @param scheduler the scheduler that is responsible for this Drone
      */
-    public Drone(String name, Scheduler scheduler, String schedulerAddress, int schedulerPort, List<Zone> zones) {
-        this(name, new DroneSpecifications(10, 30), scheduler, schedulerAddress, schedulerPort, zones);
+    public Drone(String name, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+        this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones);
     }
 
     /**
@@ -173,7 +169,7 @@ public class Drone implements Runnable {
     }
 
     protected boolean isInZoneSchedulerResponse(){
-        return (this.scheduler.confirmDroneInZone(this));
+        return true;
     }
 
     protected void fillWaterTank(){
@@ -347,5 +343,17 @@ public class Drone implements Runnable {
 
     public boolean isAtHome() {
         return kinematics.getTarget().equals(Vector2d.of(0, 0)) && kinematics.isAtTarget();
+    }
+
+    public void closeSockets() {
+        if (droneSocket != null && !droneSocket.isClosed()) {
+            droneSocket.close();
+        }
+        if (listenerSocket != null && !listenerSocket.isClosed()) {
+            listenerSocket.close();
+        }
+        if (stateSocket != null && !stateSocket.isClosed()) {
+            stateSocket.close();
+        }
     }
 }
