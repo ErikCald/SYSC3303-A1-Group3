@@ -51,7 +51,7 @@ public class DroneStateMachineTest {
         InputStream incidentFile = DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv");
         InputStream zoneFile = DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
-        int schedulerPort = 6008; // Scheduler's port
+        int schedulerPort = 6002; // Scheduler's port
 
         Parser parser = new Parser();
         try {
