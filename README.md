@@ -10,3 +10,28 @@ This repository contains the code and documentation for the SYSC3303A1 Group 3 p
 # Testing & Running
 - Execute `./gradlew clean test` (as instructed above) to test
 - Use the Run functionality in IntelliJ IDEA on the Main class
+
+# Responsibilities Breakdown (Iteration 3)
+NOTE: The number of bullets points do NOT equally consitute the work done from each person.
+Overall, we commited even effort and work to this iteration.
+
+Abdul Aziz, Muhammad Maahir:
+- UML
+- Automated Tests
+
+Caldwell, Erik:
+- Entire State Machine Remodeling
+- Contributed to movement integration for Zane's work
+
+Chelliah, Lakshman
+- Drone fire extinguishing functionality
+
+Hassan, Ayoub:
+- Main RPC Implementation
+
+Labonte-Hagar, Zane
+- Continue to make and integrate movement mechanics for drone.
+
+Xia, Tim
+- Finished RPC implementation (clean shutdown, drone state updates
+- Scheduler Algorithm updates/bugfixes
