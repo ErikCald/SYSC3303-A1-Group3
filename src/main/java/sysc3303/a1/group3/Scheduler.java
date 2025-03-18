@@ -41,10 +41,10 @@ public class Scheduler {
     private volatile boolean allDronesShutoff = false;
 
     // general purpose socket
-    private DatagramSocket socket;
+    private final DatagramSocket socket;
 
     // socket to exclusive send packets when the main socket is busy listening
-    private DatagramSocket sendSocket;
+    private final DatagramSocket sendSocket;
 
     /**
      * Creates a new Scheduler
@@ -101,87 +101,99 @@ public class Scheduler {
                         }).start();
                     } else if (message.startsWith("NEW_DRONE_LISTENER")) {
                         new Thread(() -> {
-                            // New Drone registering, the one has information about its listener socket
-                            String[] parts = message.split(",");
-                            String name = parts[1];
-                            String state = parts[2];
-                            double x = Double.parseDouble(parts[3]);
-                            double y = Double.parseDouble(parts[4]);
-                            if (getDroneByName(name) == null){
-                                // If record doesn't exist, add it
-                                DroneRecord newDrone = new DroneRecord(name, state, x, y);
-                                newDrone.setListenerAddress(packet.getAddress());
-                                newDrone.setListenerPort(packet.getPort());
-                                drones.add(newDrone);
-                            } else {
-                                // If record exists, then update it
-                                getDroneByName(name).setListenerAddress(packet.getAddress());
-                                getDroneByName(name).setListenerPort(packet.getPort());
+                            synchronized (drones){
+                                // New Drone registering, the one has information about its listener socket
+                                String[] parts = message.split(",");
+                                String name = parts[1];
+                                String state = parts[2];
+                                double x = Double.parseDouble(parts[3]);
+                                double y = Double.parseDouble(parts[4]);
+                                if (getDroneByName(name) == null){
+                                    // If record doesn't exist, add it
+                                    DroneRecord newDrone = new DroneRecord(name, state, x, y);
+                                    newDrone.setListenerAddress(packet.getAddress());
+                                    newDrone.setListenerPort(packet.getPort());
+                                    drones.add(newDrone);
+                                } else {
+                                    // If record exists, then update it
+                                    getDroneByName(name).setListenerAddress(packet.getAddress());
+                                    getDroneByName(name).setListenerPort(packet.getPort());
+                                }
+                                synchronized (socket){
+                                    String confirm = "LISTENER_OK";
+                                    byte[] confirmData = confirm.getBytes();
+                                    DatagramPacket confirmListenerPacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                                    try {
+                                        socket.send(confirmListenerPacket);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
                             }
-                            String confirm = "LISTENER_OK";
-                            byte[] confirmData = confirm.getBytes();
-                            DatagramPacket confirmListenerPacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                            try {
-                                socket.send(confirmListenerPacket);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-
                         }).start();
                     } else if (message.startsWith("NEW_DRONE_PORT")){
                         new Thread(() -> {
-                            // New Drone registering, the one has information about its main drone socket
-                            String[] parts = message.split(",");
-                            String name = parts[1];
-                            String state = parts[2];
-                            double x = Double.parseDouble(parts[3]);
-                            double y = Double.parseDouble(parts[4]);
-                            if (getDroneByName(name) == null){
-                                // If record doesn't exist, add it
-                                DroneRecord newDrone = new DroneRecord(name, state, x, y);
-                                newDrone.setDroneAddress(packet.getAddress());
-                                newDrone.setDronePort(packet.getPort());
-                                drones.add(newDrone);
-                            } else {
-                                // If record exists, then update it
-                                getDroneByName(name).setDroneAddress(packet.getAddress());
-                                getDroneByName(name).setDronePort(packet.getPort());
-                            }
-                            String confirm = "DRONE_OK";
-                            byte[] confirmData = confirm.getBytes();
-                            DatagramPacket confirmDronePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                            try {
-                                socket.send(confirmDronePacket);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
+                            synchronized (drones){
+                                // New Drone registering, the one has information about its main drone socket
+                                String[] parts = message.split(",");
+                                String name = parts[1];
+                                String state = parts[2];
+                                double x = Double.parseDouble(parts[3]);
+                                double y = Double.parseDouble(parts[4]);
+                                if (getDroneByName(name) == null){
+                                    // If record doesn't exist, add it
+                                    DroneRecord newDrone = new DroneRecord(name, state, x, y);
+                                    newDrone.setDroneAddress(packet.getAddress());
+                                    newDrone.setDronePort(packet.getPort());
+                                    drones.add(newDrone);
+                                } else {
+                                    // If record exists, then update it
+                                    getDroneByName(name).setDroneAddress(packet.getAddress());
+                                    getDroneByName(name).setDronePort(packet.getPort());
+                                }
+                                synchronized (socket){
+                                    String confirm = "DRONE_OK";
+                                    byte[] confirmData = confirm.getBytes();
+                                    DatagramPacket confirmDronePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                                    try {
+                                        socket.send(confirmDronePacket);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
                             }
                         }).start();
                     } else if (message.startsWith("NEW_SHUTOFF_PORT")){
                         new Thread(() -> {
-                            // New Drone registering, the one has information about its main drone socket
-                            String[] parts = message.split(",");
-                            String name = parts[1];
-                            String state = parts[2];
-                            double x = Double.parseDouble(parts[3]);
-                            double y = Double.parseDouble(parts[4]);
-                            if (getDroneByName(name) == null){
-                                // If record doesn't exist, add it
-                                DroneRecord newDrone = new DroneRecord(name, state, x, y);
-                                newDrone.setShutOffAddress(packet.getAddress());
-                                newDrone.setShutOffPort(packet.getPort());
-                                drones.add(newDrone);
-                            } else {
-                                // If record exists, then update it
-                                getDroneByName(name).setShutOffAddress(packet.getAddress());
-                                getDroneByName(name).setShutOffPort(packet.getPort());
+                            synchronized (drones){
+                                // New Drone registering, the one has information about its main drone socket
+                                String[] parts = message.split(",");
+                                String name = parts[1];
+                                String state = parts[2];
+                                double x = Double.parseDouble(parts[3]);
+                                double y = Double.parseDouble(parts[4]);
+                                if (getDroneByName(name) == null){
+                                    // If record doesn't exist, add it
+                                    DroneRecord newDrone = new DroneRecord(name, state, x, y);
+                                    newDrone.setShutOffAddress(packet.getAddress());
+                                    newDrone.setShutOffPort(packet.getPort());
+                                    drones.add(newDrone);
+                                } else {
+                                    // If record exists, then update it
+                                    getDroneByName(name).setShutOffAddress(packet.getAddress());
+                                    getDroneByName(name).setShutOffPort(packet.getPort());
+                                }
                             }
-                            String confirm = "DRONE_OK";
-                            byte[] confirmData = confirm.getBytes();
-                            DatagramPacket confirmDronePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                            try {
-                                socket.send(confirmDronePacket);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
+
+                            synchronized (socket){
+                                String confirm = "DRONE_OK";
+                                byte[] confirmData = confirm.getBytes();
+                                DatagramPacket confirmDronePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                                try {
+                                    socket.send(confirmDronePacket);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }).start();
                     } else if (message.startsWith("STATE_CHANGE")) {
@@ -196,9 +208,6 @@ public class Scheduler {
                             if (Objects.equals(state, "DroneIdle")){
                                 getDroneByName(name).setEvent(null);
 
-                                System.out.println("state: " + state);
-                                System.out.println("shutoff: " + shutoff);
-
                                 if (areAllDroneEventsNull() && attemptShutoff){
                                     try {
                                         shutOff();
@@ -208,14 +217,16 @@ public class Scheduler {
                                 }
                             }
 
-                            // Confirm with the drone that it updated the info and the drone can continue to run.
-                            String confirm = "STATE_CHANGE_OK";
-                            byte[] confirmData = confirm.getBytes();
-                            DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                            try {
-                                socket.send(confirmChangePacket);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
+                            synchronized (socket){
+                                // Confirm with the drone that it updated the info and the drone can continue to run.
+                                String confirm = "STATE_CHANGE_OK";
+                                byte[] confirmData = confirm.getBytes();
+                                DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                                try {
+                                    socket.send(confirmChangePacket);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     }
@@ -303,10 +314,8 @@ public class Scheduler {
             return;
         }
 
-        DroneRecord selectedDrone;
         String selectedDroneName;
-        Event previousEvent = null;
-        String redistributedDrone = null;
+        Event previousEvent;
         String eventData;
         if (event != null) {
             eventData = convertEventToJson(event);
