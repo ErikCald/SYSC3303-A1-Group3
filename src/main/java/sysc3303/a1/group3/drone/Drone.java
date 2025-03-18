@@ -196,6 +196,13 @@ public class Drone implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        byte[] receiveData = new byte[1024];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            listenerSocket.receive(receivePacket);
+        } catch (Exception e) {}
+
+
         // Register the drone port (main port for asking for events)
         String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + x + "," + y);
         byte[] droneSendData = droneRecordString.getBytes();
@@ -205,6 +212,11 @@ public class Drone implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        receiveData = new byte[1024];
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            droneSocket.receive(receivePacket);
+        } catch (Exception e) {}
     }
 
     @Override
