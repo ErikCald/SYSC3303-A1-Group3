@@ -14,6 +14,8 @@ public class DroneRecord {
     private InetAddress droneAddress;
     private int listenerPort;
     private InetAddress listenerAddress;
+    private int shutOffPort;
+    private InetAddress shutOffAddress;
     private Event event;
     Vector2d position;
 
@@ -45,6 +47,10 @@ public class DroneRecord {
     public void setDronePort(int p){dronePort = p; }
     public void setDroneAddress(InetAddress a){ droneAddress = a; }
 
+    public int getShutOffPort(){ return shutOffPort; }
+    public InetAddress getShutOffAddress(){ return shutOffAddress; }
+    public void setShutOffPort(int p){shutOffPort = p; }
+    public void setShutOffAddress(InetAddress a){ shutOffAddress = a; }
 
     public Event getEvent(){ return event; }
     public void setEvent(Event e){ this.event = e; }

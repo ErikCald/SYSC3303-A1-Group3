@@ -47,6 +47,9 @@ public class Drone implements Runnable {
     // Socket for exchanging state information whenever the drone changes state
     private final DatagramSocket stateSocket;
 
+    // Socket for listening for shutoff
+    private final DatagramSocket shutoffSocket;
+
     // Scheduler address information
     private final InetAddress schedulerAddress;
     private final int schedulerPort;
@@ -70,6 +73,7 @@ public class Drone implements Runnable {
             this.droneSocket = new DatagramSocket();
             this.listenerSocket = new DatagramSocket();
             this.stateSocket = new DatagramSocket();
+            this.shutoffSocket = new DatagramSocket();
 
             this.schedulerAddress = InetAddress.getByName(schedulerAddress);
             this.schedulerPort = schedulerPort;
@@ -217,11 +221,40 @@ public class Drone implements Runnable {
         try {
             droneSocket.receive(receivePacket);
         } catch (Exception e) {}
+
+        // Finally, shutoff Port
+        String shutOffRecordString = ("NEW_SHUTOFF_PORT," + this.name + "," + this.state + "," + x + "," + y);
+        byte[] shutOffSendData = shutOffRecordString.getBytes();
+        requestPacket = new DatagramPacket(shutOffSendData, shutOffSendData.length, schedulerAddress, schedulerPort);
+        try {
+            shutoffSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        receiveData = new byte[1024];
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            shutoffSocket.receive(receivePacket);
+        } catch (Exception e) {}
+    }
+
+    public void listenForShutoff(){
+        new Thread(() -> {
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            try {
+                shutoffSocket.receive(receivePacket);
+            } catch (Exception e) {}
+
+            shutoff = true;
+            System.out.println("Drone " + name + " recieved SHUTOFF message. Finishing current event and shutting down.");
+        }).start();
     }
 
     @Override
     public void run() {
         registerDroneToScheduler();
+        listenForShutoff();
         
         while ((!shutoff) || (!(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {

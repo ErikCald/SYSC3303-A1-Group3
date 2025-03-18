@@ -34,6 +34,7 @@ public class Scheduler {
 
     // Boolean for if the system should shut down
     private volatile boolean shutoff = false;
+    private volatile boolean attemptShutoff = false;
 
     // Boolean for if all drones have no events, only to be set after shutdown is true.
     // Ensures that the scheduler doesn't shut down while the drone still needs to send packets to it.
@@ -68,7 +69,7 @@ public class Scheduler {
     private void startUDPListener() {
         new Thread(() -> {
             byte[] receiveData = new byte[1024];
-            while (!shutoff || !allDronesShutoff) {
+            while (!shutoff) {
                 DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     socket.receive(packet);
@@ -155,34 +156,68 @@ public class Scheduler {
                                 throw new RuntimeException(e);
                             }
                         }).start();
-                    } if (message.startsWith("STATE_CHANGE")) {
+                    } else if (message.startsWith("NEW_SHUTOFF_PORT")){
                         new Thread(() -> {
-                            // Drone wants to update scheduler about a state change
-                            synchronized (drones){
-                                String[] parts = message.split(",");
-                                String name = parts[1];
-                                String state = parts[2];
-
-                                // Update the drone records accordingly
-                                setDroneStateByName(name, state);
-                                if (Objects.equals(state, "DroneIdle")){
-                                    getDroneByName(name).setEvent(null);
-                                    if (areAllDroneEventsNull() && shutoff){
-                                        allDronesShutoff = true;
-                                    }
-                                }
-
-                                // Confirm with the drone that it updated the info and the drone can continue to run.
-                                String confirm = "STATE_CHANGE_OK";
-                                byte[] confirmData = confirm.getBytes();
-                                DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                                try {
-                                    socket.send(confirmChangePacket);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
+                            // New Drone registering, the one has information about its main drone socket
+                            String[] parts = message.split(",");
+                            String name = parts[1];
+                            String state = parts[2];
+                            double x = Double.parseDouble(parts[3]);
+                            double y = Double.parseDouble(parts[4]);
+                            if (getDroneByName(name) == null){
+                                // If record doesn't exist, add it
+                                DroneRecord newDrone = new DroneRecord(name, state, x, y);
+                                newDrone.setShutOffAddress(packet.getAddress());
+                                newDrone.setShutOffPort(packet.getPort());
+                                drones.add(newDrone);
+                            } else {
+                                // If record exists, then update it
+                                getDroneByName(name).setShutOffAddress(packet.getAddress());
+                                getDroneByName(name).setShutOffPort(packet.getPort());
+                            }
+                            String confirm = "DRONE_OK";
+                            byte[] confirmData = confirm.getBytes();
+                            DatagramPacket confirmDronePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                            try {
+                                socket.send(confirmDronePacket);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
                             }
                         }).start();
+                    } else if (message.startsWith("STATE_CHANGE")) {
+                        // Drone wants to update scheduler about a state change
+                        synchronized (drones){
+                            String[] parts = message.split(",");
+                            String name = parts[1];
+                            String state = parts[2];
+
+                            // Update the drone records accordingly
+                            setDroneStateByName(name, state);
+                            if (Objects.equals(state, "DroneIdle")){
+                                getDroneByName(name).setEvent(null);
+
+                                System.out.println("state: " + state);
+                                System.out.println("shutoff: " + shutoff);
+
+                                if (areAllDroneEventsNull() && attemptShutoff){
+                                    try {
+                                        shutOff();
+                                    } catch (InterruptedException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            }
+
+                            // Confirm with the drone that it updated the info and the drone can continue to run.
+                            String confirm = "STATE_CHANGE_OK";
+                            byte[] confirmData = confirm.getBytes();
+                            DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+                            try {
+                                socket.send(confirmChangePacket);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
@@ -191,6 +226,8 @@ public class Scheduler {
             }
             socket.close();
             sendSocket.close();
+
+            System.out.println("Scheduler's UDP Listener is closing.");
         }, "Scheduler-UPDListener").start();
     }
 
@@ -365,14 +402,15 @@ public class Scheduler {
 
     // Synchronized shutdown method using wait/notifyAll.
     public synchronized void shutOff() throws InterruptedException {
-        while (!droneMessages.isEmpty() ) {
-            try {
-                wait();
-            } catch (InterruptedException e) {}
+        attemptShutoff = true;
+
+        if (!droneMessages.isEmpty() || !areAllDroneEventsNull()) {
+            //do nothing
+        } else {
+            this.shutoff = true;
+            notifyAll();
+            sendShutoffToDrones();
         }
-        this.shutoff = true;
-        notifyAll();
-        sendShutoffToDrones();
     }
 
     // Sends "SHUTOFF" to all drones
@@ -382,8 +420,8 @@ public class Scheduler {
 
         for (DroneRecord drone : drones) {
             try {
-                InetAddress droneAddress = drone.getListenerAddress();
-                int dronePort = drone.getListenerPort();
+                InetAddress droneAddress = drone.getShutOffAddress();
+                int dronePort = drone.getShutOffPort();
                 DatagramPacket packet = new DatagramPacket(sendData, sendData.length, droneAddress, dronePort);
                 socket.send(packet);
                 System.out.println("Sent SHUTOFF to drone: " + drone.getDroneName() + " at " + droneAddress + ":" + dronePort);
