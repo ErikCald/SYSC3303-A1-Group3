@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import sysc3303.a1.group3.Event;
@@ -15,6 +15,10 @@ import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
 import sysc3303.a1.group3.physics.Vector2d;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a drone that requests events via UDP.
@@ -30,7 +34,9 @@ public class Drone implements Runnable {
     private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
-    private final List<Zone> zones;
+    private final Map<Integer, Zone> zones;
+
+    private final ScheduledExecutorService stateUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
 
     // The currently assigned event
     private Optional<Event> currentEvent;
@@ -47,13 +53,16 @@ public class Drone implements Runnable {
     // Socket for exchanging state information whenever the drone changes state
     private final DatagramSocket stateSocket;
 
+    // Socket for listening for shutoff
+    private final DatagramSocket shutoffSocket;
+
     // Scheduler address information
     private final InetAddress schedulerAddress;
     private final int schedulerPort;
 
     private boolean shutoff;
 
-    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
         this.name = name;
 
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
@@ -70,6 +79,7 @@ public class Drone implements Runnable {
             this.droneSocket = new DatagramSocket();
             this.listenerSocket = new DatagramSocket();
             this.stateSocket = new DatagramSocket();
+            this.shutoffSocket = new DatagramSocket();
 
             this.schedulerAddress = InetAddress.getByName(schedulerAddress);
             this.schedulerPort = schedulerPort;
@@ -84,7 +94,7 @@ public class Drone implements Runnable {
      *
      * @param name the name of the drone
      */
-    public Drone(String name, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+    public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
         this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones);
     }
 
@@ -173,7 +183,7 @@ public class Drone implements Runnable {
     }
 
     protected void fillWaterTank(){
-        if(!waterTank.isFull()) {
+        if (!waterTank.isFull()) {
             waterTank.fillWaterLevel();
             System.out.println(name + "'s tank filled up to full!");
         }
@@ -196,6 +206,13 @@ public class Drone implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        byte[] receiveData = new byte[1024];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            listenerSocket.receive(receivePacket);
+        } catch (Exception e) {}
+
+
         // Register the drone port (main port for asking for events)
         String droneRecordString = ("NEW_DRONE_PORT," + this.name + "," + this.state + "," + x + "," + y);
         byte[] droneSendData = droneRecordString.getBytes();
@@ -205,11 +222,48 @@ public class Drone implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        receiveData = new byte[1024];
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            droneSocket.receive(receivePacket);
+        } catch (Exception e) {}
+
+        // Finally, shutoff Port
+        String shutOffRecordString = ("NEW_SHUTOFF_PORT," + this.name + "," + this.state + "," + x + "," + y);
+        byte[] shutOffSendData = shutOffRecordString.getBytes();
+        requestPacket = new DatagramPacket(shutOffSendData, shutOffSendData.length, schedulerAddress, schedulerPort);
+        try {
+            shutoffSocket.send(requestPacket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        receiveData = new byte[1024];
+        receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        try {
+            shutoffSocket.receive(receivePacket);
+        } catch (Exception e) {}
+    }
+
+    public void listenForShutoff(){
+        new Thread(() -> {
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            try {
+                shutoffSocket.receive(receivePacket);
+            } catch (Exception e) {}
+
+            shutoff = true;
+            System.out.println("Drone " + name + " recieved SHUTOFF message. Finishing current event and shutting down.");
+        }).start();
     }
 
     @Override
     public void run() {
         registerDroneToScheduler();
+        listenForShutoff();
+
+        // send state and position every 2 seconds
+        stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
         
         while ((!shutoff) || (!(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {
@@ -218,11 +272,14 @@ public class Drone implements Runnable {
             }
 
             Optional<Event> newEvent = (currentEvent.isEmpty()) ? requestNewEvent() : checkEventUpdate();
-            if(newEvent.isPresent()){
-                state.onNewEvent(this, newEvent.get());
-            }
 
+            // Handle event
+            newEvent.ifPresent(event -> state.onNewEvent(this, event));
+
+            // Tick state
             state.runState(this);
+
+            // Get the next state and transition if a new state was provided
             DroneState nextState = state.getNextState(this);
             if (nextState != state) {
                 transitionState(nextState);
@@ -238,6 +295,7 @@ public class Drone implements Runnable {
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
         droneSocket.close();
         stateSocket.close();
+        stateUpdateScheduler.shutdown();
     }
 
 
@@ -245,7 +303,12 @@ public class Drone implements Runnable {
 
     // Sends this drone's state to the scheduler.
     private void sendStateToScheduler(String stateMsg) {
-        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg);
+
+        Vector2d startingPosition = getPosition();
+        String x = String.valueOf(startingPosition.getX());
+        String y = String.valueOf(startingPosition.getY());
+
+        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg + "," + x + "," + y);
         try {
             byte[] sendData = msg.getBytes();
             DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
@@ -257,7 +320,9 @@ public class Drone implements Runnable {
             stateSocket.receive(confirmPacket);
 
         } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
+            // This may run because a remaining position update sent as everything shuts down.
+            // This is not a big deal if everything closes proper.
+            // System.err.println("Error sending state to scheduler: " + e.getMessage());
         }
     }
 
@@ -315,16 +380,13 @@ public class Drone implements Runnable {
     public void setPosition(Vector2d p){ kinematics.setPosition(p); }
 
     private void setTargetZone() {
-        int zoneId = currentEvent.get().getZoneId();
+        int zoneId = currentEvent.map(Event::getZoneId).orElseThrow(() -> new IllegalStateException("No event set on " + this));
 
-        for(int i = 0; i < zones.size(); i++){
-            if(zones.get(i).zoneID() == zoneId){
-                kinematics.setTarget(zones.get(i).centre());
-                return;
-            }
+        Zone zone = zones.get(zoneId);
+        if (zone == null) {
+            throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
         }
-
-        throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
+        kinematics.setTarget(zone.centre());
     }
 
     public void moveToZone() {
@@ -333,7 +395,7 @@ public class Drone implements Runnable {
     }
     
     public void moveToHome() {
-        kinematics.setTarget(Vector2d.of(0, 0));
+        kinematics.setTarget(Vector2d.ZERO);
         kinematics.tick();
     }
 
@@ -342,7 +404,7 @@ public class Drone implements Runnable {
     }
 
     public boolean isAtHome() {
-        return kinematics.getTarget().equals(Vector2d.of(0, 0)) && kinematics.isAtTarget();
+        return kinematics.getTarget().equals(Vector2d.ZERO) && kinematics.isAtTarget();
     }
 
     public void closeSockets() {

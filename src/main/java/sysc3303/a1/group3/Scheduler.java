@@ -34,16 +34,17 @@ public class Scheduler {
 
     // Boolean for if the system should shut down
     private volatile boolean shutoff = false;
+    private volatile boolean attemptShutoff = false;
 
     // Boolean for if all drones have no events, only to be set after shutdown is true.
     // Ensures that the scheduler doesn't shut down while the drone still needs to send packets to it.
     private volatile boolean allDronesShutoff = false;
 
     // general purpose socket
-    private DatagramSocket socket;
+    private final DatagramSocket socket;
 
     // socket to exclusive send packets when the main socket is busy listening
-    private DatagramSocket sendSocket;
+    private final DatagramSocket sendSocket;
 
     /**
      * Creates a new Scheduler
@@ -63,98 +64,39 @@ public class Scheduler {
 
     }
 
+
+
     // Starts one UDP listener thread that continuously receives packets.
     // Based on the packet info, respond and react accordingly
     private void startUDPListener() {
         new Thread(() -> {
             byte[] receiveData = new byte[1024];
-            while (!shutoff || !allDronesShutoff) {
+            while (!shutoff) {
                 DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     socket.receive(packet);
                     String message = new String(packet.getData(), 0, packet.getLength());
                     if (message.startsWith("SUBSYSTEM_EVENT:")) {
                         // Received an event from the Fire Incident Subsystem.
-                        String json = message.substring("SUBSYSTEM_EVENT:".length());
-                        Event event = convertJsonToEvent(json);
-                        addEvent(event);
+                        handleSubsystemEvent(message);
                     } else if (message.startsWith("DRONE_REQ_EVENT")) {
                         // Received a request from a drone.
-                        new Thread(() -> {
-                            try {
-                                removeEvent(packet.getAddress(), packet.getPort());
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, "Scheduler-RemoveEvent").start();
+                        handleDroneRequest(packet);
                     } else if (message.equals("SHUTDOWN")) {
                         // Received a shutdown request from FiSubsystem.
-                        new Thread(() -> {
-                            try {
-                                shutOff();
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }).start();
+                        handleShutdown();
                     } else if (message.startsWith("NEW_DRONE_LISTENER")) {
-                        // New Drone registering, the one has information about its listener socket
-                        String[] parts = message.split(",");
-                        String name = parts[1];
-                        String state = parts[2];
-                        double x = Double.parseDouble(parts[3]);
-                        double y = Double.parseDouble(parts[4]);
-                        if (getDroneByName(name) == null){
-                            // If record doesn't exist, add it
-                            DroneRecord newDrone = new DroneRecord(name, state, x, y);
-                            newDrone.setListenerAddress(packet.getAddress());
-                            newDrone.setListenerPort(packet.getPort());
-                            drones.add(newDrone);
-                        } else {
-                            // If record exists, then update it
-                            getDroneByName(name).setListenerAddress(packet.getAddress());
-                            getDroneByName(name).setListenerPort(packet.getPort());
-                        }
-
+                        // Adds new DroneRecord: for listenerSocket
+                        handleNewDroneListener(message, packet);
                     } else if (message.startsWith("NEW_DRONE_PORT")){
-                        // New Drone registering, the one has information about its main drone socket
-                        String[] parts = message.split(",");
-                        String name = parts[1];
-                        String state = parts[2];
-                        double x = Double.parseDouble(parts[3]);
-                        double y = Double.parseDouble(parts[4]);
-                        if (getDroneByName(name) == null){
-                            // If record doesn't exist, add it
-                            DroneRecord newDrone = new DroneRecord(name, state, x, y);
-                            newDrone.setDroneAddress(packet.getAddress());
-                            newDrone.setDronePort(packet.getPort());
-                            drones.add(newDrone);
-                        } else {
-                            // If record exists, then update it
-                            getDroneByName(name).setDroneAddress(packet.getAddress());
-                            getDroneByName(name).setDronePort(packet.getPort());
-                        }
-                    } if (message.startsWith("STATE_CHANGE")) {
-                        // Drone wants to update scheduler about a state change
-                        synchronized (drones){
-                            String[] parts = message.split(",");
-                            String name = parts[1];
-                            String state = parts[2];
-
-                            // Update the drone records accordingly
-                            setDroneStateByName(name, state);
-                            if (Objects.equals(state, "DroneIdle")){
-                                getDroneByName(name).setEvent(null);
-                                if (areAllDroneEventsNull() && shutoff){
-                                    allDronesShutoff = true;
-                                }
-                            }
-
-                            // Confirm with the drone that it updated the info and the drone can continue to run.
-                            String confirm = "STATE_CHANGE_OK";
-                            byte[] confirmData = confirm.getBytes();
-                            DatagramPacket confirmChangePacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
-                            socket.send(confirmChangePacket);
-                        }
+                        // Adds new DroneRecord: for droneSocket
+                        handleNewDronePort(message, packet);
+                    } else if (message.startsWith("NEW_SHUTOFF_PORT")){
+                        // Adds new DroneRecord: for shutoffSocket
+                        handleNewShutoffPort(message, packet);
+                    } else if (message.startsWith("STATE_CHANGE")) {
+                        // Handles drone state change updates
+                        handleStateChange(message, packet);
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
@@ -163,8 +105,143 @@ public class Scheduler {
             }
             socket.close();
             sendSocket.close();
+
+            System.out.println("Scheduler's UDP Listener is closing.");
         }, "Scheduler-UPDListener").start();
     }
+
+    // UDP HANDLER FUNCTIONS:
+
+    private void handleSubsystemEvent(String message) {
+        new Thread(() -> {
+            String json = message.substring("SUBSYSTEM_EVENT:".length());
+            Event event = convertJsonToEvent(json);
+            addEvent(event);
+        }).start();
+    }
+    private void handleDroneRequest(DatagramPacket packet) {
+        new Thread(() -> {
+            try {
+                removeEvent(packet.getAddress(), packet.getPort());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, "Scheduler-RemoveEvent").start();
+    }
+    private void handleShutdown() {
+        new Thread(() -> {
+            try {
+                shutOff();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+    private void handleNewDroneListener(String message, DatagramPacket packet) {
+        new Thread(() -> {
+            synchronized (drones) {
+                String[] parts = message.split(",");
+                String name = parts[1];
+                String state = parts[2];
+                double x = Double.parseDouble(parts[3]);
+                double y = Double.parseDouble(parts[4]);
+
+                DroneRecord drone = getDroneByName(name);
+                if (drone == null) {
+                    drone = new DroneRecord(name, state, x, y);
+                    drones.add(drone);
+                }
+                drone.setListenerAddress(packet.getAddress());
+                drone.setListenerPort(packet.getPort());
+            }
+
+            sendConfirmation(packet, "LISTENER_OK");
+        }).start();
+    }
+    private void handleNewDronePort(String message, DatagramPacket packet) {
+        new Thread(() -> {
+            synchronized (drones) {
+                String[] parts = message.split(",");
+                String name = parts[1];
+                String state = parts[2];
+                double x = Double.parseDouble(parts[3]);
+                double y = Double.parseDouble(parts[4]);
+
+                DroneRecord drone = getDroneByName(name);
+                if (drone == null) {
+                    drone = new DroneRecord(name, state, x, y);
+                    drones.add(drone);
+                }
+                drone.setDroneAddress(packet.getAddress());
+                drone.setDronePort(packet.getPort());
+            }
+
+            sendConfirmation(packet, "DRONE_OK");
+        }).start();
+    }
+    private void handleNewShutoffPort(String message, DatagramPacket packet) {
+        new Thread(() -> {
+            synchronized (drones) {
+                String[] parts = message.split(",");
+                String name = parts[1];
+                String state = parts[2];
+                double x = Double.parseDouble(parts[3]);
+                double y = Double.parseDouble(parts[4]);
+
+                DroneRecord drone = getDroneByName(name);
+                if (drone == null) {
+                    drone = new DroneRecord(name, state, x, y);
+                    drones.add(drone);
+                }
+                drone.setShutOffAddress(packet.getAddress());
+                drone.setShutOffPort(packet.getPort());
+            }
+
+            sendConfirmation(packet, "DRONE_OK");
+        }).start();
+    }
+    private void handleStateChange(String message, DatagramPacket packet) {
+        synchronized (drones) {
+            String[] parts = message.split(",");
+            String name = parts[1];
+            String state = parts[2];
+            double x = Double.parseDouble(parts[3]);
+            double y = Double.parseDouble(parts[4]);
+
+            setDroneStateByName(name, state);
+            setDronePositionByName(name, x, y);
+            if (Objects.equals(state, "DroneIdle")) {
+                getDroneByName(name).setEvent(null);
+
+                if (areAllDroneEventsNull() && attemptShutoff) {
+                    try {
+                        shutOff();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            sendConfirmation(packet, "STATE_CHANGE_OK");
+        }
+    }
+    // NOTE: THIS FUNCTION USES THE DEFAULT "socket", NOT "sendSocket"
+    // Be careful if you want to use this in other functions
+    private void sendConfirmation(DatagramPacket packet, String confirmationMessage) {
+        synchronized (socket) {
+            byte[] confirmData = confirmationMessage.getBytes();
+            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length, packet.getAddress(), packet.getPort());
+            try {
+                socket.send(confirmPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+
+    // FUNCTIONS FOR ADDING AND REMOVING/DISTRIBUTING EVENTS:
 
     // Synchronized method to add an event to the queue.
     public synchronized void addEvent(Event event) {
@@ -220,7 +297,7 @@ public class Scheduler {
         distributeEvent(event, availableDrones, originalAddress, originalPort);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
@@ -238,10 +315,8 @@ public class Scheduler {
             return;
         }
 
-        DroneRecord selectedDrone;
         String selectedDroneName;
-        Event previousEvent = null;
-        String redistributedDrone = null;
+        Event previousEvent;
         String eventData;
         if (event != null) {
             eventData = convertEventToJson(event);
@@ -310,6 +385,10 @@ public class Scheduler {
         }
     }
 
+
+
+    //UTILITY AND MORE COMPLICATED HELPER FUNCTIONS:
+
     // get all drones that are idle or EnRoute
     private List<DroneRecord> getAvailableDrones() {
         List<DroneRecord> availableDrones = new ArrayList<>();
@@ -328,23 +407,17 @@ public class Scheduler {
         return availableDrones;
     }
 
-
-    public boolean confirmDroneInZone(Drone drone) {
-        // For current iteration when errors cannot happen yet, always return true.
-        return true;
-    }
-
-
     // Synchronized shutdown method using wait/notifyAll.
     public synchronized void shutOff() throws InterruptedException {
-        while (!droneMessages.isEmpty() ) {
-            try {
-                wait();
-            } catch (InterruptedException e) {}
+        attemptShutoff = true;
+
+        if (!droneMessages.isEmpty() || !areAllDroneEventsNull()) {
+            //do nothing
+        } else {
+            this.shutoff = true;
+            notifyAll();
+            sendShutoffToDrones();
         }
-        this.shutoff = true;
-        notifyAll();
-        sendShutoffToDrones();
     }
 
     // Sends "SHUTOFF" to all drones
@@ -354,8 +427,8 @@ public class Scheduler {
 
         for (DroneRecord drone : drones) {
             try {
-                InetAddress droneAddress = drone.getListenerAddress();
-                int dronePort = drone.getListenerPort();
+                InetAddress droneAddress = drone.getShutOffAddress();
+                int dronePort = drone.getShutOffPort();
                 DatagramPacket packet = new DatagramPacket(sendData, sendData.length, droneAddress, dronePort);
                 socket.send(packet);
                 System.out.println("Sent SHUTOFF to drone: " + drone.getDroneName() + " at " + droneAddress + ":" + dronePort);
@@ -377,16 +450,11 @@ public class Scheduler {
         }
     }
 
-
-
-    // HELPERS, GETTERS, SETTERS:
-
     // Converts an Event object to a JSON string.
     private String convertEventToJson(Event event) {
         return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
             event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());
     }
-
     // Very simple JSON parser assuming a fixed format.
     private Event convertJsonToEvent(String json) {
         json = json.trim();
@@ -420,6 +488,10 @@ public class Scheduler {
         return new Event(Time.valueOf(timeStr), zoneId, Event.EventType.fromString(eventType), Severity.fromString(severity));
     }
 
+
+
+    // GETTERS, SETTERS, AND SIMPLE HELPERS:
+
     // Helper to convert seconds to a "hh:mm:ss" string.
     private String convertSecondsToTimeString(int totalSeconds) {
         int hours = totalSeconds / 3600;
@@ -427,7 +499,6 @@ public class Scheduler {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-
     public void setDroneStateByName(String droneName, String newState) {
         for (DroneRecord drone : drones) {
             if (drone.getDroneName().equals(droneName)) {
@@ -444,6 +515,16 @@ public class Scheduler {
             }
         }
     }
+    public void setDronePositionByName(String droneName, double x, double y) {
+        for (DroneRecord drone : drones) {
+            if (drone.getDroneName().equals(droneName)) {
+                drone.setPosition(Vector2d.of(x, y));
+                return;
+            }
+        }
+    }
+
+
     public Event getDroneEventByName(String droneName) {
         for (DroneRecord drone : drones) {
             if (drone.getDroneName().equals(droneName)) {
@@ -458,7 +539,7 @@ public class Scheduler {
                 return drone.getListenerAddress();
             }
         }
-        return null;  // Return null if droneName is not found
+        return null;
     }
     public int getListenerPortByName(String droneName) {
         for (DroneRecord drone : drones) {
@@ -466,7 +547,7 @@ public class Scheduler {
                 return drone.getListenerPort();
             }
         }
-        return -1;  // Return -1 if droneName is not found
+        return -1;
     }
     public DroneRecord getDroneByName(String droneName) {
         for (DroneRecord drone : drones) {
@@ -490,16 +571,14 @@ public class Scheduler {
                 return false;
             }
         }
-        return true; // All elements were null
+        return true;
     }
     public Queue<Event> getDroneMessages() {
         return droneMessages;
     }
-
-
     private DroneRecord findClosestDrone(List<DroneRecord> availableDrones, Event event) {
         if (availableDrones.isEmpty()) {
-            return null; // No available drones
+            return null;
         }
 
         DroneRecord closestDrone = null;
@@ -528,6 +607,7 @@ public class Scheduler {
         return eventZone.centre().subtract(dronePosition).magnitude();
     }
 
+    // Is newEvent's zone further away than olderEvent's zone?
     private boolean ifNewEventFurther(Event newEvent, Event olderEvent) {
         if (olderEvent == null || newEvent == null) {
             return false;
@@ -543,12 +623,15 @@ public class Scheduler {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Zone not found for zoneId: " + olderEvent.getZoneId()));
 
-        // Compute distances from the base (0,0)
         double newEventDistance = newEventZone.centre().magnitude();
         double olderEventDistance = olderEventZone.centre().magnitude();
 
-        // Return true if the new event is further away than the older event
         return newEventDistance > olderEventDistance;
+    }
+
+    public boolean confirmDroneInZone(Drone drone) {
+        // For current iteration when errors cannot happen yet, always return true.
+        return true;
     }
 
     public void closeSockets() {
@@ -559,7 +642,5 @@ public class Scheduler {
             sendSocket.close();
         }
     }
-
-
 
 }

@@ -2,11 +2,12 @@ package sysc3303.a1.group3.drone;
 
 public class WaterTank {
     private final double RATE_OF_FLOW = 1;
+    private final double MAX_WATER_LEVEL = 15;
 
     private double waterLevel;
 
     public WaterTank() {
-        waterLevel = 15;
+        fillWaterLevel();
     }
 
     public void releaseWater(int amount, String droneName) throws InterruptedException {
@@ -30,11 +31,11 @@ public class WaterTank {
     }
 
     public void fillWaterLevel(){
-        this.waterLevel = 15;
+        this.waterLevel = MAX_WATER_LEVEL;
     }
 
     public boolean isFull() {
-        return waterLevel == 15;
+        return waterLevel == MAX_WATER_LEVEL;
     }
 
     public boolean waterLevelEmpty(){

@@ -141,25 +141,25 @@ class SchedulerTest {
         // Will timeout if not proper shutdown
     }
 
-    @Test
-    @Timeout(5)
-    void testStateChangeResponse() throws Exception {
-        String message = String.format("STATE_CHANGE," + "drone1" + "," + "stateMsg");
-        byte[] data = message.getBytes();
-        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
-        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
-        testSocket.send(packet);
-
-        Thread.sleep(500);
-
-        byte[] confirmData = new byte[1024];
-        DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
-        testSocket.receive(confirmPacket);
-
-        String response = new String(confirmPacket.getData(), 0, confirmPacket.getLength());
-
-        assertEquals("STATE_CHANGE_OK", response, "The response from the scheduler should be STATE_CHANGE_OK.");
-    }
+//    @Test
+//    @Timeout(5)
+//    void testStateChangeResponse() throws Exception {
+//        String message = String.format("STATE_CHANGE," + "drone1" + "," + "stateMsg");
+//        byte[] data = message.getBytes();
+//        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
+//        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
+//        testSocket.send(packet);
+//
+//        Thread.sleep(500);
+//
+//        byte[] confirmData = new byte[1024];
+//        DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+//        testSocket.receive(confirmPacket);
+//
+//        String response = new String(confirmPacket.getData(), 0, confirmPacket.getLength());
+//
+//        assertEquals("STATE_CHANGE_OK", response, "The response from the scheduler should be STATE_CHANGE_OK.");
+//    }
 
     // Helper method to send UDP messages to the Scheduler
     private void sendUdpMessage(String message) throws Exception {

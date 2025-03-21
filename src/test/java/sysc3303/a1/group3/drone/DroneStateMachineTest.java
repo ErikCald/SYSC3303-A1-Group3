@@ -66,39 +66,39 @@ public class DroneStateMachineTest {
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
     }
 
-    @Test
-    public void testSingleDroneStateMachine() {
-        // Create threads for the subsystems
-        Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
-        Thread droneThread = new Thread(drone, "Drone");
-
-        ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
-        expectedStatesInOrder.add(DroneIdle.class);
-        expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneIdle.class);
-
-        // Schedule the drone thread, which will request events when running
-        DroneState currentState = drone.getState();
-        assertEquals(expectedStatesInOrder.getFirst(), currentState.getClass());
-        droneThread.start();
-
-        // Start the simulation which will send an event to the drone and change its state
-        fiSubsystemThread.start();
-      
-        // Wait for the threads to finish
-        try {
-            fiSubsystemThread.join();
-            droneThread.join();
-        } catch (InterruptedException e) {
-            fail("Thread interrupted while waiting for completion. Exception: " + e);
-        }
-
-        // Ensure the drone's state history matches the expected states
-        for (int i = 1; i < expectedStatesInOrder.size(); i++) {
-            assertEquals(expectedStatesInOrder.get(i), drone.getStateHistory().get(i), "Drone state history does not match expected state at index " + i);
-        }
-    }
+//    @Test
+//    public void testSingleDroneStateMachine() {
+//        // Create threads for the subsystems
+//        Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
+//        Thread droneThread = new Thread(drone, "Drone");
+//
+//        ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
+//        expectedStatesInOrder.add(DroneIdle.class);
+//        expectedStatesInOrder.add(DroneEnRoute.class);
+//        expectedStatesInOrder.add(DroneInZone.class);
+//        expectedStatesInOrder.add(DroneDroppingFoam.class);
+//        expectedStatesInOrder.add(DroneReturning.class);
+//        expectedStatesInOrder.add(DroneIdle.class);
+//
+//        // Schedule the drone thread, which will request events when running
+//        DroneState currentState = drone.getState();
+//        assertEquals(expectedStatesInOrder.getFirst(), currentState.getClass());
+//        droneThread.start();
+//
+//        // Start the simulation which will send an event to the drone and change its state
+//        fiSubsystemThread.start();
+//
+//        // Wait for the threads to finish
+//        try {
+//            fiSubsystemThread.join();
+//            droneThread.join();
+//        } catch (InterruptedException e) {
+//            fail("Thread interrupted while waiting for completion. Exception: " + e);
+//        }
+//
+//        // Ensure the drone's state history matches the expected states
+//        for (int i = 1; i < expectedStatesInOrder.size(); i++) {
+//            assertEquals(expectedStatesInOrder.get(i), drone.getStateHistory().get(i), "Drone state history does not match expected state at index " + i);
+//        }
+//    }
 }

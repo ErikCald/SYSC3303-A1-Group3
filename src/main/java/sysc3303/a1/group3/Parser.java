@@ -22,14 +22,14 @@ public class Parser {
     }
 
     public List<Event> getEvents() {
-        if(events.isEmpty()) {
+        if (events.isEmpty()) {
             throw new IllegalStateException("No events have been parsed yet.");
         }
         return events;
     }
      
     public List<Zone> getZones() {
-        if(zones.isEmpty()) {
+        if (zones.isEmpty()) {
             throw new IllegalStateException("No zones have been parsed yet.");
         }
         return zones;

@@ -9,7 +9,7 @@ public class Nozzle {
     private boolean open;
     private boolean stuck;
 
-    private WaterTank tank;
+    private final WaterTank tank;
     private double targetWaterLevel;
     private double litersDropped;
 
@@ -53,7 +53,7 @@ public class Nozzle {
             throw new RuntimeException("Thread interrupted trying to sleep to simulate nozzle closing");
         }
 
-        if(tank.getWaterLevel() <= 0.0) {
+        if (tank.getWaterLevel() <= 0.0) {
             System.out.println("Drone " + droneName + " has run out of foam in the middle of extinguishing the flames of event: " + event + " and is returning.");
         } else {
             System.out.println("Drone " + droneName + " has finished extinguishing the flames of event: " + event + " and is returning.");

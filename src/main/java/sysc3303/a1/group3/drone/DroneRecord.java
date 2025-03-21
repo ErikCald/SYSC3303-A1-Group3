@@ -14,8 +14,10 @@ public class DroneRecord {
     private InetAddress droneAddress;
     private int listenerPort;
     private InetAddress listenerAddress;
+    private int shutOffPort;
+    private InetAddress shutOffAddress;
     private Event event;
-    Vector2d position;
+    private Vector2d position;
 
     public DroneRecord(String n, String s, double x, double y){
         this.droneName = n;
@@ -28,7 +30,7 @@ public class DroneRecord {
         this.listenerAddress = null;
 
         this.event = null;
-        position = new Vector2d(x, y);
+        this.position = new Vector2d(x, y);
     }
 
     public String getDroneName(){ return droneName; }
@@ -45,9 +47,14 @@ public class DroneRecord {
     public void setDronePort(int p){dronePort = p; }
     public void setDroneAddress(InetAddress a){ droneAddress = a; }
 
+    public int getShutOffPort(){ return shutOffPort; }
+    public InetAddress getShutOffAddress(){ return shutOffAddress; }
+    public void setShutOffPort(int p){shutOffPort = p; }
+    public void setShutOffAddress(InetAddress a){ shutOffAddress = a; }
 
     public Event getEvent(){ return event; }
     public void setEvent(Event e){ this.event = e; }
+
     public Vector2d getPosition(){ return position; }
     public void setPosition(Vector2d newPosition){
         this.position = newPosition;
