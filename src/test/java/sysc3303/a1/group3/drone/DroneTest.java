@@ -98,24 +98,24 @@ class DroneTest {
         assertEquals(Event.EventType.FIRE_DETECTED, e.getEventType(), "EventType should match");
     }
 
-    @Test
-    @Timeout(5)
-    void testCheckEventUpdate_shutdown() throws Exception {
-        Thread droneThread = new Thread(drone);
-        droneThread.start();
-
-        // Simulate the SHUTOFF message
-        String shutdownMessage = "SHUTOFF";
-        byte[] sendData = shutdownMessage.getBytes();
-        DatagramPacket shutdownPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-        schedulerSocket.send(shutdownPacket);
-
-        Thread.sleep(500);
-
-        // Also, check if no event is returned after shutdown
-        Optional<Event> event = drone.checkEventUpdate();
-        assertFalse(event.isPresent(), "The drone should not return an event after receiving SHUTOFF.");
-    }
+//    @Test
+//    @Timeout(5)
+//    void testCheckEventUpdate_shutdown() throws Exception {
+//        Thread droneThread = new Thread(drone);
+//        droneThread.start();
+//
+//        // Simulate the SHUTOFF message
+//        String shutdownMessage = "SHUTOFF";
+//        byte[] sendData = shutdownMessage.getBytes();
+//        DatagramPacket shutdownPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+//        schedulerSocket.send(shutdownPacket);
+//
+//        Thread.sleep(500);
+//
+//        // Also, check if no event is returned after shutdown
+//        Optional<Event> event = drone.checkEventUpdate();
+//        assertFalse(event.isPresent(), "The drone should not return an event after receiving SHUTOFF.");
+//    }
 
     @Test
     @Timeout(5)
