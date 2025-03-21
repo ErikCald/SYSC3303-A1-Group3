@@ -395,7 +395,7 @@ public class Drone implements Runnable {
     }
     
     public void moveToHome() {
-        kinematics.setTarget(Vector2d.of(0, 0));
+        kinematics.setTarget(Vector2d.ZERO);
         kinematics.tick();
     }
 
@@ -404,7 +404,7 @@ public class Drone implements Runnable {
     }
 
     public boolean isAtHome() {
-        return kinematics.getTarget().equals(Vector2d.of(0, 0)) && kinematics.isAtTarget();
+        return kinematics.getTarget().equals(Vector2d.ZERO) && kinematics.isAtTarget();
     }
 
     public void closeSockets() {
