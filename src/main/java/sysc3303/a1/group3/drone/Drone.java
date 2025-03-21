@@ -16,6 +16,10 @@ import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
 import sysc3303.a1.group3.physics.Vector2d;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents a drone that requests events via UDP.
  */
@@ -31,6 +35,8 @@ public class Drone implements Runnable {
     private final WaterTank waterTank;
     private final Nozzle nozzle;
     private final List<Zone> zones;
+
+    private final ScheduledExecutorService stateUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
 
     // The currently assigned event
     private Optional<Event> currentEvent;
@@ -255,6 +261,9 @@ public class Drone implements Runnable {
     public void run() {
         registerDroneToScheduler();
         listenForShutoff();
+
+        // send state and position every 2 seconds
+        stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
         
         while ((!shutoff) || (!(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {
@@ -283,6 +292,7 @@ public class Drone implements Runnable {
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
         droneSocket.close();
         stateSocket.close();
+        stateUpdateScheduler.shutdown();
     }
 
 
@@ -290,7 +300,12 @@ public class Drone implements Runnable {
 
     // Sends this drone's state to the scheduler.
     private void sendStateToScheduler(String stateMsg) {
-        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg);
+
+        Vector2d startingPosition = getPosition();
+        String x = String.valueOf(startingPosition.getX());
+        String y = String.valueOf(startingPosition.getY());
+
+        String msg = String.format("STATE_CHANGE," + name + "," + stateMsg + "," + x + "," + y);
         try {
             byte[] sendData = msg.getBytes();
             DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
@@ -302,7 +317,9 @@ public class Drone implements Runnable {
             stateSocket.receive(confirmPacket);
 
         } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
+            // This may run because a remaining position update sent as everything shuts down.
+            // This is not a big deal if everything closes proper.
+            // System.err.println("Error sending state to scheduler: " + e.getMessage());
         }
     }
 

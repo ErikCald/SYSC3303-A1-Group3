@@ -205,8 +205,11 @@ public class Scheduler {
             String[] parts = message.split(",");
             String name = parts[1];
             String state = parts[2];
+            double x = Double.parseDouble(parts[3]);
+            double y = Double.parseDouble(parts[4]);
 
             setDroneStateByName(name, state);
+            setDronePositionByName(name, x, y);
             if (Objects.equals(state, "DroneIdle")) {
                 getDroneByName(name).setEvent(null);
 
@@ -294,7 +297,7 @@ public class Scheduler {
         distributeEvent(event, availableDrones, originalAddress, originalPort);
 
         // Small delay to ensure drone states update, can be smaller, but I kept it as 1 second to be easier for bug fixing for now
-        Thread.sleep(500);
+        Thread.sleep(100);
 
         droneMessagesWritable = true;
         if (droneMessages.isEmpty()) {
@@ -512,6 +515,16 @@ public class Scheduler {
             }
         }
     }
+    public void setDronePositionByName(String droneName, double x, double y) {
+        for (DroneRecord drone : drones) {
+            if (drone.getDroneName().equals(droneName)) {
+                drone.setPosition(Vector2d.of(x, y));
+                return;
+            }
+        }
+    }
+
+
     public Event getDroneEventByName(String droneName) {
         for (DroneRecord drone : drones) {
             if (drone.getDroneName().equals(droneName)) {

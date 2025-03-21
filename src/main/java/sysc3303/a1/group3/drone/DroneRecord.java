@@ -54,6 +54,7 @@ public class DroneRecord {
 
     public Event getEvent(){ return event; }
     public void setEvent(Event e){ this.event = e; }
+
     public Vector2d getPosition(){ return position; }
     public void setPosition(Vector2d newPosition){
         this.position = newPosition;
