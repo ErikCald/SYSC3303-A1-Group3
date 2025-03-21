@@ -1,11 +1,13 @@
 package sysc3303.a1.group3;
 
 import sysc3303.a1.group3.drone.Drone;
-import sysc3303.a1.group3.drone.DroneSpecifications;
 import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -27,9 +29,14 @@ public class Main {
             return;
         }
 
+        List<Zone> zones = parser.getZones();
+        Map<Integer, Zone> zoneMap = zones.stream()
+            .collect(Collectors.toMap(Zone::zoneID, z -> z));
+
+
         Scheduler scheduler;
         try {
-            scheduler = new Scheduler(parser.getZones(), schedulerPort);
+            scheduler = new Scheduler(zones, schedulerPort);
         } catch (IOException e) {
             System.err.println("Failed to create scheduler, aborting.");
             e.printStackTrace();
@@ -40,11 +47,12 @@ public class Main {
         FireIncidentSubsystem fiSubsystem;
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
+
         // Create three drone instances.
         // No need to add them to scheduler anymore since they send sockets automatically
-        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZones());
-        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, parser.getZones());
-        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, parser.getZones());
+        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, zoneMap);
+        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, zoneMap);
+        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, zoneMap);
 
         drone3.setPosition(new Vector2d(3, 3));
         drone2.setPosition(new Vector2d(2, 2));
@@ -63,13 +71,13 @@ public class Main {
 
         try {
             Thread.sleep(200);
-        } catch (InterruptedException e) {}
+        } catch (InterruptedException ignored) {}
 
         DroneThread2.start();
 
         try {
             Thread.sleep(200);
-        } catch (InterruptedException e) {}
+        } catch (InterruptedException ignored) {}
 
         DroneThread1.start();
     }

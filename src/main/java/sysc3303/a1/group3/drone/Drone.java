@@ -7,7 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import sysc3303.a1.group3.Event;
@@ -34,7 +34,7 @@ public class Drone implements Runnable {
     private final Kinematics kinematics;
     private final WaterTank waterTank;
     private final Nozzle nozzle;
-    private final List<Zone> zones;
+    private final Map<Integer, Zone> zones;
 
     private final ScheduledExecutorService stateUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -62,7 +62,7 @@ public class Drone implements Runnable {
 
     private boolean shutoff;
 
-    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
         this.name = name;
 
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
@@ -94,7 +94,7 @@ public class Drone implements Runnable {
      *
      * @param name the name of the drone
      */
-    public Drone(String name, String schedulerAddress, int schedulerPort, List<Zone> zones) {
+    public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
         this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones);
     }
 
@@ -183,7 +183,7 @@ public class Drone implements Runnable {
     }
 
     protected void fillWaterTank(){
-        if(!waterTank.isFull()) {
+        if (!waterTank.isFull()) {
             waterTank.fillWaterLevel();
             System.out.println(name + "'s tank filled up to full!");
         }
@@ -272,11 +272,14 @@ public class Drone implements Runnable {
             }
 
             Optional<Event> newEvent = (currentEvent.isEmpty()) ? requestNewEvent() : checkEventUpdate();
-            if(newEvent.isPresent()){
-                state.onNewEvent(this, newEvent.get());
-            }
 
+            // Handle event
+            newEvent.ifPresent(event -> state.onNewEvent(this, event));
+
+            // Tick state
             state.runState(this);
+
+            // Get the next state and transition if a new state was provided
             DroneState nextState = state.getNextState(this);
             if (nextState != state) {
                 transitionState(nextState);
@@ -377,16 +380,13 @@ public class Drone implements Runnable {
     public void setPosition(Vector2d p){ kinematics.setPosition(p); }
 
     private void setTargetZone() {
-        int zoneId = currentEvent.get().getZoneId();
+        int zoneId = currentEvent.map(Event::getZoneId).orElseThrow(() -> new IllegalStateException("No event set on " + this));
 
-        for(int i = 0; i < zones.size(); i++){
-            if(zones.get(i).zoneID() == zoneId){
-                kinematics.setTarget(zones.get(i).centre());
-                return;
-            }
+        Zone zone = zones.get(zoneId);
+        if (zone == null) {
+            throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
         }
-
-        throw new IllegalArgumentException("Zone ID out of bounds: " + zoneId);
+        kinematics.setTarget(zone.centre());
     }
 
     public void moveToZone() {
