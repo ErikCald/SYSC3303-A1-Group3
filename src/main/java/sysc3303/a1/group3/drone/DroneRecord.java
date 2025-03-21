@@ -17,7 +17,7 @@ public class DroneRecord {
     private int shutOffPort;
     private InetAddress shutOffAddress;
     private Event event;
-    Vector2d position;
+    private Vector2d position;
 
     public DroneRecord(String n, String s, double x, double y){
         this.droneName = n;
@@ -30,7 +30,7 @@ public class DroneRecord {
         this.listenerAddress = null;
 
         this.event = null;
-        position = new Vector2d(x, y);
+        this.position = new Vector2d(x, y);
     }
 
     public String getDroneName(){ return droneName; }

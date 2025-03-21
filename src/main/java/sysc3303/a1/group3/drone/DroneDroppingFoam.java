@@ -2,15 +2,13 @@ package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
 
-import java.util.Optional;
-
 public class DroneDroppingFoam implements DroneState {
     private boolean isDroppingFoam = false;
 
     @Override
     public void runState(Drone drone) {
-        if(!isDroppingFoam) {
-            if(drone.getCurrentEvent().isEmpty()) {
+        if (!isDroppingFoam) {
+            if (drone.getCurrentEvent().isEmpty()) {
                 throw new RuntimeException("[Error3303]: Drone " + drone.getName() + " has no event to extinguish. Returning.");
             }
 

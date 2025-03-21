@@ -13,10 +13,10 @@ public class Kinematics {
     private final double maxSpeedSquared;
     private final double maxAcceleration;
 
-    private Vector2d position = Vector2d.of(0, 0);
-    private Vector2d velocity = Vector2d.of(0, 0);
+    private Vector2d position = Vector2d.ZERO;
+    private Vector2d velocity = Vector2d.ZERO;
 
-    private Vector2d lastAcceleration = Vector2d.of(0, 0);
+    private Vector2d lastAcceleration = Vector2d.ZERO;
 
     private Vector2d target = null;
 
