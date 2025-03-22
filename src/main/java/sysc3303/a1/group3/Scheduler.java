@@ -330,14 +330,7 @@ public class Scheduler {
                 System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
             } else {
                 //send packet to the drone:
-                DatagramPacket response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, originalAddress, originalPort);
-                try {
-                    sendSocket.send(response);
-                    setDroneEventByName(originalDroneName, event);
-                    System.out.println(originalDroneName + " is scheduled with event, " + event + "\n");
-                } catch (IOException e) {
-                    System.err.println("Error sending event to drone: " + e.getMessage());
-                }
+                sendEventToDrone(getDroneByName(originalDroneName), event, sendSocket, originalAddress, originalPort);
             }
         } else {
             // If multiple drones are available, find the one closest to the zone
@@ -349,41 +342,39 @@ public class Scheduler {
 
                 // First, send the original drone the redistributed event
                 previousEvent = getDroneEventByName(selectedDroneName);
-                String secondEventData = convertEventToJson(previousEvent);
-                DatagramPacket response = new DatagramPacket(secondEventData.getBytes(), secondEventData.getBytes().length, originalAddress, originalPort);
-
-                try {
-                    String originalDroneName = getDroneByPort(originalPort).getDroneName();
-                    sendSocket.send(response);
-                    setDroneEventByName(originalDroneName, previousEvent);
-                    System.out.println(originalDroneName + " is re-scheduled with older event, " + previousEvent);
-                } catch (IOException e) {
-                    System.err.println("Error sending event to drone: " + e.getMessage());
-                }
+                sendEventToDrone(getDroneByPort(originalPort), previousEvent, sendSocket, originalAddress, originalPort);
 
                 // Next, send the newest event to the closer drone:
-                response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, getListenerAddressByName(selectedDroneName), getListenerPortByName(selectedDroneName));
+                sendEventToDrone(getDroneByName(selectedDroneName), event, sendSocket, getListenerAddressByName(selectedDroneName), getListenerPortByName(selectedDroneName));
+                return;
+            }
+            // Default case, just send the packet to the drone:
+            sendEventToDrone(getDroneByPort(originalPort), event, sendSocket, originalAddress, originalPort);
+        }
+    }
+    private void sendEventToDrone(DroneRecord drone, Event event, DatagramSocket socket, InetAddress address, int port) {
+        new Thread(() -> {
+            synchronized (socket){
                 try {
-                    sendSocket.send(response);
-                    setDroneEventByName(selectedDroneName, event);
-                    System.out.println(selectedDroneName + " is scheduled with newer event, " + event + "\n");
+                    byte[] eventData = convertEventToJson(event).getBytes();
+                    DatagramPacket response = new DatagramPacket(eventData, eventData.length, address, port);
+                    socket.send(response);
+
+                    byte[] receiveData = new byte[1024];
+                    DatagramPacket responsePacket = new DatagramPacket(receiveData, receiveData.length);
+                    socket.receive(responsePacket);
+
+                    //CHECK IF RESPONSE VALID? up to whoever is dealing with packet loss faults ig
+
+                    setDroneEventByName(drone.getDroneName(), event);
+                    System.out.println(drone.getDroneName() + " is scheduled with event: " + event + "\n");
                 } catch (IOException e) {
                     System.err.println("Error sending event to drone: " + e.getMessage());
                 }
-                return;
             }
-            //send packet to the drone:
-            String originalDroneName = getDroneByPort(originalPort).getDroneName();
-            DatagramPacket response = new DatagramPacket(eventData.getBytes(), eventData.getBytes().length, originalAddress, originalPort);
-            try {
-                sendSocket.send(response);
-                setDroneEventByName(originalDroneName, event);
-                System.out.println(originalDroneName + " is scheduled with event, " + event + "\n");
-            } catch (IOException e) {
-                System.err.println("Error sending event to drone: " + e.getMessage());
-            }
-        }
+        }).start();
     }
+
 
 
 
