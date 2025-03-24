@@ -18,6 +18,7 @@ import sysc3303.a1.group3.Zone;
 import sysc3303.a1.group3.physics.Kinematics;
 import sysc3303.a1.group3.physics.Vector2d;
 
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -112,6 +113,15 @@ public class Drone implements Runnable {
     public Optional<Event> requestNewEvent() {
         try {
             String request = "DRONE_REQ_EVENT";
+
+            // 15% chance to have some packet loss
+            // If you want to test this, just increase the chance of message corruption
+            Random random = new Random();
+            if (random.nextDouble() < 0.15) {
+                request = corruptMessage(request);
+                System.out.println(name + " sent a corrupted message: " + request);
+            }
+
             byte[] sendData = request.getBytes();
             DatagramPacket requestPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
             droneSocket.send(requestPacket);
@@ -127,6 +137,9 @@ public class Drone implements Runnable {
             // Handle/parse the event
             if (response.equals("NO_EVENT")) {
                 return Optional.empty();
+            } else if (response.equals("NOT_RECEIVED")){
+                // If the message was corrupted, loop and try again (recursion)
+                return requestNewEvent();
             } else {
                 byte[] respondData = "EVENT_RECEIVED".getBytes();
                 DatagramPacket respondPacket = new DatagramPacket(respondData, respondData.length, responsePacket.getAddress(), responsePacket.getPort());
@@ -140,6 +153,23 @@ public class Drone implements Runnable {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String corruptMessage(String message) {
+        Random random = new Random();
+        int numCharsToRemove = random.nextInt(6) + 1;
+
+        // Note: StringBuilder objects are same as String, but have some added functionality to help me remove characters.
+        // It's like it's a C string for example
+        // Remove some random characters to simulate packetloss
+        StringBuilder messedUpString = new StringBuilder(message);
+        for (int i = 0; i < numCharsToRemove; i++) {
+            if (messedUpString.length() > 1) {
+                int removeIndex = random.nextInt(messedUpString.length());
+                messedUpString.deleteCharAt(removeIndex);
+            }
+        }
+        return messedUpString.toString();
     }
 
     public Optional<Event> checkEventUpdate() {

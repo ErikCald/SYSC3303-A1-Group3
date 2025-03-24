@@ -97,6 +97,8 @@ public class Scheduler {
                     } else if (message.startsWith("STATE_CHANGE")) {
                         // Handles drone state change updates
                         handleStateChange(message, packet);
+                    } else {
+                        corruptedMessage(packet);
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
@@ -223,6 +225,18 @@ public class Scheduler {
             }
 
             sendConfirmation(packet, "STATE_CHANGE_OK");
+        }
+    }
+    private void corruptedMessage(DatagramPacket packet) {
+        synchronized (socket) {
+            System.out.println("Scheduler got a corrupted message, asking for drone to resend...");
+            byte[] askAgain = "NOT_RECEIVED".getBytes();
+            DatagramPacket confirmPacket = new DatagramPacket(askAgain, askAgain.length, packet.getAddress(), packet.getPort());
+            try {
+                socket.send(confirmPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
     // NOTE: THIS FUNCTION USES THE DEFAULT "socket", NOT "sendSocket"
