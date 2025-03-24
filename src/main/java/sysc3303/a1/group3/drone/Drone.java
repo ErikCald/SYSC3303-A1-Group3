@@ -122,6 +122,10 @@ public class Drone implements Runnable {
             if (response.equals("NO_EVENT")) {
                 return Optional.empty();
             } else {
+                byte[] respondData = "EVENT_RECEIVED".getBytes();
+                DatagramPacket respondPacket = new DatagramPacket(respondData, respondData.length, responsePacket.getAddress(), responsePacket.getPort());
+                droneSocket.send(respondPacket);
+
                 return Optional.of(convertJsonToEvent(response));
             }
         } catch (IOException e) {
@@ -150,6 +154,10 @@ public class Drone implements Runnable {
 
             // If none of the above, then it is an event to tell the drone to change course
             } else {
+                byte[] respondData = "EVENT_RECEIVED".getBytes();
+                DatagramPacket respondPacket = new DatagramPacket(respondData, respondData.length, packet.getAddress(), packet.getPort());
+                listenerSocket.send(respondPacket);
+
                 return Optional.of(convertJsonToEvent(message));
             }
         } catch (SocketTimeoutException e) {
