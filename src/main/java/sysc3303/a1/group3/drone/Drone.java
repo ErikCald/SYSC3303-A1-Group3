@@ -314,6 +314,7 @@ public class Drone implements Runnable {
         droneSocket.close();
         stateSocket.close();
         stateUpdateScheduler.shutdown();
+        eventMonitorScheduler.shutdown();
     }
 
 
