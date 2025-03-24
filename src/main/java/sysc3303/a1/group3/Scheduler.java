@@ -330,6 +330,7 @@ public class Scheduler {
         }
 
         String selectedDroneName;
+        String originalDroneName = getDroneByPort(originalPort).getDroneName();
         Event previousEvent;
         String eventData;
         if (event != null) {
@@ -339,7 +340,6 @@ public class Scheduler {
         }
 
         if (availableDrones.size() == 1) {
-            String originalDroneName = getDroneByPort(originalPort).getDroneName();
             if (getDroneByName(originalDroneName).getEvent() != null) {
                 System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
             } else {
@@ -357,9 +357,12 @@ public class Scheduler {
                 // First, send the original drone the redistributed event
                 previousEvent = getDroneEventByName(selectedDroneName);
                 sendEventToDrone(getDroneByPort(originalPort), previousEvent, sendSocket, originalAddress, originalPort);
+                System.out.println(originalDroneName + " is re-scheduled with older event, " + previousEvent);
 
                 // Next, send the newest event to the closer drone:
                 sendEventToDrone(getDroneByName(selectedDroneName), event, sendSocket, getListenerAddressByName(selectedDroneName), getListenerPortByName(selectedDroneName));
+                System.out.println(selectedDroneName + " is scheduled with newer event, " + event + "\n");
+
                 return;
             }
             // Default case, just send the packet to the drone:
