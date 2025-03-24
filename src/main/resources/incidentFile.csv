@@ -1,4 +1,4 @@
-Time,Zone ID,Event type,Severity
+Time,Zone ID/Drone ID,Event type,Severity
 0:00:03,3,FIRE_DETECTED,Low
 0:00:04,1,FIRE_DETECTED,High
 0:00:15,2,DRONE_REQUESTED,Moderate
