@@ -17,6 +17,7 @@ public class Main {
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
+
         int schedulerPort = 6002; // Scheduler's port
 
         Parser parser = new Parser();

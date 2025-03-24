@@ -11,6 +11,7 @@ public class Event {
         FIRE_DETECTED,
         DRONE_REQUESTED;
 
+
         public static EventType fromString(String string) {
             return EventType.valueOf(string);
         }

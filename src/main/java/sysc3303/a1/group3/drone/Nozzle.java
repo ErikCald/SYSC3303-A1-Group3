@@ -73,4 +73,5 @@ public class Nozzle {
     public void nozzleUnStuck(){
         stuck = false;
     }
+
 }
