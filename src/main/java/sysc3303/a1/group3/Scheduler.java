@@ -151,7 +151,7 @@ public class Scheduler {
                 // Reclaim incomplete event
                 Event droneEvent = getDroneEventByName(name);
                 if (droneEvent != null) {
-                    addEvent(droneEvent);
+                    addBackEvent(droneEvent);
                 }
 
                 if(isShutdown) {
@@ -291,6 +291,29 @@ public class Scheduler {
         // Temp commented out for debug
         if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
             droneMessages.add(event);
+        }
+
+        droneMessages.add(event);
+        droneMessagesReadable = true;
+        if (droneMessages.size() >= MAX_SIZE) {
+            droneMessagesWritable = false;
+        }
+        notifyAll();
+    }
+
+    public synchronized void addBackEvent(Event event) {
+        if (shutoff) {
+            return;
+        }
+        while (!droneMessagesWritable) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                System.err.println(e);
+            }
+        }
+        if (shutoff) {
+            return;
         }
 
         droneMessages.add(event);
