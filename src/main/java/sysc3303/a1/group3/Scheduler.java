@@ -100,8 +100,10 @@ public class Scheduler {
                     } else if (message.startsWith("DRONE_FAULT")) {
                         // Handle drone shutdown with fault
                         handleDroneFault(message, packet);
+                    } else {
+                        corruptedMessage(packet);
+                        // Additional message types (e.g., drone state updates) can be handled here.
                     }
-                    // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
                     break;
                 }
@@ -253,6 +255,18 @@ public class Scheduler {
             sendConfirmation(packet, "STATE_CHANGE_OK");
         }
     }
+    private void corruptedMessage(DatagramPacket packet) {
+        synchronized (socket) {
+            System.out.println("Scheduler got a corrupted message, asking for drone to resend...");
+            byte[] askAgain = "NOT_RECEIVED".getBytes();
+            DatagramPacket confirmPacket = new DatagramPacket(askAgain, askAgain.length, packet.getAddress(), packet.getPort());
+            try {
+                socket.send(confirmPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     // NOTE: THIS FUNCTION USES THE DEFAULT "socket", NOT "sendSocket"
     // Be careful if you want to use this in other functions
     private void sendConfirmation(DatagramPacket packet, String confirmationMessage) {
@@ -367,6 +381,7 @@ public class Scheduler {
         }
 
         String selectedDroneName;
+        String originalDroneName = getDroneByPort(originalPort).getDroneName();
         Event previousEvent;
         String eventData;
         if (event != null) {
@@ -376,7 +391,6 @@ public class Scheduler {
         }
 
         if (availableDrones.size() == 1) {
-            String originalDroneName = getDroneByPort(originalPort).getDroneName();
             if (getDroneByName(originalDroneName).getEvent() != null) {
                 System.err.println("ERROR: Did a drone just ask for an event, but it already have one? Or some other error?");
             } else {
@@ -394,9 +408,12 @@ public class Scheduler {
                 // First, send the original drone the redistributed event
                 previousEvent = getDroneEventByName(selectedDroneName);
                 sendEventToDrone(getDroneByPort(originalPort), previousEvent, sendSocket, originalAddress, originalPort);
+                System.out.println(originalDroneName + " is re-scheduled with older event, " + previousEvent);
 
                 // Next, send the newest event to the closer drone:
                 sendEventToDrone(getDroneByName(selectedDroneName), event, sendSocket, getListenerAddressByName(selectedDroneName), getListenerPortByName(selectedDroneName));
+                System.out.println(selectedDroneName + " is scheduled with newer event, " + event + "\n");
+
                 return;
             }
             // Default case, just send the packet to the drone:
