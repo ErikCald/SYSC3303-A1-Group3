@@ -4,7 +4,6 @@ import sysc3303.a1.group3.Event;
 
 public class DroneReturning implements DroneState {
 
-
     @Override
     public void runState(Drone drone) {
         drone.moveToHome();
