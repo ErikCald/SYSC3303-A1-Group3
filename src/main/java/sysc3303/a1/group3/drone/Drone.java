@@ -554,6 +554,7 @@ public class Drone implements Runnable {
                     if (event.getEventType().equals("NOZZLE_JAM")) {
                         //Implement Nozzle Stuck instructions
                         nozzle.nozzleStuck();
+                        nozzle.repairNozzle(getPosition());
                     } else if (event.getEventType().equals("DRONE_STUCK")) {
                         isDroneBoundToGetStuck = true;
                         // Drone Struck instructions (
