@@ -2,6 +2,7 @@ package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.physics.Vector2d;
 
 public class Nozzle {
     private final int DRONE_NOZZLE_OPEN_TIME = 1000;
@@ -26,7 +27,7 @@ public class Nozzle {
     public void extinguish(String name) {
         tank.reduceWaterLevel(name);
     }
-    
+
     public boolean isFinishedExtinguishing() {
         return tank.getWaterLevel() <= targetWaterLevel;
     }
@@ -58,7 +59,7 @@ public class Nozzle {
         } else {
             System.out.println("Drone " + droneName + " has finished extinguishing the flames of event: " + event + " and is returning.");
         }
-        
+
         open = false;
     }
 
@@ -69,6 +70,7 @@ public class Nozzle {
     public void nozzleStuck(){
         stuck = true;
     }
+
     public void nozzleUnStuck(){
         stuck = false;
     }
@@ -77,4 +79,18 @@ public class Nozzle {
         return stuck;
     }
 
+    // New method: Simulate the repair process with a wait correlated to the drone's position.
+    public void repairNozzle(Vector2d dronePosition) {
+        double distance = dronePosition.magnitude();
+        // Wait time: base 500 ms plus 10 ms per unit distance.
+        long waitTime = 500 + (long)(distance * 10);
+        System.out.printf("Repairing nozzle at drone position %s. Waiting for %d ms for repair...\n", dronePosition, waitTime);
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Nozzle repair interrupted.");
+        }
+        nozzleUnStuck();
+    }
 }
