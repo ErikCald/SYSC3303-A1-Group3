@@ -26,7 +26,7 @@ public class DroneDroppingFoam implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if (drone.getNozzle().isStuck()) {
-            return new DroneNozzleJam();
+            drone.handleFault(this);
         }
 
         if (drone.getNozzle().isFinishedExtinguishing()) {
