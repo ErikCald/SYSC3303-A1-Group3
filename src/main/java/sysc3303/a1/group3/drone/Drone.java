@@ -65,12 +65,12 @@ public class Drone implements Runnable {
     private final int schedulerPort;
 
     private boolean shutoff;
-    InputStream inputStream = getClass().getClassLoader().getResourceAsStream("drone_faults.csv");
+    private boolean shutdownFromFault;
+    private InputStream faultInputStream;
     private DroneEventParser events = new DroneEventParser();
 
-    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
+    public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones, String faultFile) {
         this.name = name;
-        this.events.parse(inputStream);
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
         this.waterTank = new WaterTank();
         this.nozzle = new Nozzle(this.waterTank);
@@ -80,8 +80,15 @@ public class Drone implements Runnable {
         this.currentEvent = Optional.empty();
         this.isDroneBoundToGetStuck = false;
         shutoff = false;
+        shutdownFromFault = false;
         this.startTimeMillis = System.currentTimeMillis();
-        startEventMonitor();
+
+        if (!faultFile.isEmpty()) {
+            this.faultInputStream = getClass().getClassLoader().getResourceAsStream("drone_faults.csv");
+            this.events.parse(faultInputStream);
+            startEventMonitor();
+        }
+
         try {
             this.droneSocket = new DatagramSocket();
             this.listenerSocket = new DatagramSocket();
@@ -102,7 +109,16 @@ public class Drone implements Runnable {
      * @param name the name of the drone
      */
     public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
-        this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones);
+        this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones, "");
+    }
+
+    /**
+     * Creates a Drone with arbitrary specs and a specific fault file
+     *
+     * @param name the name of the drone
+     */
+    public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones, String faultFile) {
+        this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones, faultFile);
     }
 
     /**
@@ -313,7 +329,7 @@ public class Drone implements Runnable {
         // send state and position every 2 seconds
         stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
 
-        while ((!shutoff) || (!(state instanceof DroneIdle))) {
+        while ((!shutdownFromFault) && ((!shutoff) || (!(state instanceof DroneIdle)))) {
             if (PRINT_DRONE_ITERATIONS) {
                 System.out.printf("Drone %s, state: %s, liters: %.0f, position: %s\n",
                     name, state.getStateName(), waterTank.getWaterLevel(), kinematics.getPosition());
@@ -475,6 +491,37 @@ public class Drone implements Runnable {
 
     public boolean isAtHome() {
         return kinematics.getTarget().equals(Vector2d.ZERO) && kinematics.isAtTarget();
+    }
+
+    public boolean isStuck() {
+        return isDroneBoundToGetStuck;
+    }
+
+    public void handleFault(DroneState faultState) {
+        String msg;
+        if(faultState instanceof DroneStuck) {
+            System.out.println("Drone " + name + " is stuck. Communicating shutdown to scheduler then shutting down.");
+            msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName());
+            shutoff = true;
+            shutdownFromFault = true;
+        } else {
+            System.out.println("Drone " + name + " has a nozzle jam. Returning to base.");
+            msg = String.format("DRONE_FAULT," + name + ",DISABLED_TEMPORARILY," + faultState.getStateName());
+        }
+
+        try {
+            byte[] sendData = msg.getBytes();
+            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+            stateSocket.send(packet);
+
+            // Waits for a response to confirm shutdown
+            byte[] confirmData = new byte[1024];
+            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+            stateSocket.receive(confirmPacket);
+
+        } catch (IOException e) {
+            System.err.println("Error sending state to scheduler: " + e.getMessage());
+        }
     }
 
     public void closeSockets() {

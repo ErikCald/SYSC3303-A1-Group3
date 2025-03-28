@@ -66,12 +66,15 @@ public class Nozzle {
         return open;
     }
 
-    //This has no consequences right now
     public void nozzleStuck(){
         stuck = true;
     }
     public void nozzleUnStuck(){
         stuck = false;
+    }
+
+    public boolean isStuck() {
+        return stuck;
     }
 
 }

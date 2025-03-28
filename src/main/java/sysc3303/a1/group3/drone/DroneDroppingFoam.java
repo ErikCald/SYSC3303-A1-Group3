@@ -7,6 +7,10 @@ public class DroneDroppingFoam implements DroneState {
 
     @Override
     public void runState(Drone drone) {
+        if(drone.getNozzle().isStuck()) {
+            return;
+        }
+
         if (!isDroppingFoam) {
             if (drone.getCurrentEvent().isEmpty()) {
                 throw new RuntimeException("[Error3303]: Drone " + drone.getName() + " has no event to extinguish. Returning.");
@@ -21,6 +25,10 @@ public class DroneDroppingFoam implements DroneState {
 
     @Override
     public DroneState getNextState(Drone drone) {
+        if (drone.getNozzle().isStuck()) {
+            return new DroneNozzleJam();
+        }
+
         if (drone.getNozzle().isFinishedExtinguishing()) {
             isDroppingFoam = false;
             Event event = drone.getCurrentEvent().orElseThrow(() -> new IllegalStateException("No event found in DroneDroppingFoam"));

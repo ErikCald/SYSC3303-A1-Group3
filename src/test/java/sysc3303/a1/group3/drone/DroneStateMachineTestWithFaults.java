@@ -17,7 +17,7 @@ import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Zone;
 
 @Isolated
-public class DroneStateMachineTest {
+public class DroneStateMachineTestWithFaults {
 
     /**
      * A testable version of the Drone class that allows for the onStateChange
@@ -53,22 +53,15 @@ public class DroneStateMachineTest {
 
     @Test
     @Timeout(180)
-    public void testSingleDroneStateMachine() {
-        int schedulerPort = test1SchedulerPort;
+    public void testSingleDroneStateMachineWithFaults() {
+        int schedulerPort = test2SchedulerPort;
 
         Parser parser = new Parser();
         try {
-            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv"));
+            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFileWithFaults.csv"));
             parser.parseZoneFile(DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
         } catch (IOException e) {
-            fail("Failed to parse incident file or zone location file, aborting.");
-        }
-
-        // Sleep to avoid other tests conflicting
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            fail("Thread interrupted while sleeping. Exception: " + e);
+            fail("Failed to parse incident file or zone location file, aborting. Exception" + e);
         }
 
         // Create a fresh Scheduler and Drone for each test
@@ -76,8 +69,9 @@ public class DroneStateMachineTest {
             scheduler = new Scheduler(parser.getZones(), schedulerPort);
             fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
-            // No faults
-            drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(), "");
+            // Faults from the drone_faults.csv file
+            drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(),
+                    "drone_faults.csv");
         } catch (IOException e) {
             fail("Failed to create scheduler, fire incident subsystem, or drone with Exception: " + e);
         }
@@ -91,13 +85,12 @@ public class DroneStateMachineTest {
         expectedStatesInOrder.add(DroneEnRoute.class);
         expectedStatesInOrder.add(DroneInZone.class);
         expectedStatesInOrder.add(DroneDroppingFoam.class);
+        expectedStatesInOrder.add(DroneNozzleJam.class);
         expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneIdle.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneIdle.class);
+        expectedStatesInOrder.add(DroneStuck.class);
+
 
         // Schedule the drone thread, which will request events when running
         DroneState currentState = drone.getState();
@@ -116,7 +109,7 @@ public class DroneStateMachineTest {
             fail("Thread interrupted while waiting for completion. Exception: " + e);
         }
 
-        System.out.println("Drone state history:");
+        System.out.println("Drone state history with faults:");
         for (Class<? extends DroneState> s : drone.getStateHistory()) {
             System.out.println(s);
         }

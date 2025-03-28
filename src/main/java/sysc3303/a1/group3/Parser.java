@@ -7,6 +7,9 @@ import java.io.InputStreamReader;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import sysc3303.a1.group3.Event.EventType;
 
 /**
@@ -33,6 +36,11 @@ public class Parser {
             throw new IllegalStateException("No zones have been parsed yet.");
         }
         return zones;
+    }
+
+    public Map<Integer, Zone> getZoneMap() {
+        return zones.stream()
+            .collect(Collectors.toMap(Zone::zoneID, z -> z));
     }
 
     public List<Event> parseIncidentFile(InputStream file) throws IOException {
