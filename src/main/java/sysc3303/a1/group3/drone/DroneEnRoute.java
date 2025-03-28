@@ -15,6 +15,10 @@ public class DroneEnRoute implements DroneState {
             return new DroneStuck();
         }
 
+        if (drone.getNozzle().isStuck()){
+            drone.handleFault(this);
+        }
+
         if (drone.isAtZone()) {
             if(drone.getCurrentEvent().isEmpty()) {
                 System.err.println("[Error3303]: Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + " but has no event. Returning.");

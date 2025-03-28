@@ -16,10 +16,13 @@ public class DroneReturning implements DroneState {
             return new DroneStuck();
         }
 
+        if (drone.getNozzle().isStuck()){
+            drone.handleFault(this);
+        }
+
         if (drone.isAtHome()) {
             System.out.println(drone.getName() + " is back!");
             drone.clearEvent();
-            drone.getNozzle().nozzleUnStuck(); // Repair the drone
             return new DroneIdle();
         }
 

@@ -505,23 +505,22 @@ public class Drone implements Runnable {
             msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName());
             shutoff = true;
             shutdownFromFault = true;
+
+            try {
+                byte[] sendData = msg.getBytes();
+                DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+                stateSocket.send(packet);
+
+                // Waits for a response to confirm shutdown
+                byte[] confirmData = new byte[1024];
+                DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+                stateSocket.receive(confirmPacket);
+
+            } catch (IOException e) {
+                System.err.println("Error sending state to scheduler: " + e.getMessage());
+            }
         } else {
-            System.out.println("Drone " + name + " has a nozzle jam. Returning to base.");
-            msg = String.format("DRONE_FAULT," + name + ",DISABLED_TEMPORARILY," + faultState.getStateName());
-        }
-
-        try {
-            byte[] sendData = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-            stateSocket.send(packet);
-
-            // Waits for a response to confirm shutdown
-            byte[] confirmData = new byte[1024];
-            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
-            stateSocket.receive(confirmPacket);
-
-        } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
+            nozzle.repairNozzle(getPosition());
         }
     }
 

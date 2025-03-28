@@ -9,6 +9,10 @@ public class DroneInZone implements DroneState {
 
     @Override
     public DroneState getNextState(Drone drone) {
+        if (drone.getNozzle().isStuck()){
+            drone.handleFault(this);
+        }
+
         if (drone.isInZoneSchedulerResponse()){
             System.out.println("Drone " + drone.getName() + " is extinguishing flames!");
             return new DroneDroppingFoam();

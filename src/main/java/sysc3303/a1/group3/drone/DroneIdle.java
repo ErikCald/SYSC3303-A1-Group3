@@ -11,6 +11,10 @@ public class DroneIdle implements DroneState {
 
     @Override
     public DroneState getNextState(Drone drone) {
+        if (drone.getNozzle().isStuck()){
+            drone.handleFault(this);
+        }
+
         if (drone.getCurrentEvent().isPresent()) {
             System.out.println(drone.getName() + " is now en route to Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
             return new DroneEnRoute();
