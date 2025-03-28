@@ -40,7 +40,7 @@ class FireIncidentSubsystemTest {
         parser.parseZoneFile(zoneFile);
 
         scheduler = new Scheduler(parser.getZones(), schedulerPort);
-        drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZones());
+        drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap());
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
     }
 

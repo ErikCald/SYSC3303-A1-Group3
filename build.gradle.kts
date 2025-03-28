@@ -28,4 +28,5 @@ application {
 tasks.test {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    maxParallelForks = 1
 }

@@ -97,6 +97,9 @@ public class Scheduler {
                     } else if (message.startsWith("STATE_CHANGE")) {
                         // Handles drone state change updates
                         handleStateChange(message, packet);
+                    } else if (message.startsWith("DRONE_FAULT")) {
+                        // Handle drone shutdown with fault
+                        handleDroneFault(message, packet);
                     }
                     // Additional message types (e.g., drone state updates) can be handled here.
                 } catch (IOException e) {
@@ -134,6 +137,31 @@ public class Scheduler {
                 shutOff();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+        }).start();
+    }
+    private void handleDroneFault(String message, DatagramPacket packet) {
+        new Thread(() -> {
+            synchronized (drones) {
+                String[] parts = message.split(",");
+                String name = parts[1];
+                boolean isShutdown = parts[2].equals("SHUTDOWN");
+                String faultState = parts[3];
+
+                // Reclaim incomplete event
+                Event droneEvent = getDroneEventByName(name);
+                if (droneEvent != null) {
+                    addBackEvent(droneEvent);
+                }
+
+                if(isShutdown) {
+                    System.out.println("Drone " + name + " has fault: " + faultState + ". Reclaiming event and removing from drone scheduling.");
+                    drones.removeIf(drone -> drone.getDroneName().equals(name));
+                } else {
+                    System.out.println("Drone " + name + " has fault: " + faultState + ". Reclaiming event.");
+                }
+
+                sendConfirmation(packet, "FAULT_RECIEVED");
             }
         }).start();
     }
@@ -263,6 +291,29 @@ public class Scheduler {
         // Temp commented out for debug
         if (event.getSeverity() == Severity.High || event.getSeverity() == Severity.Moderate){
             droneMessages.add(event);
+        }
+
+        droneMessages.add(event);
+        droneMessagesReadable = true;
+        if (droneMessages.size() >= MAX_SIZE) {
+            droneMessagesWritable = false;
+        }
+        notifyAll();
+    }
+
+    public synchronized void addBackEvent(Event event) {
+        if (shutoff) {
+            return;
+        }
+        while (!droneMessagesWritable) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                System.err.println(e);
+            }
+        }
+        if (shutoff) {
+            return;
         }
 
         droneMessages.add(event);
