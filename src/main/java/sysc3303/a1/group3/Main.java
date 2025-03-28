@@ -31,8 +31,7 @@ public class Main {
         }
 
         List<Zone> zones = parser.getZones();
-        Map<Integer, Zone> zoneMap = zones.stream()
-            .collect(Collectors.toMap(Zone::zoneID, z -> z));
+        Map<Integer, Zone> zoneMap = parser.getZoneMap();
 
 
         Scheduler scheduler;
@@ -52,7 +51,7 @@ public class Main {
         // Create three drone instances.
         // No need to add them to scheduler anymore since they send sockets automatically
         Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, zoneMap);
-        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, zoneMap);
+        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
         Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, zoneMap);
 
         drone3.setPosition(new Vector2d(3, 3));

@@ -60,9 +60,9 @@ public class WholeSystemTest {
 
         // Create three drone instances.
         // No need to add them to scheduler anymore since they send sockets automatically
-        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZones());
-        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, parser.getZones());
-        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, parser.getZones());
+        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap());
+        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, parser.getZoneMap());
+        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, parser.getZoneMap());
 
         drone3.setPosition(new Vector2d(3, 3));
         drone2.setPosition(new Vector2d(2, 2));

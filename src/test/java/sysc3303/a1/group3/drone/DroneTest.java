@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,6 +25,7 @@ class DroneTest {
     private Scheduler scheduler;
     private Drone drone;
     private List<Zone> zones;
+    private Map<Integer, Zone> zoneMap;
     private DatagramSocket schedulerSocket;
     private DatagramSocket droneSocket;
     private InetAddress schedulerAddress;
@@ -37,10 +40,11 @@ class DroneTest {
         // Mock zones (simple zones for testing)
         zones = new ArrayList<>();
         zones.add(new Zone(1, 0, 0, 10, 10, Vector2d.of(5, 5)));
+        zoneMap = zones.stream().collect(Collectors.toMap(Zone::zoneID, z -> z));
 
         // Initialize the Drone with real sockets
         droneSocket = new DatagramSocket();
-        drone = new Drone("drone1", "localhost", schedulerPort, zones);
+        drone = new Drone("drone1", "localhost", schedulerPort, zoneMap);
 
         // Start the scheduler
         new Thread(() -> {
