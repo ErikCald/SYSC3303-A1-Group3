@@ -82,6 +82,7 @@ public class Drone implements Runnable {
         shutoff = false;
         shutdownFromFault = false;
         this.startTimeMillis = System.currentTimeMillis();
+        this.setPosition(new Vector2d(0,0));
 
         if (!faultFile.isEmpty()) {
             this.faultInputStream = getClass().getClassLoader().getResourceAsStream("drone_faults.csv");
