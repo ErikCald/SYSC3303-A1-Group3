@@ -50,9 +50,9 @@ public class Main {
 
         // Create three drone instances.
         // No need to add them to scheduler anymore since they send sockets automatically
-        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, zoneMap);
+        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
         Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
-        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, zoneMap);
+        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
 
         drone3.setPosition(new Vector2d(3, 3));
         drone2.setPosition(new Vector2d(2, 2));
