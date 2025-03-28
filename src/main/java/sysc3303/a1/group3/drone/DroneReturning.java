@@ -1,9 +1,9 @@
 package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.physics.Vector2d;
 
 public class DroneReturning implements DroneState {
+
 
     @Override
     public void runState(Drone drone) {
@@ -12,15 +12,14 @@ public class DroneReturning implements DroneState {
 
     @Override
     public DroneState getNextState(Drone drone) {
-        if (drone.isStuck()) {
+        if(drone.isStuck()) {
             return new DroneStuck();
         }
 
         if (drone.isAtHome()) {
             System.out.println(drone.getName() + " is back!");
             drone.clearEvent();
-            // Simulate the repair process by waiting based on the drone's position.
-            drone.getNozzle().repairNozzle(drone.getPosition());
+            drone.getNozzle().nozzleUnStuck(); // Repair the drone
             return new DroneIdle();
         }
 
