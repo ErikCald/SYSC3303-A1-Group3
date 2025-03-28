@@ -81,6 +81,7 @@ public class Scheduler {
                         handleSubsystemEvent(message);
                     } else if (message.startsWith("DRONE_REQ_EVENT")) {
                         // Received a request from a drone.
+                        System.out.println("Scheduler received a request for an event from " + getDroneByPort(packet.getPort()).getDroneName());
                         handleDroneRequest(packet);
                     } else if (message.equals("SHUTDOWN")) {
                         // Received a shutdown request from FiSubsystem.
