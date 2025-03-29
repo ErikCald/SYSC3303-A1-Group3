@@ -5,8 +5,10 @@ import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -44,41 +46,42 @@ public class Main {
         }
 
         // Create Fire Incident Subsystem
-        FireIncidentSubsystem fiSubsystem;
-        fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
+        FireIncidentSubsystem fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
+        // Get user input for number of drones, or just modify numDrones
+        Scanner scanner = new Scanner(System.in);
+        int numDrones = 3;
 
-        // Create three drone instances.
-        // No need to add them to scheduler anymore since they send sockets automatically
-        Drone drone1 = new Drone("drone1", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
-        Drone drone2 = new Drone("drone2", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
-        Drone drone3 = new Drone("drone3", schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
+        while (numDrones <= 0) {
+            try {
+                System.out.print("Enter the number of drones to initialize (positive integer): ");
+                numDrones = Integer.parseInt(scanner.nextLine());
+                if (numDrones <= 0) {
+                    System.out.println("Please enter a valid positive integer.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid integer.");
+            }
+        }
 
-        drone3.setPosition(new Vector2d(3, 3));
-        drone2.setPosition(new Vector2d(2, 2));
-        drone1.setPosition(new Vector2d(1, 1));
+        // Create and start drone threads
+        List<Thread> droneThreads = new ArrayList<>();
+        for (int i = 1; i <= numDrones; i++) {
+            String droneName = "drone" + i;
+            Drone drone = new Drone(droneName, schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
+            Thread droneThread = new Thread(drone, droneName);
+            droneThreads.add(droneThread);
+        }
 
-
-        // Create threads for the subsystem and each drone.
+        // Create thread for Fire Incident Subsystem
         Thread FIsubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
-        Thread DroneThread1 = new Thread(drone1, "Drone1");
-        Thread DroneThread2 = new Thread(drone2, "Drone2");
-        Thread DroneThread3 = new Thread(drone3, "Drone3");
 
-        // Start all threads.
+        // Start Fire Incident Subsystem
         FIsubsystemThread.start();
-        DroneThread3.start();
 
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ignored) {}
-
-        DroneThread2.start();
-
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ignored) {}
-
-        DroneThread1.start();
+        // Start drone threads
+        for (Thread droneThread : droneThreads) {
+            droneThread.start();
+        }
     }
 }

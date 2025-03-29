@@ -89,6 +89,7 @@ public class Nozzle {
             Thread.currentThread().interrupt();
             System.err.println("Nozzle repair interrupted.");
         }
+        System.out.printf("Finish nozzle repair at position %s.\n", dronePosition);
         nozzleUnStuck();
     }
 
