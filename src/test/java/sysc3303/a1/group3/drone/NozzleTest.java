@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,4 +74,47 @@ class NozzleTest {
         assertEquals(0, waterTank.getWaterLevel(), "Water level should be 0 after extinguishing a moderate fire.");
     }
 
+    // ===============================
+    // Added tests for nozzle repair
+    // ===============================
+
+    @Test
+    public void testRepairNozzleAtZero() {
+        // Arrange: Set the nozzle to a stuck state.
+        nozzle.nozzleStuck();
+        assertTrue(nozzle.isStuck(), "Nozzle should be stuck before repair.");
+
+        // Act: Repair nozzle at position (0,0). Expected wait is 500ms.
+        long start = System.currentTimeMillis();
+        nozzle.repairNozzle(Vector2d.ZERO);
+        long elapsed = System.currentTimeMillis() - start;
+
+        // Assert: After repair, the nozzle should not be stuck.
+        assertFalse(nozzle.isStuck(), "Nozzle should be unstuck after repair.");
+        // Ensure that the repair method waited for at least 500ms.
+        assertTrue(elapsed >= 500, "Repair should take at least 500 ms when at (0,0). Actual: " + elapsed + " ms");
+    }
+
+    @Test
+    public void testRepairNozzleAtNonZero() {
+        // Arrange: Set the nozzle to a stuck state.
+        nozzle.nozzleStuck();
+        assertTrue(nozzle.isStuck(), "Nozzle should be stuck before repair.");
+
+        // Use a non-zero position, e.g., (10, 0). The expected wait time is 500 + 10*10 = 600ms.
+        Vector2d position = Vector2d.of(10, 0);
+        double distance = position.magnitude(); // should be 10.
+        long expectedWait = 500 + (long)(distance * 10); // 500 + 100 = 600 ms.
+
+        // Act: Repair nozzle at position (10, 0).
+        long start = System.currentTimeMillis();
+        nozzle.repairNozzle(position);
+        long elapsed = System.currentTimeMillis() - start;
+
+        // Assert: After repair, the nozzle should not be stuck.
+        assertFalse(nozzle.isStuck(), "Nozzle should be unstuck after repair.");
+        // Verify that the repair method waited for at least the expected duration.
+        assertTrue(elapsed >= expectedWait,
+            "Repair should take at least " + expectedWait + " ms when at (10,0). Actual: " + elapsed + " ms");
+    }
 }
