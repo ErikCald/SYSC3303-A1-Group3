@@ -11,27 +11,27 @@ This repository contains the code and documentation for the SYSC3303A1 Group 3 p
 - Execute `./gradlew clean test` (as instructed above) to test
 - Use the Run functionality in IntelliJ IDEA on the Main class
 
-# Responsibilities Breakdown (Iteration 3)
-NOTE: The number of bullets points do NOT equally consitute the work done from each person.
+# Responsibilities Breakdown (Iteration 4)
+NOTE: The number of bullets points do NOT equally constitute the work done from each person.
 Overall, we commited even effort and work to this iteration.
 
 Abdul Aziz, Muhammad Maahir:
 - UML
-- Automated Tests
 
 Caldwell, Erik:
-- Entire State Machine Remodeling
-- Contributed to movement integration for Zane's work
+- State Machine for Errors
+- Drone Stuck Error Events Handling
 
 Chelliah, Lakshman
-- Drone fire extinguishing functionality
+- Drone Error Event Distribution and Timing
 
 Hassan, Ayoub:
-- Main RPC Implementation
+- Drone Error Event for Nozzle Stuck
 
 Labonte-Hagar, Zane
-- Continue to make and integrate movement mechanics for drone.
+- Integration work 
+- Bug fixes for end code
 
 Xia, Tim
-- Finished RPC implementation (clean shutdown, drone state updates
-- Scheduler Algorithm updates/bugfixes
+- Integration work (specifically for Nozzle Stuck)
+- Corrupted Messages Drone Error Code
