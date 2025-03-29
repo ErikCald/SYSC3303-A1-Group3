@@ -175,7 +175,8 @@ public class Drone implements Runnable {
         }
     }
 
-    private String corruptMessage(String message) {
+    // Package Private for Automated testing
+    String corruptMessage(String message) {
         Random random = new Random();
         int numCharsToRemove = random.nextInt(6) + 1;
 
@@ -191,6 +192,8 @@ public class Drone implements Runnable {
         }
         return messedUpString.toString();
     }
+
+
 
     public Optional<Event> checkEventUpdate() {
         byte[] receiveData = new byte[1024];
