@@ -2,6 +2,7 @@ package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.physics.Vector2d;
 
 public class Nozzle {
     private final int DRONE_NOZZLE_OPEN_TIME = 1000;
@@ -75,6 +76,21 @@ public class Nozzle {
 
     public boolean isStuck() {
         return stuck;
+    }
+
+    public void repairNozzle(Vector2d dronePosition) {
+        double distance = dronePosition.magnitude();
+        // Wait time: base 500 ms plus 10 ms per unit distance.
+        long waitTime = 500 + (long)(distance * 10);
+        System.out.printf("Repairing nozzle at drone position %s. Waiting for %d ms for repair...\n", dronePosition, waitTime);
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Nozzle repair interrupted.");
+        }
+        System.out.printf("Finish nozzle repair at position %s.\n", dronePosition);
+        nozzleUnStuck();
     }
 
 }

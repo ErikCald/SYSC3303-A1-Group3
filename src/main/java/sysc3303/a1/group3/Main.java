@@ -1,19 +1,25 @@
 package sysc3303.a1.group3;
 
 import sysc3303.a1.group3.drone.Drone;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        // Initialize incident and zone files from resources.
+        // Load incident and zone files from resources.
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
+
         int schedulerPort = 6002; // Scheduler's port
 
         Parser parser = new Parser();
@@ -30,7 +36,6 @@ public class Main {
         Map<Integer, Zone> zoneMap = parser.getZoneMap();
 
 
-        // Initialize Scheduler and related
         Scheduler scheduler;
         try {
             scheduler = new Scheduler(zones, schedulerPort);
@@ -40,10 +45,8 @@ public class Main {
             return;
         }
 
-
-        // Initialize Fire Incident Subsystem
+        // Create Fire Incident Subsystem
         FireIncidentSubsystem fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
-
 
         // Get user input for number of drones, or just modify numDrones
         Scanner scanner = new Scanner(System.in);
@@ -64,7 +67,7 @@ public class Main {
         // Create and start drone threads
         List<Thread> droneThreads = new ArrayList<>();
         for (int i = 1; i <= numDrones; i++) {
-            String droneName = "Drone" + i;
+            String droneName = "drone" + i;
             Drone drone = new Drone(droneName, schedulerAddress, schedulerPort, zoneMap, "drone_faults.csv");
             Thread droneThread = new Thread(drone, droneName);
             droneThreads.add(droneThread);

@@ -4,13 +4,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import sysc3303.a1.group3.drone.Drone;
 import sysc3303.a1.group3.drone.DroneRecord;
+import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +32,9 @@ class SchedulerTest {
 
     final InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
     final InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
+
+    private List<Zone> zones;
+    private Map<Integer, Zone> zoneMap;
 
     @BeforeEach
     void beforeEach() throws IOException {
@@ -141,25 +150,25 @@ class SchedulerTest {
         // Will timeout if not proper shutdown
     }
 
-//    @Test
-//    @Timeout(5)
-//    void testStateChangeResponse() throws Exception {
-//        String message = String.format("STATE_CHANGE," + "drone1" + "," + "stateMsg");
-//        byte[] data = message.getBytes();
-//        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
-//        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
-//        testSocket.send(packet);
-//
-//        Thread.sleep(500);
-//
-//        byte[] confirmData = new byte[1024];
-//        DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
-//        testSocket.receive(confirmPacket);
-//
-//        String response = new String(confirmPacket.getData(), 0, confirmPacket.getLength());
-//
-//        assertEquals("STATE_CHANGE_OK", response, "The response from the scheduler should be STATE_CHANGE_OK.");
-//    }
+    @Test
+    @Timeout(5)
+    void testCorruptedMessageResponse() throws Exception {
+        //Example of a corrupted message
+        String corruptedMessage = "DOE_RQENT";
+
+        byte[] data = corruptedMessage.getBytes();
+        InetAddress schedulerAddress = InetAddress.getByName(SchedulerTest.schedulerAddress);
+        DatagramPacket packet = new DatagramPacket(data, data.length, schedulerAddress, schedulerPort);
+        testSocket.send(packet);
+
+        data = new byte[1024];
+        packet = new DatagramPacket(data, data.length);
+        testSocket.receive(packet);
+
+        String message = new String(packet.getData(), 0, packet.getLength());
+
+        assertEquals( "NOT_RECEIVED", message);
+    }
 
     // Helper method to send UDP messages to the Scheduler
     private void sendUdpMessage(String message) throws Exception {

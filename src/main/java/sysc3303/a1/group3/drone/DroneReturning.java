@@ -13,13 +13,16 @@ public class DroneReturning implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if(drone.isStuck()) {
-            return new DroneStuck();
+            return new DroneStuck(this);
+        }
+
+        if (drone.getNozzle().isStuck()){
+            drone.handleFault(this, new DroneReturning());
         }
 
         if (drone.isAtHome()) {
             System.out.println(drone.getName() + " is back!");
             drone.clearEvent();
-            drone.getNozzle().nozzleUnStuck(); // Repair the drone
             return new DroneIdle();
         }
 

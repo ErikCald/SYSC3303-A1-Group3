@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.channels.ClosedChannelException;
 import java.sql.Time;
 import java.util.Map;
 import java.util.Optional;
@@ -66,6 +67,8 @@ public class Drone implements Runnable {
 
     private boolean shutoff;
     private boolean shutdownFromFault;
+    private Thread shutoffListener;
+
     private InputStream faultInputStream;
     private DroneEventParser events = new DroneEventParser();
 
@@ -172,7 +175,8 @@ public class Drone implements Runnable {
         }
     }
 
-    private String corruptMessage(String message) {
+    // Package Private for Automated testing
+    String corruptMessage(String message) {
         Random random = new Random();
         int numCharsToRemove = random.nextInt(6) + 1;
 
@@ -189,6 +193,8 @@ public class Drone implements Runnable {
         return messedUpString.toString();
     }
 
+
+
     public Optional<Event> checkEventUpdate() {
         byte[] receiveData = new byte[1024];
         DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
@@ -199,7 +205,7 @@ public class Drone implements Runnable {
 
             // If the message is SHUTOFF, close the startUDPListener
             if (message.equals("SHUTOFF")) {
-                shutoff = true;
+                shutoff(false);
                 System.out.println("Drone " + name + " recieved SHUTOFF message. Finishing current event and shutting down.");
                 return Optional.empty();
             } else if (message.equals("NO_EVENT")) {
@@ -309,17 +315,30 @@ public class Drone implements Runnable {
     }
 
     public void listenForShutoff() {
-        new Thread(() -> {
+        Runnable listener = () -> {
             byte[] receiveData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             try {
                 shutoffSocket.receive(receivePacket);
-            } catch (Exception e) {
-            }
 
-            shutoff = true;
-            System.out.println("Drone " + name + " recieved SHUTOFF message. Finishing current event and shutting down.");
-        }).start();
+                // Set this drone as shutoff
+                shutoff(false);
+                System.out.println("Drone " + name + " received SHUTOFF message. Finishing current event and shutting down.");
+
+            } catch (SocketException e) {
+                // AsynchronousCloseException is expected to be thrown when the shutoffSocket is closed because a shutdown originated elsewhere
+                if (!(e.getCause() instanceof ClosedChannelException)) {
+                    System.err.println(name + ": Failed to listen for shutoff.");
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                System.err.println(name + ": Failed to listen for shutoff.");
+                e.printStackTrace();
+            }
+        };
+
+        this.shutoffListener = new Thread(listener, name + " shutoff listener");
+        this.shutoffListener.start();
     }
 
     @Override
@@ -330,7 +349,7 @@ public class Drone implements Runnable {
         // send state and position every 2 seconds
         stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
 
-        while ((!shutdownFromFault) && ((!shutoff) || (!(state instanceof DroneIdle)))) {
+        while (!shutdownFromFault && (!shutoff || !(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {
                 System.out.printf("Drone %s, state: %s, liters: %.0f, position: %s\n",
                     name, state.getStateName(), waterTank.getWaterLevel(), kinematics.getPosition());
@@ -358,8 +377,10 @@ public class Drone implements Runnable {
         }
 
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
-        droneSocket.close();
-        stateSocket.close();
+//        droneSocket.close();
+//        stateSocket.close();
+//        listenerSocket.close();
+        closeSockets();
         stateUpdateScheduler.shutdown();
         eventMonitorScheduler.shutdown();
     }
@@ -498,30 +519,29 @@ public class Drone implements Runnable {
         return isDroneBoundToGetStuck;
     }
 
-    public void handleFault(DroneState faultState) {
+    public void handleFault(DroneState faultState, DroneState prevState) {
         String msg;
-        if(faultState instanceof DroneStuck) {
+        if (faultState instanceof DroneStuck) {
             System.out.println("Drone " + name + " is stuck. Communicating shutdown to scheduler then shutting down.");
-            msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName());
-            shutoff = true;
-            shutdownFromFault = true;
+            msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName() + "," + prevState);
+
+            shutoff(true); // caused by fault
+
+            try {
+                byte[] sendData = msg.getBytes();
+                DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+                stateSocket.send(packet);
+
+                // Waits for a response to confirm shutdown
+                byte[] confirmData = new byte[1024];
+                DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
+                stateSocket.receive(confirmPacket);
+
+            } catch (IOException e) {
+                System.err.println("Error sending state to scheduler: " + e.getMessage());
+            }
         } else {
-            System.out.println("Drone " + name + " has a nozzle jam. Returning to base.");
-            msg = String.format("DRONE_FAULT," + name + ",DISABLED_TEMPORARILY," + faultState.getStateName());
-        }
-
-        try {
-            byte[] sendData = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-            stateSocket.send(packet);
-
-            // Waits for a response to confirm shutdown
-            byte[] confirmData = new byte[1024];
-            DatagramPacket confirmPacket = new DatagramPacket(confirmData, confirmData.length);
-            stateSocket.receive(confirmPacket);
-
-        } catch (IOException e) {
-            System.err.println("Error sending state to scheduler: " + e.getMessage());
+            nozzle.repairNozzle(getPosition());
         }
     }
 
@@ -534,6 +554,43 @@ public class Drone implements Runnable {
         }
         if (stateSocket != null && !stateSocket.isClosed()) {
             stateSocket.close();
+        }
+    }
+
+    /**
+     * Flags this Drone to shutoff.
+     *
+     * @param causedByFault true if this shutoff was caused by a fault
+     */
+    private void shutoff(boolean causedByFault) {
+        if (shutoff) {
+            System.err.println(name + " ALREADY SHUTOFF");
+        }
+
+        this.shutoff = true;
+
+        // Only change the "shutdownFromFault" flag if it hasn't been set. We don't want to accidentally change it from true -> false,
+        // which can cause the Drone loop to run indefinitely in certain cases (since it depends on this flag).
+        if (!this.shutdownFromFault) {
+            this.shutdownFromFault = causedByFault;
+        }
+
+        // This should cause the shutoff listener to stop blocking
+        this.shutoffSocket.close();
+
+        // The shutoff-listener-thread should finish shortly, otherwise we have made a mistake.
+        // The thread check is here because the shutoff-listener-thread calls this method!
+        if (Thread.currentThread() != this.shutoffListener) {
+            try {
+                this.shutoffListener.join(1000);
+                if (this.shutoffListener.isAlive()) {
+                    System.err.println("FAILED TO SHUTDOWN DRONE " + name);
+                    Thread.dumpStack();
+                }
+            } catch (InterruptedException e) {
+                System.err.println("FAILED TO SHUTDOWN DRONE " + name);
+                e.printStackTrace();
+            }
         }
     }
 
