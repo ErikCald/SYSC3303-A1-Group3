@@ -323,13 +323,13 @@ public class Drone implements Runnable {
                 System.out.println("Drone " + name + " received SHUTOFF message. Finishing current event and shutting down.");
 
             } catch (SocketException e) {
-                // AsynchronousCloseException is expected to be thrown when we close the shutoffSocket because a shutdown originates elsewhere
+                // AsynchronousCloseException is expected to be thrown when the shutoffSocket is closed because a shutdown originated elsewhere
                 if (!(e.getCause() instanceof ClosedChannelException)) {
-                    System.err.println(name + ": Failed to list for shutoff.");
+                    System.err.println(name + ": Failed to listen for shutoff.");
                     e.printStackTrace();
                 }
             } catch (Exception e) {
-                System.err.println(name + ": Failed to list for shutoff.");
+                System.err.println(name + ": Failed to listen for shutoff.");
                 e.printStackTrace();
             }
         };
@@ -346,7 +346,7 @@ public class Drone implements Runnable {
         // send state and position every 2 seconds
         stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
 
-        while ((!shutdownFromFault) && ((!shutoff) || (!(state instanceof DroneIdle)))) {
+        while (!shutdownFromFault && (!shutoff || !(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {
                 System.out.printf("Drone %s, state: %s, liters: %.0f, position: %s\n",
                     name, state.getStateName(), waterTank.getWaterLevel(), kinematics.getPosition());
@@ -561,21 +561,33 @@ public class Drone implements Runnable {
      */
     private void shutoff(boolean causedByFault) {
         if (shutoff) {
-            System.out.println(name + " ALREADY SHUTOFF");
+            System.err.println(name + " ALREADY SHUTOFF");
         }
 
         this.shutoff = true;
-        this.shutdownFromFault = causedByFault;
+
+        // Only change the "shutdownFromFault" flag if it hasn't been set. We don't want to accidentally change it from true -> false,
+        // which can cause the Drone loop to run indefinitely in certain cases (since it depends on this flag).
+        if (!this.shutdownFromFault) {
+            this.shutdownFromFault = causedByFault;
+        }
 
         // This should cause the shutoff listener to stop blocking
         this.shutoffSocket.close();
 
-        // Thread should finish shortly, otherwise we have made a mistake.
-        try {
-            this.shutoffListener.join(1000);
-        } catch (InterruptedException e) {
-            System.out.println("FAILED TO SHUTDOWN DRONE " + name);
-            e.printStackTrace();
+        // The shutoff-listener-thread should finish shortly, otherwise we have made a mistake.
+        // The thread check is here because the shutoff-listener-thread calls this method!
+        if (Thread.currentThread() != this.shutoffListener) {
+            try {
+                this.shutoffListener.join(1000);
+                if (this.shutoffListener.isAlive()) {
+                    System.err.println("FAILED TO SHUTDOWN DRONE " + name);
+                    Thread.dumpStack();
+                }
+            } catch (InterruptedException e) {
+                System.err.println("FAILED TO SHUTDOWN DRONE " + name);
+                e.printStackTrace();
+            }
         }
     }
 
