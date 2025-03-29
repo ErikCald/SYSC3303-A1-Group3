@@ -150,11 +150,16 @@ public class Scheduler {
                 String name = parts[1];
                 boolean isShutdown = parts[2].equals("SHUTDOWN");
                 String faultState = parts[3];
+                String prevState = parts[4];
 
-                // Reclaim incomplete event
-                Event droneEvent = getDroneEventByName(name);
-                if (droneEvent != null) {
-                    addBackEvent(droneEvent);
+                // Reclaim incomplete event, if fire has not been put out yet
+                // Note, we do not reclaim an event if InZone or Extinguishing as the fire should be put out already
+                if (Objects.equals(prevState, "DroneIdle") || Objects.equals(prevState, "DroneEnRoute")){
+                    System.out.println("Stuck Drone, " + name + " has STATE: " + prevState + ". Reclaiming event.");
+                    Event droneEvent = getDroneEventByName(name);
+                    if (droneEvent != null) {
+                        addBackEvent(droneEvent);
+                    }
                 }
 
                 if(isShutdown) {

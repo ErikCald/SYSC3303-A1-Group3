@@ -13,11 +13,11 @@ public class DroneReturning implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if(drone.isStuck()) {
-            return new DroneStuck();
+            return new DroneStuck(this);
         }
 
         if (drone.getNozzle().isStuck()){
-            drone.handleFault(this);
+            drone.handleFault(this, new DroneReturning());
         }
 
         if (drone.isAtHome()) {

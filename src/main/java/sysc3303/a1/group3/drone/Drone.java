@@ -519,11 +519,11 @@ public class Drone implements Runnable {
         return isDroneBoundToGetStuck;
     }
 
-    public void handleFault(DroneState faultState) {
+    public void handleFault(DroneState faultState, DroneState prevState) {
         String msg;
         if (faultState instanceof DroneStuck) {
             System.out.println("Drone " + name + " is stuck. Communicating shutdown to scheduler then shutting down.");
-            msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName());
+            msg = String.format("DRONE_FAULT," + name + ",SHUTDOWN," + faultState.getStateName() + "," + prevState);
 
             shutoff(true); // caused by fault
 

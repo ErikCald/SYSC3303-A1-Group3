@@ -12,7 +12,7 @@ public class DroneIdle implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if (drone.getNozzle().isStuck()){
-            drone.handleFault(this);
+            drone.handleFault(this, new DroneIdle());
         }
 
         if (drone.getCurrentEvent().isPresent()) {

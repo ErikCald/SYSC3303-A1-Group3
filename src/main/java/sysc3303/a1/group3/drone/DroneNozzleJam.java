@@ -7,7 +7,7 @@ public class DroneNozzleJam implements DroneState {
     @Override
     public void runState(Drone drone) {
         System.out.println("Drone " + drone.getName() + " has a nozzle jam. Returning to base.");
-        drone.handleFault(this);
+        drone.handleFault(this, new DroneNozzleJam());
     }
 
     @Override

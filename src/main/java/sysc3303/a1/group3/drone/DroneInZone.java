@@ -10,7 +10,7 @@ public class DroneInZone implements DroneState {
     @Override
     public DroneState getNextState(Drone drone) {
         if (drone.getNozzle().isStuck()){
-            drone.handleFault(this);
+            drone.handleFault(this, new DroneInZone());
         }
 
         if (drone.isInZoneSchedulerResponse()){

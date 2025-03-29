@@ -4,12 +4,17 @@ import sysc3303.a1.group3.Event;
 
 public class DroneStuck implements DroneState {
     private boolean isFaultHandled = false;
+    private final DroneState prevState;
+
+    public DroneStuck(DroneState pS){
+        prevState = pS;
+    }
 
     @Override
     public void runState(Drone drone) {
         if (!isFaultHandled) {
             System.out.println("Drone " + drone.getName() + " is stuck. Communicating shutdown to scheduler then shutting down.");
-            drone.handleFault(this);
+            drone.handleFault(this, prevState);
             isFaultHandled = true;
         }
     }
