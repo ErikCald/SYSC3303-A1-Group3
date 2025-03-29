@@ -358,8 +358,10 @@ public class Drone implements Runnable {
         }
 
         System.out.println(Thread.currentThread().getName() + " is shutting down.");
-        droneSocket.close();
-        stateSocket.close();
+//        droneSocket.close();
+//        stateSocket.close();
+//        listenerSocket.close();
+        closeSockets();
         stateUpdateScheduler.shutdown();
         eventMonitorScheduler.shutdown();
     }
