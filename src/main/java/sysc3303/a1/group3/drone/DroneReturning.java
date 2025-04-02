@@ -17,7 +17,8 @@ public class DroneReturning implements DroneState {
         }
 
         if (drone.getNozzle().isStuck()){
-            drone.handleFault(this, new DroneReturning());
+//            drone.handleFault(this, new DroneReturning());
+            return new DroneNozzleJam(new DroneEnRoute());
         }
 
         if (drone.isAtHome()) {

@@ -16,7 +16,8 @@ public class DroneEnRoute implements DroneState {
         }
 
         if (drone.getNozzle().isStuck()){
-            drone.handleFault(this, new DroneEnRoute());
+//            drone.handleFault(this, new DroneEnRoute());
+            return new DroneNozzleJam(new DroneEnRoute());
         }
 
         if (drone.isAtZone()) {

@@ -3,16 +3,20 @@ package sysc3303.a1.group3.drone;
 import sysc3303.a1.group3.Event;
 
 public class DroneNozzleJam implements DroneState {
+    DroneState prevState;
+
+    public DroneNozzleJam(DroneState prevState){
+        this.prevState = prevState;
+    }
 
     @Override
     public void runState(Drone drone) {
-        System.out.println("Drone " + drone.getName() + " has a nozzle jam. Returning to base.");
-        drone.handleFault(this, new DroneNozzleJam());
+        drone.handleFault(new DroneNozzleJam(prevState), prevState);
     }
 
     @Override
     public DroneState getNextState(Drone drone) {
-        return new DroneReturning();
+        return prevState;
     }
 
     @Override
