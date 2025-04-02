@@ -346,8 +346,8 @@ public class Drone implements Runnable {
         registerDroneToScheduler();
         listenForShutoff();
 
-        // send state and position every 2 seconds
-        stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 2, TimeUnit.SECONDS);
+        // send state and position every second
+        stateUpdateScheduler.scheduleAtFixedRate(() -> sendStateToScheduler(state.getStateName()), 0, 1, TimeUnit.SECONDS);
 
         while (!shutdownFromFault && (!shutoff || !(state instanceof DroneIdle))) {
             if (PRINT_DRONE_ITERATIONS) {

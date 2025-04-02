@@ -9,6 +9,7 @@ import java.sql.Time;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -16,11 +17,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Scheduler {
 
     private final int MAX_SIZE = 10;
+
+    private final ScheduledExecutorService uiUpdater = Executors.newSingleThreadScheduledExecutor();
 
     // Queue for events coming from the subsystem.
     private final Queue<Event> droneMessages = new ArrayDeque<>();
@@ -61,9 +68,92 @@ public class Scheduler {
 
         // start the main listener/handler
         startUDPListener();
-
+        startUI();
     }
 
+    private void startUI() {
+        // PUT/INIT UI STUFF HERE
+        // e.g. JFrame frame ...
+
+        uiUpdater.scheduleAtFixedRate(() -> {
+
+            // UPDATE UI STUFF HERE
+
+            // e.g. update the JFrame ...
+
+
+
+            // NOTE: sometimes you may see that the drones have a negative number for position when returning. I think this is because the drones move really quick
+            // (the simulation is sped up by x10), so they sometimes "overshoot" their location, but they eventually correct for this and arrive at their location.
+
+            // If Drones are less than 0,0 maybe just display at 0.
+            // Use ctrl+shift+f and enter "ALLOWABLE_ERROR" if you want to change how close the drone has to be to the
+            // center of the target to count as there (I set it to 10 rn), this should make it easier for the UI to be more percise, but sometimes the drone will
+            // just fly around the zone to correct itself for a bit. Feel free to make ALLOWABLE_ERROR larger if you want to mitigate the drones correcting themselves,
+            // but this may make it harder for the UI to be precise as drones may be further from the center of the zone.
+            // Alternatively, you can make it so the drone kinematics ticket more frequently, giving a more accurate position
+
+
+            // Debug print below to show you what the drone data looks like for updating stuffs
+            // Obviously, delete this later, this is just to show you how to access the simulation data
+            // You should probably decrease the polling timer (e.g. to 100ms), I have it on 1000ms rn because I'm printing stuff for y'all to see.
+            System.err.println("\n\n=== Drone Status ===");
+            synchronized (drones) {
+                for (DroneRecord drone : drones) {
+                    System.err.println("Drone: " + drone.getDroneName() +
+                        ", State: " + drone.getState() +
+                        ", Event: " + (drone.getEvent() != null ? drone.getEvent() : "None") +
+                        ", Position: " + drone.getPosition());
+                }
+            }
+            System.err.println("--------------------");
+
+            // Determine active fires by checking drone state and event type.
+            // NOTE: Drones that are returning are ignored since the fire is extinguished
+            Set<Event> activeFires = new HashSet<>();
+            for (DroneRecord drone : drones) {
+                if (drone.getState().equals("DroneReturning")) {
+                    continue;
+                }
+                if (drone.getEvent() != null) {
+                    activeFires.add(drone.getEvent());
+                }
+            }
+
+            // Print active fires
+            System.err.println("\n===== Active Fires =====");
+            if (!activeFires.isEmpty()) {
+                for (Event fire : activeFires) {
+                    System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
+                        fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+                }
+            }
+            System.err.println("---------------------------------\n");
+
+        }, 0, 1000, TimeUnit.MILLISECONDS);
+    }
+
+
+    // Stops UI scheduler object.
+    // Put any UI stuffs to be shutdown in here too
+    public void stopUI() {
+        System.out.println("Shutting down UI...");
+        uiUpdater.shutdown();
+        try {
+            // Force shutdown if not terminated in time
+            if (!uiUpdater.awaitTermination(1, TimeUnit.SECONDS)) {
+                uiUpdater.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            uiUpdater.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        // Close UI components:
+        // e.g. close frame ...
+
+
+    }
 
 
     // Starts one UDP listener thread that continuously receives packets.
@@ -111,6 +201,7 @@ public class Scheduler {
             }
             socket.close();
             sendSocket.close();
+            stopUI();
 
             System.out.println("Scheduler's UDP Listener is closing.");
         }, "Scheduler-UPDListener").start();

@@ -7,7 +7,7 @@ public class Kinematics {
     private static final double SECONDS_PER_TICK = Drone.DRONE_LOOP_SLEEP_MS / 1000.0;
 
     static final double EPSILON = Math.ulp(1.0d);
-    private final double ALLOWABLE_ERROR = 50; // zones are general 100x100 so 50 is a good error from center
+    private final double ALLOWABLE_ERROR = 10; 
 
     private final double maxSpeed;
     private final double maxSpeedSquared;
