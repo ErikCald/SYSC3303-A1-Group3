@@ -99,18 +99,18 @@ public class Scheduler {
             // Debug print below to show you what the drone data looks like for updating stuffs
             // Obviously, delete this later, this is just to show you how to access the simulation data
             // You should probably decrease the polling timer (e.g. to 100ms), I have it on 1000ms rn because I'm printing stuff for y'all to see.
-            System.err.println("\n\n=== Drone Status ===");
+//            System.err.println("\n\n=== Drone Status ===");
             synchronized (drones) {
                 ui.updateDrones(drones);
                 
-                for (DroneRecord drone : drones) {
-                    System.err.println("Drone: " + drone.getDroneName() +
-                        ", State: " + drone.getState() +
-                        ", Event: " + (drone.getEvent() != null ? drone.getEvent() : "None") +
-                        ", Position: " + drone.getPosition());
-                }
+//                for (DroneRecord drone : drones) {
+////                    System.err.println("Drone: " + drone.getDroneName() +
+////                        ", State: " + drone.getState() +
+////                        ", Event: " + (drone.getEvent() != null ? drone.getEvent() : "None") +
+////                        ", Position: " + drone.getPosition());
+//                }
             }
-            System.err.println("--------------------");
+//            System.err.println("--------------------");
 
             // Determine active fires by checking drone state and event type.
             // NOTE: Drones that are returning are ignored since the fire is extinguished
@@ -122,17 +122,17 @@ public class Scheduler {
             }
             
             // Print active fires
-            System.err.println("\n===== Active Fires =====");
+//            System.err.println("\n===== Active Fires =====");
             List<Integer> zoneFires = new ArrayList<>();
             if (!activeFires.isEmpty()) {
                 for (Event fire : activeFires) {
-                    System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
-                    fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+//                    System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
+//                    fire.getZoneId(), fire.getEventType(), fire.getSeverity());
                     zoneFires.add(fire.getZoneId());
                 }
             }
             ui.updateFireStates(zoneFires);
-            System.err.println("---------------------------------\n");
+//            System.err.println("---------------------------------\n");
 
         }, 0, 200, TimeUnit.MILLISECONDS);
     }
@@ -141,7 +141,7 @@ public class Scheduler {
     // Stops UI scheduler object.
     // Put any UI stuffs to be shutdown in here too
     public void stopUI() {
-        System.out.println("Shutting down UI...");
+//        System.out.println("Shutting down UI...");
         uiUpdater.shutdown();
         try {
             // Force shutdown if not terminated in time
