@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Drone implements Runnable {
     public static final int DRONE_LOOP_SLEEP_MS = 100; // milliseconds
-    public static final int DRONE_TRAVEL_SPEEDUP = 30; // times faster than real time
+    public static final int DRONE_TRAVEL_SPEEDUP = 15; // times faster than real time
     public static final boolean PRINT_DRONE_ITERATIONS = false; // Prints the drone's position every iteration
     private boolean isDroneBoundToGetStuck;
     private final String name;

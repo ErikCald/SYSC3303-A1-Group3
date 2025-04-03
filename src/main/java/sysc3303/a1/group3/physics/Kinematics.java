@@ -1,5 +1,7 @@
 package sysc3303.a1.group3.physics;
 
+import java.util.Optional;
+
 import sysc3303.a1.group3.drone.Drone;
 
 public class Kinematics {
@@ -16,9 +18,8 @@ public class Kinematics {
     private Vector2d position = Vector2d.ZERO;
     private Vector2d velocity = Vector2d.ZERO;
 
+    private Vector2d target = Vector2d.ZERO;
     private Vector2d lastAcceleration = Vector2d.ZERO;
-
-    private Vector2d target = null;
 
     public Kinematics(double maxSpeed, double maxAcceleration) {
         this.maxSpeed = Math.abs(maxSpeed);
@@ -37,15 +38,14 @@ public class Kinematics {
         return position;
     }
 
-    public void setPosition(Vector2d p) { position = p;}
+    public void setPosition(Vector2d p) {
+        position = p;
+    }
 
     public Vector2d getVelocity() {
         return velocity;
     }
 
-    public Vector2d getLastAcceleration() {
-        return lastAcceleration;
-    }
 
     public Vector2d getTarget() {
         return target;
@@ -66,18 +66,36 @@ public class Kinematics {
     }
 
     public void tick() {
-        for (int i = 0; i < TICK_QTY; i++) {
-            // Weird "algorithm" that works alright at lower tick amounts
-            Vector2d targetDirection = target.subtract(position);
-            Vector2d accelerationDirection = targetDirection.subtract(velocity); // the main choice
-            Vector2d acceleration = accelerationDirection.withMagnitude(maxAcceleration);
-
-            updateMotion(SECONDS_PER_TICK, acceleration);
-
-            if(isAtTarget()) {
-                break;
-            }
+        if (target == null) {
+            return;
         }
+
+        double maxChangeInPosition = 15;
+        Vector2d difference = target.subtract(position);
+        double distance = difference.magnitude();
+        if (distance < maxChangeInPosition) {
+            // We can just go straight to the target
+            position = target;
+            velocity = Vector2d.ZERO;
+            return;
+        } else {
+            // We need to move towards the target
+            distance = Math.min(distance, maxChangeInPosition);
+            position = position.add(difference.withMagnitude(distance));
+        }
+
+        // for (int i = 0; i < TICK_QTY; i++) {
+        //     // Weird "algorithm" that works alright at lower tick amounts
+        //     Vector2d targetDirection = target.subtract(position);
+        //     Vector2d accelerationDirection = targetDirection.subtract(velocity); // the main choice
+        //     Vector2d acceleration = accelerationDirection.withMagnitude(maxAcceleration);
+
+        //     updateMotion(SECONDS_PER_TICK, acceleration);
+
+        //     if(isAtTarget()) {
+        //         break;
+        //     }
+        // }
     }
 
     private void updateMotion(double duration, Vector2d acceleration) {

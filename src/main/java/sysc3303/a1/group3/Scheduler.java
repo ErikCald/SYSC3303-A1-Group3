@@ -53,6 +53,9 @@ public class Scheduler {
     // socket to exclusive send packets when the main socket is busy listening
     private final DatagramSocket sendSocket;
 
+    // UI to display where the zones and drones are
+    private final UI ui;
+
     /**
      * Creates a new Scheduler
      *
@@ -66,15 +69,14 @@ public class Scheduler {
         this.socket = new DatagramSocket(schedulerPort);
         this.sendSocket = new DatagramSocket();
 
+        this.ui = new UI(zones);
+
         // start the main listener/handler
         startUDPListener();
         startUI();
     }
 
     private void startUI() {
-        // PUT/INIT UI STUFF HERE
-        // e.g. JFrame frame ...
-
         uiUpdater.scheduleAtFixedRate(() -> {
 
             // UPDATE UI STUFF HERE
@@ -97,47 +99,49 @@ public class Scheduler {
             // Debug print below to show you what the drone data looks like for updating stuffs
             // Obviously, delete this later, this is just to show you how to access the simulation data
             // You should probably decrease the polling timer (e.g. to 100ms), I have it on 1000ms rn because I'm printing stuff for y'all to see.
-            System.err.println("\n\n=== Drone Status ===");
+//            System.err.println("\n\n=== Drone Status ===");
             synchronized (drones) {
-                for (DroneRecord drone : drones) {
-                    System.err.println("Drone: " + drone.getDroneName() +
-                        ", State: " + drone.getState() +
-                        ", Event: " + (drone.getEvent() != null ? drone.getEvent() : "None") +
-                        ", Position: " + drone.getPosition());
-                }
+                ui.updateDrones(drones);
+                
+//                for (DroneRecord drone : drones) {
+////                    System.err.println("Drone: " + drone.getDroneName() +
+////                        ", State: " + drone.getState() +
+////                        ", Event: " + (drone.getEvent() != null ? drone.getEvent() : "None") +
+////                        ", Position: " + drone.getPosition());
+//                }
             }
-            System.err.println("--------------------");
+//            System.err.println("--------------------");
 
             // Determine active fires by checking drone state and event type.
             // NOTE: Drones that are returning are ignored since the fire is extinguished
             Set<Event> activeFires = new HashSet<>();
             for (DroneRecord drone : drones) {
-                if (drone.getState().equals("DroneReturning")) {
-                    continue;
-                }
-                if (drone.getEvent() != null) {
+                if ((!drone.getState().equals("DroneReturning")) && (drone.getEvent() != null)) {
                     activeFires.add(drone.getEvent());
                 }
             }
-
+            
             // Print active fires
-            System.err.println("\n===== Active Fires =====");
+//            System.err.println("\n===== Active Fires =====");
+            List<Integer> zoneFires = new ArrayList<>();
             if (!activeFires.isEmpty()) {
                 for (Event fire : activeFires) {
-                    System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
-                        fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+//                    System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
+//                    fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+                    zoneFires.add(fire.getZoneId());
                 }
             }
-            System.err.println("---------------------------------\n");
+            ui.updateFireStates(zoneFires);
+//            System.err.println("---------------------------------\n");
 
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, 200, TimeUnit.MILLISECONDS);
     }
 
 
     // Stops UI scheduler object.
     // Put any UI stuffs to be shutdown in here too
     public void stopUI() {
-        System.out.println("Shutting down UI...");
+//        System.out.println("Shutting down UI...");
         uiUpdater.shutdown();
         try {
             // Force shutdown if not terminated in time
