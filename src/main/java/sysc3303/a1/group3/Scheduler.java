@@ -53,6 +53,9 @@ public class Scheduler {
     // socket to exclusive send packets when the main socket is busy listening
     private final DatagramSocket sendSocket;
 
+    // UI to display where the zones and drones are
+    private final UI ui;
+
     /**
      * Creates a new Scheduler
      *
@@ -66,15 +69,14 @@ public class Scheduler {
         this.socket = new DatagramSocket(schedulerPort);
         this.sendSocket = new DatagramSocket();
 
+        this.ui = new UI(zones);
+
         // start the main listener/handler
         startUDPListener();
         startUI();
     }
 
     private void startUI() {
-        // PUT/INIT UI STUFF HERE
-        // e.g. JFrame frame ...
-
         uiUpdater.scheduleAtFixedRate(() -> {
 
             // UPDATE UI STUFF HERE
@@ -99,6 +101,8 @@ public class Scheduler {
             // You should probably decrease the polling timer (e.g. to 100ms), I have it on 1000ms rn because I'm printing stuff for y'all to see.
             System.err.println("\n\n=== Drone Status ===");
             synchronized (drones) {
+                ui.updateDrones(drones);
+                
                 for (DroneRecord drone : drones) {
                     System.err.println("Drone: " + drone.getDroneName() +
                         ", State: " + drone.getState() +
@@ -112,25 +116,25 @@ public class Scheduler {
             // NOTE: Drones that are returning are ignored since the fire is extinguished
             Set<Event> activeFires = new HashSet<>();
             for (DroneRecord drone : drones) {
-                if (drone.getState().equals("DroneReturning")) {
-                    continue;
-                }
-                if (drone.getEvent() != null) {
+                if ((!drone.getState().equals("DroneReturning")) && (drone.getEvent() != null)) {
                     activeFires.add(drone.getEvent());
                 }
             }
-
+            
             // Print active fires
             System.err.println("\n===== Active Fires =====");
+            List<Integer> zoneFires = new ArrayList<>();
             if (!activeFires.isEmpty()) {
                 for (Event fire : activeFires) {
                     System.err.printf("Zone: %d | Type: %s | Severity: %s%n",
-                        fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+                    fire.getZoneId(), fire.getEventType(), fire.getSeverity());
+                    zoneFires.add(fire.getZoneId());
                 }
             }
+            ui.updateFireStates(zoneFires);
             System.err.println("---------------------------------\n");
 
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, 200, TimeUnit.MILLISECONDS);
     }
 
 

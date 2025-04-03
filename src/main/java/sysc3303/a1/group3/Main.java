@@ -1,15 +1,13 @@
 package sysc3303.a1.group3;
 
-import sysc3303.a1.group3.drone.Drone;
-import sysc3303.a1.group3.physics.Vector2d;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.stream.Collectors;
+
+import sysc3303.a1.group3.drone.Drone;
 
 public class Main {
 
