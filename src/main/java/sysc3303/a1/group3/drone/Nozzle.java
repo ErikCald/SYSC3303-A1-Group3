@@ -3,7 +3,7 @@ package sysc3303.a1.group3.drone;
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
 import sysc3303.a1.group3.physics.Vector2d;
-
+import sysc3303.a1.group3.Main;
 public class Nozzle {
     private final int DRONE_NOZZLE_OPEN_TIME = 1000;
 
@@ -55,9 +55,9 @@ public class Nozzle {
         }
 
         if (tank.getWaterLevel() <= 0.0) {
-            System.out.println("Drone " + droneName + " has run out of foam in the middle of extinguishing the flames of event: " + event + " and is returning.");
+            System.out.println("[" + Main.getElapsedTime() + "] " + "Drone " + droneName + " has run out of foam in the middle of extinguishing the flames of event: " + event + " and is returning.");
         } else {
-            System.out.println("Drone " + droneName + " has finished extinguishing the flames of event: " + event + " and is returning.");
+            System.out.println("[" + Main.getElapsedTime() + "] " +  "Drone " + droneName + " has finished extinguishing the flames of event: " + event + " and is returning.");
         }
         
         open = false;

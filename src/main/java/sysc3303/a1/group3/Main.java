@@ -1,17 +1,39 @@
 package sysc3303.a1.group3;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.io.FileNotFoundException;
 
 import sysc3303.a1.group3.drone.Drone;
+import sysc3303.a1.group3.drone.DroneIdle;
 
 public class Main {
+    public static final long START_TIME = System.currentTimeMillis();
+    private static Thread.State DroneIdle;
 
     public static void main(String[] args) {
+
+        try {
+            PrintStream originalOut = System.out;
+            PrintStream originalErr = System.err;
+
+            PrintStream fileOut = new PrintStream(new FileOutputStream("output.txt"));
+            TeePrintStream teeOut = new TeePrintStream(fileOut, originalOut);
+            TeePrintStream teeErr = new TeePrintStream(fileOut, originalErr);
+
+            System.setOut(teeOut);
+            System.setErr(teeErr);
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
         // Load incident and zone files from resources.
         InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
@@ -81,5 +103,26 @@ public class Main {
         for (Thread droneThread : droneThreads) {
             droneThread.start();
         }
+
+
+        for (Thread droneThread : droneThreads) {
+            System.out.println("x");
+            try {
+                droneThread.join();
+            } catch (InterruptedException e) {
+                System.err.println(droneThread.getName() + " was interrupted.");
+                e.printStackTrace();
+            }
+        }
+        DroneResponseTimeCalculator.run("output.txt");
+
+
+    }
+
+    public static String getElapsedTime() {
+        long elapsedMillis = System.currentTimeMillis() - Main.START_TIME;
+        long seconds = elapsedMillis / 1000;
+        long millis = elapsedMillis % 1000;
+        return seconds + "." + String.format("%03d", millis) + "s";
     }
 }
