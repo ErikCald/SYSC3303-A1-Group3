@@ -1,6 +1,7 @@
 package sysc3303.a1.group3.drone;
 
 import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.Main;
 
 public class DroneIdle implements DroneState {
 
@@ -17,7 +18,9 @@ public class DroneIdle implements DroneState {
         }
 
         if (drone.getCurrentEvent().isPresent()) {
-            System.out.println(drone.getName() + " is now en route to Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
+            System.out.println("[" + Main.getElapsedTime() + "] " +
+                drone.getName() + " is now en route to Zone " +
+                drone.getCurrentEvent().get().getZoneId() + ".");
             return new DroneEnRoute();
         }
 
