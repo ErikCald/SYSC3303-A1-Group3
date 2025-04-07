@@ -15,6 +15,9 @@ public class UI {
     private final int borderSize = 20;
     private final int legendWidth = 190;
     private final int topBorder = 20;
+    private final int droneStatusBoxSize = 20;
+    private final int droneStatusSpacing = 40;
+    private final int droneStatusBottomOffset = 30;
 
     private JFrame frame;
     private List<Zone> zones = new ArrayList<>();
@@ -26,7 +29,7 @@ public class UI {
         this.zones = zones;
         calculateZoneBounds();
         frame = new JFrame("Zone and Drone Display");
-        frame.setSize(maxX - minX + 400, maxY - minY + 200);
+        frame.setSize(maxX - minX + 400, maxY - minY + 2 * borderSize + topBorder + droneStatusBottomOffset + droneStatusBoxSize + 50);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel() {
@@ -38,6 +41,7 @@ public class UI {
                 drawDrones(g);
                 drawLegend(g);
                 drawFireSpots(g);
+                drawDroneStatuses(g);
             }
         };
 
@@ -110,7 +114,7 @@ public class UI {
             Vector2d center = zone.centre();
             int x = (int) center.getX() - 10 - minX + legendWidth;
             int y = (int) center.getY() - 10 - minY + borderSize + topBorder;
-            
+
             if (fireStates.contains(zone.zoneID())) {
                 g.setColor(Color.RED);
             } else {
@@ -119,7 +123,7 @@ public class UI {
 
             g.fillRect(x, y, 20, 20);
         }
-}
+    }
 
     private Color getDroneColor(String state) {
         switch (state) {
@@ -174,7 +178,7 @@ public class UI {
         g.setColor(Color.BLACK);
         g.drawString("Drone Returning", legendX + 25, legendY + 15);
 
-        
+
         legendY += 30;
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect(legendX, legendY, 20, 20);
@@ -186,6 +190,36 @@ public class UI {
         g.fillRect(legendX, legendY, 20, 20);
         g.setColor(Color.BLACK);
         g.drawString("Drone Fault", legendX + 25, legendY + 15);
+    }
+
+    private void drawDroneStatuses(Graphics g) {
+        int startX = borderSize + droneStatusSpacing;
+        int startY = frame.getHeight() - droneStatusBottomOffset - droneStatusBoxSize - 40;
+
+        for (int i = 0; i < drones.size(); i++) {
+            DroneRecord drone = drones.get(i);
+            String state = drone.getState();
+            Color stateColor = getDroneColor(state);
+
+            int x = startX + i * (droneStatusBoxSize + droneStatusSpacing);
+            int y = startY + 20;
+
+            // Draw drone name
+            String droneName = drone.getDroneName();
+            if (droneName.toLowerCase().contains("drone")) {
+                int index = droneName.toLowerCase().indexOf("drone");
+                String rest = droneName.substring(index + "drone".length()).trim();
+                droneName = "D(" + rest + ")";
+            }
+            g.setColor(Color.BLACK);
+            g.drawString(droneName, x, y - 5);
+
+            // Draw state box
+            g.setColor(stateColor);
+            g.fillRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
+            g.setColor(Color.BLACK);
+            g.drawRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
+        }
     }
 
     public static void main(String[] args) {
