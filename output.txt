@@ -1,380 +1,406 @@
+adjustedTime: 00:00:02
+adjustedTime: 00:00:02
+adjustedTime: 00:00:02
+adjustedTime: 00:00:03
+adjustedTime: 00:00:04
+adjustedTime: 00:00:04
+adjustedTime: 00:00:09
+adjustedTime: 00:00:10
+adjustedTime: 00:00:10
+adjustedTime: 00:00:10
+adjustedTime: 00:00:11
+adjustedTime: 00:00:14
+adjustedTime: 00:00:20
+adjustedTime: 00:00:23
+adjustedTime: 00:00:24
 x
-drone4 is being initialized by the scheduler with info : drone4,DroneIdle,0.0,0.0
 drone2 is being initialized by the scheduler with info : drone2,DroneIdle,0.0,0.0
-drone5 is being initialized by the scheduler with info : drone5,DroneIdle,0.0,0.0
-drone1 is being initialized by the scheduler with info : drone1,DroneIdle,0.0,0.0
-drone9 is being initialized by the scheduler with info : drone9,DroneIdle,0.0,0.0
-drone8 is being initialized by the scheduler with info : drone8,DroneIdle,0.0,0.0
-drone3 is being initialized by the scheduler with info : drone3,DroneIdle,0.0,0.0
-drone7 is being initialized by the scheduler with info : drone7,DroneIdle,0.0,0.0
 drone10 is being initialized by the scheduler with info : drone10,DroneIdle,0.0,0.0
+drone7 is being initialized by the scheduler with info : drone7,DroneIdle,0.0,0.0
+drone3 is being initialized by the scheduler with info : drone3,DroneIdle,0.0,0.0
+drone4 is being initialized by the scheduler with info : drone4,DroneIdle,0.0,0.0
+drone1 is being initialized by the scheduler with info : drone1,DroneIdle,0.0,0.0
+drone8 is being initialized by the scheduler with info : drone8,DroneIdle,0.0,0.0
 drone6 is being initialized by the scheduler with info : drone6,DroneIdle,0.0,0.0
-drone4 sent a corrupted message: DRONE_REQEVET
-drone3 sent a corrupted message: DRNE_EQEVENT
-Scheduler received a request for an event from drone6
-Scheduler received a request for an event from drone5
+drone9 is being initialized by the scheduler with info : drone9,DroneIdle,0.0,0.0
+drone5 is being initialized by the scheduler with info : drone5,DroneIdle,0.0,0.0
+drone6 sent a corrupted message: RONE_E_EVENT
+drone9 sent a corrupted message: DNE_RQ_EVENT
+Scheduler received a request for an event from drone7
 Scheduler received a request for an event from drone2
 Scheduler got a corrupted message, asking for drone to resend...
-Scheduler received a request for an event from drone7
 Scheduler got a corrupted message, asking for drone to resend...
-Scheduler received a request for an event from drone9
-Scheduler received a request for an event from drone8
-Scheduler received a request for an event from drone10
 Scheduler received a request for an event from drone1
 Scheduler received a request for an event from drone3
+Scheduler received a request for an event from drone5
+Scheduler received a request for an event from drone8
+Scheduler received a request for an event from drone10
 Scheduler received a request for an event from drone4
+Scheduler received a request for an event from drone9
+Scheduler received a request for an event from drone6
 
 Sending Event 1 to Scheduler: 
-Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+Event: 00:00:02, Zone: 3, Type: FIRE_DETECTED, Severity: Low
 
-[4.229s] drone6 is scheduled with event: Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low
-
-[4.229s] drone6 is now en route to Zone 3.
 
 Sending Event 2 to Scheduler: 
-Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
+Event: 00:00:02, Zone: 1, Type: FIRE_DETECTED, Severity: High
 
-[6.228s] drone4 is scheduled with event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-[6.228s] drone4 is now en route to Zone 1.
-[6.338s] drone5 is scheduled with event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-[6.338s] drone5 is now en route to Zone 1.
->>> EVENT TRIGGERED for drone3 at 00:00:07: NOZZLE_JAM
-[8.224s] Drone drone4 has arrived at Zone 1.
-[8.334s] Drone drone5 has arrived at Zone 1.
-Drone drone4 is extinguishing flames!
-Drone drone5 is extinguishing flames!
-Drone drone4 has started extinguishing flames! Dropping 15 liters of foam.
-Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
-[8.889s] Drone drone6 has arrived at Zone 3.
-Drone drone6 is extinguishing flames!
-Drone drone6 has started extinguishing flames! Dropping 10 liters of foam.
 
 Sending Event 3 to Scheduler: 
-Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+Event: 00:00:02, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
 
-[11.227s] drone2 is scheduled with event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+[3.234s] drone7 is scheduled with event: Event: 00:00:02, Zone: 3, Type: FIRE_DETECTED, Severity: Low
 
-[11.227s] drone2 is now en route to Zone 2.
-[11.342s] drone3 is scheduled with event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+[3.234s] drone7 is now en route to Zone 3.
+[3.334s] drone6 is scheduled with event: Event: 00:00:02, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
 
-Repairing nozzle at drone position Vector2d[x=0.0, y=0.0]. Waiting for 500 ms for repair...
-Finish nozzle repair at position Vector2d[x=0.0, y=0.0]. Drone returning to previous task..
-[13.352s] Drone drone6 has finished extinguishing the flames of event: Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
-[13.810s] Drone drone4 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
-[13.918s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
-drone4 is back!
-[15.896s] Drone drone2 has arrived at Zone 2.
-drone5 is back!
-Scheduler received a request for an event from drone4
-Scheduler received a request for an event from drone5
-Drone drone2 is extinguishing flames!
-Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
-[16.738s] Drone drone3 has arrived at Zone 2.
-Drone drone3 is extinguishing flames!
-Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
-drone6 is back!
-Scheduler received a request for an event from drone6
->>> EVENT TRIGGERED for drone1 at 00:00:20: DRONE_STUCK
+[3.334s] drone6 is now en route to Zone 2.
+[3.445s] drone9 is scheduled with event: Event: 00:00:02, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+[3.445s] drone9 is now en route to Zone 2.
+[3.557s] drone4 is scheduled with event: Event: 00:00:02, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[3.557s] drone4 is now en route to Zone 1.
+[3.667s] drone10 is scheduled with event: Event: 00:00:02, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[3.667s] drone10 is now en route to Zone 1.
 
 Sending Event 4 to Scheduler: 
-Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+Event: 00:00:03, Zone: 4, Type: FIRE_DETECTED, Severity: Low
 
-[21.227s] drone1 is scheduled with event: Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+[4.230s] drone8 is scheduled with event: Event: 00:00:03, Zone: 4, Type: FIRE_DETECTED, Severity: Low
 
-[21.227s] drone1 is now en route to Zone 4.
-[21.454s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[4.230s] drone8 is now en route to Zone 4.
+
+Sending Event 5 to Scheduler: 
+Event: 00:00:04, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+
+Sending Event 6 to Scheduler: 
+Event: 00:00:04, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+[5.229s] drone2 is scheduled with event: Event: 00:00:04, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+[5.230s] drone2 is now en route to Zone 1.
+[5.331s] drone5 is scheduled with event: Event: 00:00:04, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+[5.331s] drone5 is now en route to Zone 1.
+[5.438s] drone3 is scheduled with event: Event: 00:00:04, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+[5.438s] drone3 is now en route to Zone 3.
+[5.534s] Drone drone4 has arrived at Zone 1.
+[5.647s] Drone drone10 has arrived at Zone 1.
+Drone drone4 is extinguishing flames!
+Drone drone10 is extinguishing flames!
+Drone drone4 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone10 has started extinguishing flames! Dropping 15 liters of foam.
+[7.234s] Drone drone2 has arrived at Zone 1.
+>>> EVENT TRIGGERED for drone3 at 00:00:07: NOZZLE_JAM
+[7.328s] Drone drone5 has arrived at Zone 1.
+Drone drone2 is extinguishing flames!
+Drone drone5 is extinguishing flames!
+Repairing nozzle at drone position Vector2d[x=128.07224523681938, y=42.69074841227312]. Waiting for 1850 ms for repair...
+Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
+[7.902s] Drone drone7 has arrived at Zone 3.
+[7.982s] Drone drone6 has arrived at Zone 2.
+[8.091s] Drone drone9 has arrived at Zone 2.
+Drone drone7 is extinguishing flames!
+Drone drone6 is extinguishing flames!
+Drone drone9 is extinguishing flames!
+Drone drone7 has started extinguishing flames! Dropping 10 liters of foam.
+Drone drone6 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone9 has started extinguishing flames! Dropping 15 liters of foam.
+Finish nozzle repair at position Vector2d[x=128.07224523681938, y=42.69074841227312]. Drone returning to previous task..
+
+Sending Event 7 to Scheduler: 
+Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[10.229s] drone1 is scheduled with event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[10.229s] drone1 is now en route to Zone 1.
+[10.412s] Drone drone8 has arrived at Zone 4.
+Drone drone8 is extinguishing flames!
+Drone drone8 has started extinguishing flames! Dropping 10 liters of foam.
+[11.082s] Drone drone4 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:02, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[11.193s] Drone drone10 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:02, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+
+Sending Event 8 to Scheduler: 
+Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+
+Sending Event 9 to Scheduler: 
+Event: 00:00:10, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+
+Sending Event 10 to Scheduler: 
+Event: 00:00:10, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+[12.194s] Drone drone3 has arrived at Zone 3.
+[12.226s] Drone drone1 has arrived at Zone 1.
+
+Sending Event 11 to Scheduler: 
+Event: 00:00:11, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+[12.368s] Drone drone7 has finished extinguishing the flames of event: Event: 00:00:02, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
+Drone drone3 is extinguishing flames!
+Drone drone1 is extinguishing flames!
+Drone drone3 has started extinguishing flames! Dropping 10 liters of foam.
+Drone drone1 has started extinguishing flames! Dropping 15 liters of foam.
+[12.811s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:04, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[12.905s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:04, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+drone4 is back!
+drone10 is back!
+drone4 sent a corrupted message: DOERQ_VEN
+Scheduler got a corrupted message, asking for drone to resend...
+drone10 sent a corrupted message: RNEEQ_EVEN
+Scheduler got a corrupted message, asking for drone to resend...
+Scheduler received a request for an event from drone4
+[13.553s] Drone drone6 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:02, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+Scheduler received a request for an event from drone10
+[13.664s] Drone drone9 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:02, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[13.792s] drone4 is scheduled with event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+drone4's tank filled up to full!
+[13.792s] drone4 is now en route to Zone 1.
+[13.920s] drone10 is scheduled with event: Event: 00:00:10, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+drone10's tank filled up to full!
+[13.920s] drone10 is now en route to Zone 4.
+drone2 is back!
+[14.838s] Drone drone8 has finished extinguishing the flames of event: Event: 00:00:03, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
+drone5 is back!
+Scheduler received a request for an event from drone2
+drone2 is re-scheduled with older event, Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+drone4 is scheduled with newer event, Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+Scheduler received a request for an event from drone5
+drone5 is re-scheduled with older event, Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+drone4 is scheduled with newer event, Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+[15.216s] drone2 is scheduled with event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+drone2's tank filled up to full!
+[15.216s] drone2 is now en route to Zone 1.
+[15.216s] drone4 is scheduled with event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+[15.216s] drone4 changed routes and is now en route to Zone 2.
+
+Sending Event 12 to Scheduler: 
+Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[15.283s] drone5 is scheduled with event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+drone5's tank filled up to full!
+[15.283s] drone5 is now en route to Zone 1.
+[15.318s] drone4 is scheduled with event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+[15.318s] drone4 changed routes and is now en route to Zone 2.
+[16.567s] Drone drone3 has finished extinguishing the flames of event: Event: 00:00:04, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
+drone7 is back!
+Scheduler received a request for an event from drone7
+[17.209s] Drone drone2 has arrived at Zone 1.
+[17.289s] Drone drone5 has arrived at Zone 1.
+[17.402s] drone7 is scheduled with event: Event: 00:00:10, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone7's tank filled up to full!
+[17.402s] drone7 is now en route to Zone 1.
+Drone drone2 is extinguishing flames!
+Drone drone5 is extinguishing flames!
+Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+[17.720s] Drone drone1 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
+drone6 is back!
+drone9 is back!
+Scheduler received a request for an event from drone6
+Scheduler received a request for an event from drone9
+[18.437s] Drone drone4 has arrived at Zone 2.
+[18.563s] drone6 is scheduled with event: Event: 00:00:10, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone6's tank filled up to full!
+[18.563s] drone6 is now en route to Zone 1.
+Drone drone4 is extinguishing flames!
+[18.688s] drone9 is scheduled with event: Event: 00:00:11, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+drone9's tank filled up to full!
+[18.688s] drone9 is now en route to Zone 3.
+Drone drone4 has started extinguishing flames! Dropping 15 liters of foam.
+[19.383s] Drone drone7 has arrived at Zone 1.
+Drone drone7 is extinguishing flames!
+drone1 is back!
+Scheduler received a request for an event from drone1
+Drone drone7 has started extinguishing flames! Dropping 15 liters of foam.
+[20.077s] Drone drone10 has arrived at Zone 4.
+[20.125s] drone1 is scheduled with event: Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+drone1's tank filled up to full!
+[20.125s] drone1 is now en route to Zone 1.
+>>> EVENT TRIGGERED for drone1 at 00:00:20: DRONE_STUCK
+Drone drone10 is extinguishing flames!
+Drone drone10 has started extinguishing flames! Dropping 10 liters of foam.
+[20.551s] Drone drone6 has arrived at Zone 1.
 Drone drone1 is stuck. Communicating shutdown to scheduler then shutting down.
 Drone drone1 is stuck. Communicating shutdown to scheduler then shutting down.
 Stuck Drone, drone1 has STATE: DroneEnRoute. Reclaiming event.
 Drone drone1 has fault: DroneStuck. Reclaiming event and removing from drone scheduling.
-[21.675s] drone6 is scheduled with event: Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-drone6's tank filled up to full!
-[21.675s] drone6 is now en route to Zone 4.
 drone1 is shutting down.
 x
-[22.297s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-
-Sending Event 5 to Scheduler: 
-Event: 00:00:22, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-[23.226s] drone10 is scheduled with event: Event: 00:00:22, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-[23.226s] drone10 is now en route to Zone 1.
-[23.327s] drone5 is scheduled with event: Event: 00:00:22, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone5's tank filled up to full!
-[23.327s] drone5 is now en route to Zone 1.
-[25.221s] Drone drone10 has arrived at Zone 1.
-
-Sending Event 6 to Scheduler: 
-Event: 00:00:24, Zone: 3, Type: FIRE_DETECTED, Severity: Low
-
-[25.226s] drone4 is scheduled with event: Event: 00:00:24, Zone: 3, Type: FIRE_DETECTED, Severity: Low
-
-drone4's tank filled up to full!
-[25.227s] drone4 is now en route to Zone 3.
-[25.317s] Drone drone5 has arrived at Zone 1.
-Drone drone10 is extinguishing flames!
-Drone drone5 is extinguishing flames!
-Drone drone10 has started extinguishing flames! Dropping 15 liters of foam.
-Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
-drone2 is back!
-Scheduler received a request for an event from drone2
-
-Sending Event 7 to Scheduler: 
-Event: 00:00:25, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-[26.225s] drone8 is scheduled with event: Event: 00:00:25, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-[26.226s] drone8 is now en route to Zone 1.
-[26.492s] drone2 is scheduled with event: Event: 00:00:25, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-drone2's tank filled up to full!
-[26.492s] drone2 is now en route to Zone 1.
-drone3 is back!
-Scheduler received a request for an event from drone3
-[27.855s] Drone drone6 has arrived at Zone 4.
 Drone drone6 is extinguishing flames!
-[28.225s] Drone drone8 has arrived at Zone 1.
-Drone drone6 has started extinguishing flames! Dropping 10 liters of foam.
-Drone drone8 is extinguishing flames!
-[28.497s] Drone drone2 has arrived at Zone 1.
-Drone drone8 has started extinguishing flames! Dropping 15 liters of foam.
-Drone drone2 is extinguishing flames!
-Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone6 has started extinguishing flames! Dropping 15 liters of foam.
+drone8 is back!
+drone8 sent a corrupted message: DRO_EQ_ENT
+Scheduler got a corrupted message, asking for drone to resend...
+drone3 is back!
 
-Sending Event 8 to Scheduler: 
-Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+Sending Event 13 to Scheduler: 
+Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
 
-[29.227s] drone7 is scheduled with event: Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-[29.227s] drone7 is now en route to Zone 2.
-[29.340s] drone3 is scheduled with event: Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+Scheduler received a request for an event from drone3
+Scheduler received a request for an event from drone8
+[21.632s] drone3 is scheduled with event: Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High
 
 drone3's tank filled up to full!
-[29.340s] drone3 is now en route to Zone 2.
-[29.892s] Drone drone4 has arrived at Zone 3.
-Drone drone4 is extinguishing flames!
-Drone drone4 has started extinguishing flames! Dropping 10 liters of foam.
-[30.812s] Drone drone10 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:22, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[30.905s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:22, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[21.632s] drone3 is now en route to Zone 1.
+[21.728s] drone8 is scheduled with event: Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High
 
-Sending Event 9 to Scheduler: 
-Event: 00:00:31, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-drone9 is re-scheduled with older event, Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-drone7 is scheduled with newer event, Event: 00:00:31, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-[32.226s] drone9 is scheduled with event: Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-[32.226s] drone9 is now en route to Zone 2.
-[32.226s] drone7 is scheduled with event: Event: 00:00:31, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-[32.226s] drone7 changed routes and is now en route to Zone 4.
-[32.312s] Drone drone6 has finished extinguishing the flames of event: Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
-drone10 is back!
-drone5 is back!
-Scheduler received a request for an event from drone10
-Scheduler received a request for an event from drone5
-[33.781s] Drone drone8 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:25, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
-[33.986s] Drone drone3 has arrived at Zone 2.
-[34.049s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:25, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+drone8's tank filled up to full!
+[21.728s] drone8 is now en route to Zone 1.
+[22.765s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[22.829s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:09, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[23.325s] Drone drone9 has arrived at Zone 3.
+Drone drone9 is extinguishing flames!
+[23.646s] Drone drone3 has arrived at Zone 1.
+[23.741s] Drone drone8 has arrived at Zone 1.
+Drone drone9 has started extinguishing flames! Dropping 10 liters of foam.
 Drone drone3 is extinguishing flames!
+Drone drone8 is extinguishing flames!
+[23.980s] Drone drone4 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:10, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone8 has started extinguishing flames! Dropping 15 liters of foam.
 
-Sending Event 10 to Scheduler: 
-Event: 00:00:33, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+Sending Event 14 to Scheduler: 
+Event: 00:00:23, Zone: 4, Type: FIRE_DETECTED, Severity: Low
 
-[34.227s] drone10 is scheduled with event: Event: 00:00:33, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+[24.503s] Drone drone10 has finished extinguishing the flames of event: Event: 00:00:10, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
+drone2 is back!
+drone5 is back!
+Scheduler received a request for an event from drone2
+[24.933s] Drone drone7 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:10, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+Scheduler received a request for an event from drone5
+[25.198s] drone2 is scheduled with event: Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
 
-drone10's tank filled up to full!
-[34.227s] drone10 is now en route to Zone 1.
-[34.332s] drone5 is scheduled with event: Event: 00:00:33, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+drone2's tank filled up to full!
+[25.198s] drone2 is now en route to Zone 2.
+
+Sending Event 15 to Scheduler: 
+Event: 00:00:24, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+All events have been exhausted, FireIncidentSubsystem, is closing.
+[25.260s] drone5 is scheduled with event: Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
 
 drone5's tank filled up to full!
-[34.332s] drone5 is now en route to Zone 1.
-[34.348s] Drone drone4 has finished extinguishing the flames of event: Event: 00:00:24, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
-Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
-[35.759s] Drone drone7 has arrived at Zone 4.
-drone8 is back!
-Scheduler received a request for an event from drone8
-Drone drone7 is extinguishing flames!
-drone2 is back!
-Scheduler received a request for an event from drone2
-Drone drone7 has started extinguishing flames! Dropping 10 liters of foam.
-[36.221s] Drone drone10 has arrived at Zone 1.
-[36.333s] Drone drone5 has arrived at Zone 1.
-Drone drone10 is extinguishing flames!
+[25.260s] drone5 is now en route to Zone 2.
+[26.113s] Drone drone6 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:10, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+drone7 is back!
+Scheduler received a request for an event from drone7
+drone7 is re-scheduled with older event, Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+drone2 is scheduled with newer event, Event: 00:00:23, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+[27.292s] drone7 is scheduled with event: Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone7's tank filled up to full!
+[27.292s] drone7 is now en route to Zone 2.
+[27.292s] drone2 is scheduled with event: Event: 00:00:23, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+[27.292s] drone2 changed routes and is now en route to Zone 4.
+[27.727s] Drone drone9 has finished extinguishing the flames of event: Event: 00:00:11, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
+drone6 is back!
+Scheduler received a request for an event from drone6
+[28.456s] drone6 is scheduled with event: Event: 00:00:24, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone6's tank filled up to full!
+[28.456s] drone6 is now en route to Zone 1.
+drone4 is back!
+Scheduler received a request for an event from drone4
+[28.923s] drone4 is scheduled with event: Event: 00:00:24, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone4's tank filled up to full!
+[28.923s] drone4 is now en route to Zone 1.
+[29.110s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[29.204s] Drone drone8 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:14, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[29.798s] Drone drone5 has arrived at Zone 2.
 Drone drone5 is extinguishing flames!
-Drone drone10 has started extinguishing flames! Dropping 15 liters of foam.
 Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
-[36.875s] Drone drone9 has arrived at Zone 2.
-Drone drone9 is extinguishing flames!
-Drone drone9 has started extinguishing flames! Dropping 15 liters of foam.
+[30.416s] Drone drone6 has arrived at Zone 1.
+drone10 is back!
+Drone drone6 is extinguishing flames!
+Scheduler received a request for an event from drone10
+Drone drone6 has started extinguishing flames! Dropping 15 liters of foam.
+[30.883s] Drone drone4 has arrived at Zone 1.
+drone3 is back!
+Drone drone4 is extinguishing flames!
+drone8 is back!
+Scheduler received a request for an event from drone3
+Scheduler received a request for an event from drone8
+Drone drone4 has started extinguishing flames! Dropping 15 liters of foam.
+[31.427s] Drone drone2 has arrived at Zone 4.
+Drone drone2 is extinguishing flames!
+Drone drone2 has started extinguishing flames! Dropping 10 liters of foam.
+[31.859s] Drone drone7 has arrived at Zone 2.
+Drone drone7 is extinguishing flames!
+drone9 is back!
+Drone drone7 has started extinguishing flames! Dropping 15 liters of foam.
+Scheduler received a request for an event from drone9
+[35.297s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[35.842s] Drone drone2 has finished extinguishing the flames of event: Event: 00:00:23, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
+[35.920s] Drone drone6 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:24, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[36.385s] Drone drone4 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:24, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[37.361s] Drone drone7 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:20, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
 drone6 is back!
 Scheduler received a request for an event from drone6
 drone4 is back!
 Scheduler received a request for an event from drone4
-[39.547s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[40.215s] Drone drone7 has finished extinguishing the flames of event: Event: 00:00:31, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
-[41.798s] Drone drone10 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:33, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[41.926s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:33, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[42.464s] Drone drone9 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:28, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-drone10 is back!
-Scheduler received a request for an event from drone10
 drone5 is back!
 Scheduler received a request for an event from drone5
-drone3 is back!
-Scheduler received a request for an event from drone3
-drone7 is back!
-
-Sending Event 11 to Scheduler: 
-Event: 00:00:45, Zone: 3, Type: FIRE_DETECTED, Severity: Low
-
-[46.226s] drone8 is scheduled with event: Event: 00:00:45, Zone: 3, Type: FIRE_DETECTED, Severity: Low
-
-drone8's tank filled up to full!
-[46.227s] drone8 is now en route to Zone 3.
-Scheduler received a request for an event from drone7
-drone9 is back!
-Scheduler received a request for an event from drone9
-[50.858s] Drone drone8 has arrived at Zone 3.
-Drone drone8 is extinguishing flames!
-Drone drone8 has started extinguishing flames! Dropping 10 liters of foam.
-[55.289s] Drone drone8 has finished extinguishing the flames of event: Event: 00:00:45, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
-
-Sending Event 12 to Scheduler: 
-Event: 00:00:56, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-
-Sending Event 13 to Scheduler: 
-Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-[57.227s] drone3 is scheduled with event: Event: 00:00:56, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-drone3's tank filled up to full!
-[57.227s] drone3 is now en route to Zone 1.
-[57.328s] drone9 is scheduled with event: Event: 00:00:56, Zone: 1, Type: FIRE_DETECTED, Severity: High
-
-drone9's tank filled up to full!
-[57.328s] drone9 is now en route to Zone 1.
-[57.440s] drone7 is scheduled with event: Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone7's tank filled up to full!
-[57.440s] drone7 is now en route to Zone 2.
-[57.551s] drone2 is scheduled with event: Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone2's tank filled up to full!
-[57.551s] drone2 is now en route to Zone 2.
-
-Sending Event 14 to Scheduler: 
-Event: 00:00:57, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-drone6 is re-scheduled with older event, Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-drone7 is scheduled with newer event, Event: 00:00:57, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-[58.226s] drone6 is scheduled with event: Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone6's tank filled up to full!
-[58.227s] drone6 is now en route to Zone 2.
-[58.227s] drone7 is scheduled with event: Event: 00:00:57, Zone: 4, Type: FIRE_DETECTED, Severity: Low
-
-[58.227s] drone7 changed routes and is now en route to Zone 4.
-[59.202s] Drone drone3 has arrived at Zone 1.
-[59.314s] Drone drone9 has arrived at Zone 1.
-Drone drone3 is extinguishing flames!
-Drone drone9 is extinguishing flames!
-Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
-Drone drone9 has started extinguishing flames! Dropping 15 liters of foam.
-drone8 is back!
-Scheduler received a request for an event from drone8
-[62.198s] Drone drone2 has arrived at Zone 2.
-Drone drone2 is extinguishing flames!
-Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
-[62.880s] Drone drone6 has arrived at Zone 2.
-Drone drone6 is extinguishing flames!
-Drone drone6 has started extinguishing flames! Dropping 15 liters of foam.
-[63.545s] Drone drone7 has arrived at Zone 4.
-Drone drone7 is extinguishing flames!
-Drone drone7 has started extinguishing flames! Dropping 10 liters of foam.
-
-Sending Event 15 to Scheduler: 
-Event: 00:01:03, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-All events have been exhausted, FireIncidentSubsystem, is closing.
-[64.226s] drone5 is scheduled with event: Event: 00:01:03, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone5's tank filled up to full!
-[64.226s] drone5 is now en route to Zone 1.
-[64.335s] drone8 is scheduled with event: Event: 00:01:03, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
-
-drone8's tank filled up to full!
-[64.335s] drone8 is now en route to Zone 1.
-[64.769s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:56, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
-[64.893s] Drone drone9 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:56, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
-[66.187s] Drone drone5 has arrived at Zone 1.
-[66.295s] Drone drone8 has arrived at Zone 1.
-Drone drone5 is extinguishing flames!
-Drone drone8 is extinguishing flames!
-Drone drone5 has started extinguishing flames! Dropping 15 liters of foam.
-drone3 is back!
-Drone drone8 has started extinguishing flames! Dropping 15 liters of foam.
-Scheduler received a request for an event from drone3
-drone9 is back!
-Scheduler received a request for an event from drone9
-[67.714s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[67.963s] Drone drone7 has finished extinguishing the flames of event: Event: 00:00:57, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
-[68.389s] Drone drone6 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:55, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[71.707s] Drone drone5 has run out of foam in the middle of extinguishing the flames of event: Event: 00:01:03, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
-[71.816s] Drone drone8 has run out of foam in the middle of extinguishing the flames of event: Event: 00:01:03, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
 drone2 is back!
 Scheduler received a request for an event from drone2
-drone6 is back!
-drone6 sent a corrupted message: DRONE__ENT
-Scheduler got a corrupted message, asking for drone to resend...
-Scheduler received a request for an event from drone6
-drone5 is back!
-drone8 is back!
-Scheduler received a request for an event from drone5
-Scheduler received a request for an event from drone8
 drone7 is back!
-Drone drone7 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone7 at /127.0.0.1:61505
-Sent SHUTOFF to drone: drone9 at /127.0.0.1:61513
-Sent SHUTOFF to drone: drone2 at /127.0.0.1:61485
+Drone drone3 received SHUTOFF message. Finishing current event and shutting down.
+Sent SHUTOFF to drone: drone3 at /127.0.0.1:50776
+Sent SHUTOFF to drone: drone9 at /127.0.0.1:50803
+Sent SHUTOFF to drone: drone2 at /127.0.0.1:50772
 Drone drone9 received SHUTOFF message. Finishing current event and shutting down.
 Drone drone2 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone3 at /127.0.0.1:61489
-Drone drone3 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone5 at /127.0.0.1:61497
-Drone drone5 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone6 at /127.0.0.1:61501
-Drone drone6 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone4 at /127.0.0.1:61493
 Drone drone4 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone10 at /127.0.0.1:61517
+Sent SHUTOFF to drone: drone4 at /127.0.0.1:50780
+Sent SHUTOFF to drone: drone10 at /127.0.0.1:50807
+Sent SHUTOFF to drone: drone8 at /127.0.0.1:50799
 Drone drone10 received SHUTOFF message. Finishing current event and shutting down.
-Sent SHUTOFF to drone: drone8 at /127.0.0.1:61509
 Drone drone8 received SHUTOFF message. Finishing current event and shutting down.
+Sent SHUTOFF to drone: drone5 at /127.0.0.1:50785
+Drone drone5 received SHUTOFF message. Finishing current event and shutting down.
+Sent SHUTOFF to drone: drone7 at /127.0.0.1:50795
+Drone drone7 received SHUTOFF message. Finishing current event and shutting down.
+Drone drone6 received SHUTOFF message. Finishing current event and shutting down.
+Sent SHUTOFF to drone: drone6 at /127.0.0.1:50791
 drone9's tank filled up to full!
-drone10's tank filled up to full!
-drone8's tank filled up to full!
-drone4's tank filled up to full!
-drone6's tank filled up to full!
-drone3's tank filled up to full!
 drone5's tank filled up to full!
+drone6's tank filled up to full!
+drone8's tank filled up to full!
+drone10's tank filled up to full!
+drone4's tank filled up to full!
+drone3's tank filled up to full!
 drone2's tank filled up to full!
 Scheduler's UDP Listener is closing.
 drone9 is shutting down.
-drone10 is shutting down.
 drone3 is shutting down.
-drone8 is shutting down.
 drone7 is shutting down.
-drone6 is shutting down.
-drone4 is shutting down.
+drone8 is shutting down.
 drone5 is shutting down.
+drone10 is shutting down.
+drone4 is shutting down.
+drone6 is shutting down.
 drone2 is shutting down.
 x
 x
@@ -386,139 +412,143 @@ x
 x
 
 --- Drone Event Response Summary ---
-Drone: drone6 | Zone: 3
-→ Response Time: 1.229 seconds
-→ Arrival Time After Assignment: 4.660 seconds
-→ Extinguish Duration: 4.463 seconds (Completed)
+Drone: drone7 | Zone: 3
+→ Response Time: 1.234 seconds
+→ Arrival Time After Assignment: 4.668 seconds
+→ Extinguish Duration: 4.466 seconds (Completed)
 
-Drone: drone4 | Zone: 1
-→ Response Time: 1.228 seconds
-→ Arrival Time After Assignment: 1.996 seconds
-→ Extinguish Duration: 5.586 seconds (RanOut)
-
-Drone: drone5 | Zone: 1
-→ Response Time: 1.338 seconds
-→ Arrival Time After Assignment: 1.996 seconds
-→ Extinguish Duration: 5.584 seconds (RanOut)
-
-Drone: drone2 | Zone: 2
-→ Response Time: 1.227 seconds
-→ Arrival Time After Assignment: 4.669 seconds
-→ Extinguish Duration: 5.558 seconds (RanOut)
-
-Drone: drone3 | Zone: 2
-→ Response Time: 1.342 seconds
-→ Arrival Time After Assignment: 5.396 seconds
-→ Extinguish Duration: 5.559 seconds (RanOut)
-
-Drone: drone1 | Zone: 4
-→ Response Time: 1.227 seconds
-→ Extinguish Info: Not recorded.
-
-Drone: drone6 | Zone: 4
-→ Response Time: 1.675 seconds
-→ Arrival Time After Assignment: 6.180 seconds
-→ Extinguish Duration: 4.457 seconds (Completed)
-
-Drone: drone10 | Zone: 1
-→ Response Time: 1.226 seconds
-→ Arrival Time After Assignment: 1.995 seconds
-→ Extinguish Duration: 5.591 seconds (RanOut)
-
-Drone: drone5 | Zone: 1
-→ Response Time: 1.327 seconds
-→ Arrival Time After Assignment: 1.990 seconds
-→ Extinguish Duration: 5.588 seconds (RanOut)
-
-Drone: drone4 | Zone: 3
-→ Response Time: 1.226 seconds
-→ Arrival Time After Assignment: 4.666 seconds
-→ Extinguish Duration: 4.456 seconds (Completed)
-
-Drone: drone8 | Zone: 1
-→ Response Time: 1.225 seconds
-→ Arrival Time After Assignment: 2.000 seconds
-→ Extinguish Duration: 5.556 seconds (RanOut)
-
-Drone: drone2 | Zone: 1
-→ Response Time: 1.492 seconds
-→ Arrival Time After Assignment: 2.005 seconds
-→ Extinguish Duration: 5.552 seconds (RanOut)
-
-Drone: drone7 | Zone: 2
-→ Response Time: 1.227 seconds
-→ Extinguish Info: Not recorded.
-
-Drone: drone3 | Zone: 2
-→ Response Time: 1.340 seconds
-→ Arrival Time After Assignment: 4.646 seconds
-→ Extinguish Duration: 5.561 seconds (RanOut)
+Drone: drone6 | Zone: 2
+→ Response Time: 1.334 seconds
+→ Arrival Time After Assignment: 4.648 seconds
+→ Extinguish Duration: 5.571 seconds (RanOut)
 
 Drone: drone9 | Zone: 2
-→ Response Time: 4.226 seconds
-→ Arrival Time After Assignment: 4.649 seconds
-→ Extinguish Duration: 5.589 seconds (RanOut)
+→ Response Time: 1.445 seconds
+→ Arrival Time After Assignment: 4.646 seconds
+→ Extinguish Duration: 5.573 seconds (RanOut)
 
-Drone: drone7 | Zone: 4
-→ Response Time: 1.226 seconds
-→ Arrival Time After Assignment: 3.533 seconds
-→ Extinguish Duration: 4.456 seconds (Completed)
+Drone: drone4 | Zone: 1
+→ Response Time: 1.557 seconds
+→ Arrival Time After Assignment: 1.977 seconds
+→ Extinguish Duration: 5.548 seconds (RanOut)
 
 Drone: drone10 | Zone: 1
-→ Response Time: 1.227 seconds
-→ Arrival Time After Assignment: 1.994 seconds
+→ Response Time: 1.667 seconds
+→ Arrival Time After Assignment: 1.980 seconds
+→ Extinguish Duration: 5.546 seconds (RanOut)
+
+Drone: drone8 | Zone: 4
+→ Response Time: 1.230 seconds
+→ Arrival Time After Assignment: 6.182 seconds
+→ Extinguish Duration: 4.426 seconds (Completed)
+
+Drone: drone2 | Zone: 1
+→ Response Time: 1.229 seconds
+→ Arrival Time After Assignment: 2.005 seconds
 → Extinguish Duration: 5.577 seconds (RanOut)
 
 Drone: drone5 | Zone: 1
-→ Response Time: 1.332 seconds
-→ Arrival Time After Assignment: 2.001 seconds
-→ Extinguish Duration: 5.593 seconds (RanOut)
+→ Response Time: 1.331 seconds
+→ Arrival Time After Assignment: 1.997 seconds
+→ Extinguish Duration: 5.577 seconds (RanOut)
 
-Drone: drone8 | Zone: 3
-→ Response Time: 1.226 seconds
-→ Arrival Time After Assignment: 4.632 seconds
-→ Extinguish Duration: 4.431 seconds (Completed)
+Drone: drone3 | Zone: 3
+→ Response Time: 1.438 seconds
+→ Arrival Time After Assignment: 6.756 seconds
+→ Extinguish Duration: 4.373 seconds (Completed)
 
-Drone: drone3 | Zone: 1
-→ Response Time: 1.227 seconds
-→ Arrival Time After Assignment: 1.975 seconds
-→ Extinguish Duration: 5.567 seconds (RanOut)
+Drone: drone1 | Zone: 1
+→ Response Time: 1.229 seconds
+→ Arrival Time After Assignment: 1.997 seconds
+→ Extinguish Duration: 5.494 seconds (RanOut)
 
-Drone: drone9 | Zone: 1
-→ Response Time: 1.328 seconds
-→ Arrival Time After Assignment: 1.986 seconds
-→ Extinguish Duration: 5.579 seconds (RanOut)
-
-Drone: drone7 | Zone: 2
-→ Response Time: 2.440 seconds
+Drone: drone4 | Zone: 1
+→ Response Time: 4.792 seconds
 → Extinguish Info: Not recorded.
 
-Drone: drone2 | Zone: 2
-→ Response Time: 2.551 seconds
-→ Arrival Time After Assignment: 4.647 seconds
-→ Extinguish Duration: 5.516 seconds (RanOut)
+Drone: drone10 | Zone: 4
+→ Response Time: 3.920 seconds
+→ Arrival Time After Assignment: 6.157 seconds
+→ Extinguish Duration: 4.426 seconds (Completed)
 
-Drone: drone6 | Zone: 2
-→ Response Time: 3.226 seconds
-→ Arrival Time After Assignment: 4.654 seconds
-→ Extinguish Duration: 5.509 seconds (RanOut)
+Drone: drone2 | Zone: 1
+→ Response Time: 6.216 seconds
+→ Arrival Time After Assignment: 1.993 seconds
+→ Extinguish Duration: 5.556 seconds (RanOut)
 
-Drone: drone7 | Zone: 4
-→ Response Time: 1.227 seconds
-→ Arrival Time After Assignment: 5.318 seconds
-→ Extinguish Duration: 4.418 seconds (Completed)
+Drone: drone4 | Zone: 2
+→ Response Time: 5.216 seconds
+→ Extinguish Info: Not recorded.
 
 Drone: drone5 | Zone: 1
-→ Response Time: 1.226 seconds
-→ Arrival Time After Assignment: 1.961 seconds
-→ Extinguish Duration: 5.520 seconds (RanOut)
+→ Response Time: 6.283 seconds
+→ Arrival Time After Assignment: 2.006 seconds
+→ Extinguish Duration: 5.540 seconds (RanOut)
+
+Drone: drone4 | Zone: 2
+→ Response Time: 5.318 seconds
+→ Arrival Time After Assignment: 3.119 seconds
+→ Extinguish Duration: 5.543 seconds (RanOut)
+
+Drone: drone7 | Zone: 1
+→ Response Time: 7.402 seconds
+→ Arrival Time After Assignment: 1.981 seconds
+→ Extinguish Duration: 5.550 seconds (RanOut)
+
+Drone: drone6 | Zone: 1
+→ Response Time: 8.563 seconds
+→ Arrival Time After Assignment: 1.988 seconds
+→ Extinguish Duration: 5.562 seconds (RanOut)
+
+Drone: drone9 | Zone: 3
+→ Response Time: 7.688 seconds
+→ Arrival Time After Assignment: 4.637 seconds
+→ Extinguish Duration: 4.402 seconds (Completed)
+
+Drone: drone1 | Zone: 1
+→ Response Time: 6.125 seconds
+→ Extinguish Info: Not recorded.
+
+Drone: drone3 | Zone: 1
+→ Response Time: 7.632 seconds
+→ Arrival Time After Assignment: 2.014 seconds
+→ Extinguish Duration: 5.464 seconds (RanOut)
 
 Drone: drone8 | Zone: 1
-→ Response Time: 1.335 seconds
+→ Response Time: 7.728 seconds
+→ Arrival Time After Assignment: 2.013 seconds
+→ Extinguish Duration: 5.463 seconds (RanOut)
+
+Drone: drone2 | Zone: 2
+→ Response Time: 5.198 seconds
+→ Extinguish Info: Not recorded.
+
+Drone: drone5 | Zone: 2
+→ Response Time: 5.260 seconds
+→ Arrival Time After Assignment: 4.538 seconds
+→ Extinguish Duration: 5.499 seconds (RanOut)
+
+Drone: drone7 | Zone: 2
+→ Response Time: 7.292 seconds
+→ Arrival Time After Assignment: 4.567 seconds
+→ Extinguish Duration: 5.502 seconds (RanOut)
+
+Drone: drone2 | Zone: 4
+→ Response Time: 4.292 seconds
+→ Arrival Time After Assignment: 4.135 seconds
+→ Extinguish Duration: 4.415 seconds (Completed)
+
+Drone: drone6 | Zone: 1
+→ Response Time: 4.456 seconds
 → Arrival Time After Assignment: 1.960 seconds
-→ Extinguish Duration: 5.521 seconds (RanOut)
+→ Extinguish Duration: 5.504 seconds (RanOut)
+
+Drone: drone4 | Zone: 1
+→ Response Time: 4.923 seconds
+→ Arrival Time After Assignment: 1.960 seconds
+→ Extinguish Duration: 5.502 seconds (RanOut)
 
 === Drone Performance Summary (Averaged Across All Drones) ===
-Avg Response Time: 1.560 seconds
-Avg Arrival Time After Assignment: 3.396 seconds
-Avg Extinguish Time: 5.283 seconds
+Avg Response Time: 4.357 seconds
+Avg Arrival Time After Assignment: 3.330 seconds
+Avg Extinguish Time: 5.253 seconds
