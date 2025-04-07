@@ -17,7 +17,7 @@ public class UI {
     private final int topBorder = 20;
     private final int droneStatusBoxSize = 20;
     private final int droneStatusSpacing = 40;
-    private final int droneStatusBottomOffset = 30;
+    private final int droneStatusBottomOffset = 50; // Increased offset for the zone text
 
     private JFrame frame;
     private List<Zone> zones = new ArrayList<>();
@@ -29,7 +29,7 @@ public class UI {
         this.zones = zones;
         calculateZoneBounds();
         frame = new JFrame("Zone and Drone Display");
-        frame.setSize(maxX - minX + 400, maxY - minY + 2 * borderSize + topBorder + droneStatusBottomOffset + droneStatusBoxSize + 50);
+        frame.setSize(maxX - minX + 400, maxY - minY + 2 * borderSize + topBorder + droneStatusBottomOffset + droneStatusBoxSize + 60); // Increased height
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel() {
@@ -200,12 +200,13 @@ public class UI {
             DroneRecord drone = drones.get(i);
             String state = drone.getState();
             Color stateColor = getDroneColor(state);
+            Vector2d dronePosition = drone.getPosition();
+            String droneName = drone.getDroneName();
 
             int x = startX + i * (droneStatusBoxSize + droneStatusSpacing);
             int y = startY + 20;
 
             // Draw drone name
-            String droneName = drone.getDroneName();
             if (droneName.toLowerCase().contains("drone")) {
                 int index = droneName.toLowerCase().indexOf("drone");
                 String rest = droneName.substring(index + "drone".length()).trim();
@@ -219,6 +220,23 @@ public class UI {
             g.fillRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
             g.setColor(Color.BLACK);
             g.drawRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
+
+            // Determine drone location
+            String location = "Home";
+            boolean isAtHome = Math.abs(dronePosition.getX()) < 2 && Math.abs(dronePosition.getY()) < 2;
+            if (!isAtHome) {
+                location = "Outside Zones";
+                for (Zone zone : zones) {
+                    if (dronePosition.getX() >= zone.startX() && dronePosition.getX() <= zone.endX() &&
+                        dronePosition.getY() >= zone.startY() && dronePosition.getY() <= zone.endY()) {
+                        location = "Zone " + zone.zoneID();
+                        break;
+                    }
+                }
+            }
+
+            // Draw drone location
+            g.drawString(location, x, y + droneStatusBoxSize + 15);
         }
     }
 
@@ -232,7 +250,7 @@ public class UI {
         List<DroneRecord> drones = new ArrayList<>();
         drones.add(new DroneRecord("Drone A", "DroneEnRoute", 100, 100));
         drones.add(new DroneRecord("Drone B", "DroneInZone", 350, 150));
-        drones.add(new DroneRecord("Drone Helicopter", "DroneEnRoute", 200, 200));
+        drones.add(new DroneRecord("Drone Helicopter", "DroneEnRoute", 0, 0)); // Drone at home
 
         List<Integer> fireZones = new ArrayList<>();
         fireZones.add(1);
