@@ -1,0 +1,111 @@
+x
+drone2 is being initialized by the scheduler with info : drone2,DroneIdle,0.0,0.0
+drone3 is being initialized by the scheduler with info : drone3,DroneIdle,0.0,0.0
+drone1 is being initialized by the scheduler with info : drone1,DroneIdle,0.0,0.0
+Scheduler received a request for an event from drone1
+Scheduler received a request for an event from drone3
+Scheduler received a request for an event from drone2
+
+Sending Event 1 to Scheduler: 
+Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+[4.222s] drone1 is scheduled with event: Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low
+
+[4.223s] drone1 is now en route to Zone 3.
+
+Sending Event 2 to Scheduler: 
+Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[6.221s] drone2 is scheduled with event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[6.221s] drone2 is now en route to Zone 1.
+[6.321s] drone3 is scheduled with event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High
+
+[6.321s] drone3 is now en route to Zone 1.
+>>> EVENT TRIGGERED for drone3 at 00:00:07: NOZZLE_JAM
+Repairing nozzle at drone position Vector2d[x=53.033008588991066, y=53.033008588991066]. Waiting for 1250 ms for repair...
+[8.224s] Drone drone2 has arrived at Zone 1.
+Drone drone2 is extinguishing flames!
+Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+[8.928s] Drone drone1 has arrived at Zone 3.
+Finish nozzle repair at position Vector2d[x=53.033008588991066, y=53.033008588991066]. Drone returning to previous task..
+Drone drone1 is extinguishing flames!
+Drone drone1 has started extinguishing flames! Dropping 10 liters of foam.
+[9.821s] Drone drone3 has arrived at Zone 1.
+Drone drone3 is extinguishing flames!
+Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
+[13.401s] Drone drone1 has finished extinguishing the flames of event: Event: 00:00:03, Zone: 3, Type: FIRE_DETECTED, Severity: Low and is returning.
+[13.816s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+[15.416s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:05, Zone: 1, Type: FIRE_DETECTED, Severity: High and is returning.
+drone2 is back!
+Scheduler received a request for an event from drone2
+
+Sending Event 3 to Scheduler: 
+Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+[16.242s] drone2 is scheduled with event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone2's tank filled up to full!
+[16.242s] drone2 is now en route to Zone 2.
+drone3 is back!
+Scheduler received a request for an event from drone3
+[17.836s] drone3 is scheduled with event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone3's tank filled up to full!
+[17.836s] drone3 is now en route to Zone 2.
+drone1 is back!
+Scheduler received a request for an event from drone1
+>>> EVENT TRIGGERED for drone1 at 00:00:20: DRONE_STUCK
+[20.931s] Drone drone2 has arrived at Zone 2.
+Drone drone2 is extinguishing flames!
+
+Sending Event 4 to Scheduler: 
+Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+drone1 is re-scheduled with older event, Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+[21.219s] drone1 is scheduled with event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone1's tank filled up to full!
+drone3 is scheduled with newer event, Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+[21.219s] drone1 is now en route to Zone 2.
+[21.301s] drone3 is scheduled with event: Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low
+
+[21.301s] drone3 changed routes and is now en route to Zone 4.
+Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+Drone drone1 is stuck. Communicating shutdown to scheduler then shutting down.
+Drone drone1 is stuck. Communicating shutdown to scheduler then shutting down.
+Stuck Drone, drone1 has STATE: DroneEnRoute. Reclaiming event.
+Drone drone1 has fault: DroneStuck. Reclaiming event and removing from drone scheduling.
+drone1 is shutting down.
+x
+[24.658s] Drone drone3 has arrived at Zone 4.
+Drone drone3 is extinguishing flames!
+Drone drone3 has started extinguishing flames! Dropping 10 liters of foam.
+
+Sending Event 5 to Scheduler: 
+Event: 00:00:25, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+All events have been exhausted, FireIncidentSubsystem, is closing.
+[26.526s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[29.073s] Drone drone3 has finished extinguishing the flames of event: Event: 00:00:20, Zone: 4, Type: FIRE_DETECTED, Severity: Low and is returning.
+drone2 is back!
+Scheduler received a request for an event from drone2
+[31.523s] drone2 is scheduled with event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone2's tank filled up to full!
+[31.523s] drone2 is now en route to Zone 2.
+drone3 is back!
+Scheduler received a request for an event from drone3
+[35.603s] drone3 is scheduled with event: Event: 00:00:25, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate
+
+drone3's tank filled up to full!
+[35.603s] drone3 is now en route to Zone 1.
+[36.098s] Drone drone2 has arrived at Zone 2.
+Drone drone2 is extinguishing flames!
+Drone drone2 has started extinguishing flames! Dropping 15 liters of foam.
+[37.555s] Drone drone3 has arrived at Zone 1.
+Drone drone3 is extinguishing flames!
+Drone drone3 has started extinguishing flames! Dropping 15 liters of foam.
+[41.597s] Drone drone2 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:15, Zone: 2, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
+[43.057s] Drone drone3 has run out of foam in the middle of extinguishing the flames of event: Event: 00:00:25, Zone: 1, Type: DRONE_REQUESTED, Severity: Moderate and is returning.
