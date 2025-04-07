@@ -70,7 +70,7 @@ public class Main {
 
         // Get user input for number of drones, or just modify numDrones
         Scanner scanner = new Scanner(System.in);
-        int numDrones = 3;
+        int numDrones = 10;
 
         while (numDrones <= 0) {
             try {
