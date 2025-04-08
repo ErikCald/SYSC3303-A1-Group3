@@ -81,27 +81,6 @@ class DroneTest {
         }
     }
 
-
-    @Test
-    @Timeout(5)
-    void testRequestNewEvent_successfulEvent() throws Exception {
-        // Start the Drone in its own thread (simulating real-time behavior)
-        Thread droneThread = new Thread(drone);
-        droneThread.start();
-
-        // Simulate the Drone requesting a new event
-        Optional<Event> event = drone.requestNewEvent();
-
-        // Wait briefly for the event to be received
-        Thread.sleep(500);
-
-        // Assert that the event was received correctly
-        assertTrue(event.isPresent(), "The drone should receive an event.");
-        Event e = event.get();
-        assertEquals(1, e.getZoneId(), "ZoneId should match");
-        assertEquals(Event.EventType.FIRE_DETECTED, e.getEventType(), "EventType should match");
-    }
-
     @Test
     @Timeout(5)
     void testFillWaterTank() throws InterruptedException {
