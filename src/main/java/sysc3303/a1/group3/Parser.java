@@ -68,26 +68,11 @@ public class Parser {
         }
         Time time = Time.valueOf(values[0]);
 
-        // Extract hours, minutes, and seconds
-        int hours = time.getHours();
-        int minutes = time.getMinutes();
-        int seconds = time.getSeconds();
-
-        // Convert to seconds, and divide/adjust:
-        int totalSeconds = hours * 3600 + minutes * 60 + seconds;
-        int adjustedTotalSeconds = totalSeconds / 10;
-        int adjustedHours = adjustedTotalSeconds / 3600;
-        int adjustedMinutes = (adjustedTotalSeconds % 3600) / 60;
-        int adjustedSeconds = adjustedTotalSeconds % 60;
-
-        // New time object
-        Time adjustedTime = new Time(adjustedHours, adjustedMinutes, adjustedSeconds);
-
         int zoneId = Integer.parseInt(values[1]);
         EventType eventType = EventType.fromString(values[2]);
         Severity severity = Severity.fromString(values[3]);
 
-        return new Event(adjustedTime , zoneId, eventType, severity);
+        return new Event(time , zoneId, eventType, severity);
     }
 
     public List<Zone> parseZoneFile(InputStream file) throws IOException {
