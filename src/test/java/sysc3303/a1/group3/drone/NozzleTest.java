@@ -1,12 +1,16 @@
 package sysc3303.a1.group3.drone;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import sysc3303.a1.group3.Event;
 import sysc3303.a1.group3.Severity;
+import sysc3303.a1.group3.UI;
 import sysc3303.a1.group3.physics.Vector2d;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class NozzleTest {
 
@@ -16,6 +20,8 @@ class NozzleTest {
 
     @BeforeEach
     public void setUp() {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+        
         // Create a new water tank with 15 liters of water (default)
         waterTank = new WaterTank();
 

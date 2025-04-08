@@ -18,6 +18,7 @@ public class WholeSystemTest {
 
     @BeforeEach
     public void beforeEach() throws IOException {
+        UI.setIsUIDisabled(true); // Disable UI for testing
     }
 
     @AfterEach

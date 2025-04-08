@@ -12,6 +12,8 @@ import sysc3303.a1.group3.drone.DroneRecord;
 import sysc3303.a1.group3.physics.Vector2d;
 
 public class UI {
+    private static boolean disableUIForTesting = false;
+
     private final int borderSize = 20;
     private final int legendWidth = 190;
     private final int topBorder = 20;
@@ -25,7 +27,15 @@ public class UI {
     private List<Integer> fireStates = new ArrayList<>();
     private int minX, minY, maxX, maxY;
 
+    public static void setIsUIDisabled(boolean isUIDisabled) {
+        UI.disableUIForTesting = isUIDisabled;
+    }
+
     public UI(List<Zone> zones) {
+        if (disableUIForTesting) {
+            return;
+        }
+
         this.zones = zones;
         calculateZoneBounds();
         frame = new JFrame("Zone and Drone Display");
@@ -65,13 +75,17 @@ public class UI {
     }
 
     public void updateDrones(List<DroneRecord> drones) {
-        this.drones = drones;
-        frame.getContentPane().repaint();
+        if (!disableUIForTesting) {
+            this.drones = drones;
+            frame.getContentPane().repaint();
+        }
     }
 
     public void updateFireStates(List<Integer> fireZoneIds) {
-        this.fireStates = fireZoneIds;
-        frame.getContentPane().repaint();
+        if (!disableUIForTesting) {
+            this.fireStates = fireZoneIds;
+            frame.getContentPane().repaint();
+        }
     }
 
     private void drawBorder(Graphics g) {

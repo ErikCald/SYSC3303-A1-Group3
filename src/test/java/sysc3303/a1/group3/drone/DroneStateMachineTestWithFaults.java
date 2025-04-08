@@ -15,6 +15,7 @@ import sysc3303.a1.group3.FireIncidentSubsystem;
 import sysc3303.a1.group3.Parser;
 import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Zone;
+import sysc3303.a1.group3.UI;
 
 @Isolated
 public class DroneStateMachineTestWithFaults {
@@ -54,6 +55,8 @@ public class DroneStateMachineTestWithFaults {
     @Test
     @Timeout(180)
     public void testSingleDroneStateMachineWithFaults() {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+        
         int schedulerPort = test2SchedulerPort;
 
         Parser parser = new Parser();

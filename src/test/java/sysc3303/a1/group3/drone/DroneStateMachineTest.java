@@ -14,10 +14,12 @@ import org.junit.jupiter.api.parallel.Isolated;
 import sysc3303.a1.group3.FireIncidentSubsystem;
 import sysc3303.a1.group3.Parser;
 import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.UI;
 import sysc3303.a1.group3.Zone;
 
 @Isolated
 public class DroneStateMachineTest {
+    
 
     /**
      * A testable version of the Drone class that allows for the onStateChange
@@ -54,6 +56,8 @@ public class DroneStateMachineTest {
     @Test
     @Timeout(180)
     public void testSingleDroneStateMachine() {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+        
         int schedulerPort = test1SchedulerPort;
 
         Parser parser = new Parser();

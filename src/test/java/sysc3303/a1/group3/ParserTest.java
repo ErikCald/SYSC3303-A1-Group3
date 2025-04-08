@@ -22,6 +22,7 @@ class ParserTest {
 
     @BeforeAll
     public static void setUp() {
+        UI.setIsUIDisabled(true); // Disable UI for testing
         parser = new Parser();
     }
 
