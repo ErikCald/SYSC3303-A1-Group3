@@ -28,27 +28,29 @@ This project uses Gradle for dependency management and compilation. The Gradle W
 Observe the graphical display popup, and the logging to the system output. The log can also later be viewed in output.txt (generated in the project root).
 The application will only terminate when the graphical display is closed.
 
-## Responsibilities Breakdown (Iteration 4)
+## Responsibilities Breakdown (Iteration 5)
 NOTE: The number of bullets points do NOT equally constitute the work done from each person.
 Overall, we commited even effort and work to this iteration.
 
 Abdul Aziz, Muhammad Maahir:
-- UML
+- assisted with the creation of the UI and added Javadocs. 
+- He also created the timing diagram for the last iteration
 
 Caldwell, Erik:
-- State Machine for Errors
-- Drone Stuck Error Events Handling
+- did the majority of the work on the UI.
 
 Chelliah, Lakshman
-- Drone Error Event Distribution and Timing
+- added performance metric calculations for the system.
 
 Hassan, Ayoub:
-- Drone Error Event for Nozzle Stuck
+- created and updated all UML for this iteration. 
+- He also created some automated tests.
 
 Labonté-Hagar, Zane
-- Integration work 
-- Bug fixes for end code
+- wrote detailed setup instructions. 
+- He also cleaned up and refined the code. e.g. clean up console output)
 
 Xia, Tim
-- Integration work (specifically for Nozzle Stuck)
-- Corrupted Messages Drone Error Code
+- created the initial environment for the UI which consisted of arrays of constantly updating
+  content for the UI (e.g. drone states). 
+- He also filmed the video for the final submission and wrote the report.
