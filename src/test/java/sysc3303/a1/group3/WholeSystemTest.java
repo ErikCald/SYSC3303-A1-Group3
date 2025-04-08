@@ -31,8 +31,8 @@ public class WholeSystemTest {
     @Timeout(60)
     public void wholeSystemTest() {
         // Load incident and zone files from resources.
-        InputStream incidentFile = Main.class.getResourceAsStream("incident_file.csv");
-        InputStream zoneFile = Main.class.getResourceAsStream("zone_location.csv");
+        InputStream incidentFile = Main.class.getResourceAsStream("/incident_file.csv");
+        InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
         int schedulerPort = 6014; // Scheduler's port
 
