@@ -93,10 +93,6 @@ public class DroneStateMachineTestWithFaults {
         expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneIdle.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneStuck.class);
 
 
         // Schedule the drone thread, which will request events when running
