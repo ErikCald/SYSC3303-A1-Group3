@@ -30,7 +30,7 @@ class SchedulerTest {
 
     private DatagramSocket testSocket;
 
-    final InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
+    final InputStream incidentFile = Main.class.getResourceAsStream("/incident_file.csv");
     final InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
 
     private List<Zone> zones;
@@ -43,7 +43,7 @@ class SchedulerTest {
             parser.parseIncidentFile(incidentFile);
             parser.parseZoneFile(zoneFile);
         } catch (IOException e) {
-            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            System.err.println("Failed to parse incident_file.csv or zone_location.csv, aborting.");
             e.printStackTrace();
             return;
         }
