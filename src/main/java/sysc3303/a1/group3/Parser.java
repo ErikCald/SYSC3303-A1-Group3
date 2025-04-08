@@ -87,7 +87,6 @@ public class Parser {
         EventType eventType = EventType.fromString(values[2]);
         Severity severity = Severity.fromString(values[3]);
 
-        System.out.println("adjustedTime: " + adjustedTime);
         return new Event(adjustedTime , zoneId, eventType, severity);
     }
 
