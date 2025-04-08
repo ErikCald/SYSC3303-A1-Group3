@@ -28,10 +28,10 @@ public class WholeSystemTest {
 
     // Test the whole system, similar to main
     @Test
-    @Timeout(60)
+    @Timeout(300)
     public void wholeSystemTest() {
         // Load incident and zone files from resources.
-        InputStream incidentFile = Main.class.getResourceAsStream("/incident_file.csv");
+        InputStream incidentFile = Main.class.getResourceAsStream("/wholeSystemTestIncidentFile.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
         int schedulerPort = 6014; // Scheduler's port
@@ -91,5 +91,24 @@ public class WholeSystemTest {
         } catch (InterruptedException e) {}
 
         DroneThread1.start();
+
+        // Wait for the system to complete
+        try {
+            FIsubsystemThread.join();
+            DroneThread1.join();
+            DroneThread2.join();
+            DroneThread3.join();
+        } catch (InterruptedException e) {
+            System.err.println("Thread interrupted while waiting for completion. Exception: " + e);
+        }
+
+        try {
+            scheduler.shutOff();
+            Thread.sleep(5000);
+            scheduler.closeSockets();
+        } catch (InterruptedException e) {
+            System.err.println("Failed to close sockets. Exception: " + e);
+        }
+        
     }
 }

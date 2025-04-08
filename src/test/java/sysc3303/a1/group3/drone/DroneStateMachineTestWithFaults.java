@@ -56,7 +56,7 @@ public class DroneStateMachineTestWithFaults {
     @Timeout(180)
     public void testSingleDroneStateMachineWithFaults() {
         UI.setIsUIDisabled(true); // Disable UI for testing
-        
+
         int schedulerPort = test2SchedulerPort;
 
         Parser parser = new Parser();
@@ -83,15 +83,19 @@ public class DroneStateMachineTestWithFaults {
         Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         Thread droneThread = new Thread(drone, "Drone");
 
-        // Nozzle Jam State removed (was below dropping foam)
         ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
         expectedStatesInOrder.add(DroneIdle.class);
+        expectedStatesInOrder.add(DroneEnRoute.class);
+        expectedStatesInOrder.add(DroneNozzleJam.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
         expectedStatesInOrder.add(DroneInZone.class);
         expectedStatesInOrder.add(DroneDroppingFoam.class);
         expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneIdle.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
+        expectedStatesInOrder.add(DroneInZone.class);
+        expectedStatesInOrder.add(DroneDroppingFoam.class);
+        expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneStuck.class);
 
 
