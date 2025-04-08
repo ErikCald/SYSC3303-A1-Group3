@@ -11,7 +11,6 @@ import java.util.Scanner;
 import java.io.FileNotFoundException;
 
 import sysc3303.a1.group3.drone.Drone;
-import sysc3303.a1.group3.drone.DroneIdle;
 
 public class Main {
     public static final long START_TIME = System.currentTimeMillis();
@@ -36,7 +35,7 @@ public class Main {
         }
 
         // Load incident and zone files from resources.
-        InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
+        InputStream incidentFile = Main.class.getResourceAsStream("/incident_File.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
 
@@ -47,7 +46,7 @@ public class Main {
             parser.parseIncidentFile(incidentFile);
             parser.parseZoneFile(zoneFile);
         } catch (IOException e) {
-            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            System.err.println("Failed to parse incident_File.csv or zone_location.csv, aborting.");
             e.printStackTrace();
             return;
         }

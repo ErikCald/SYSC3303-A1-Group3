@@ -4,19 +4,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import sysc3303.a1.group3.drone.Drone;
 import sysc3303.a1.group3.drone.DroneRecord;
-import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,7 +26,7 @@ class SchedulerTest {
 
     private DatagramSocket testSocket;
 
-    final InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
+    final InputStream incidentFile = Main.class.getResourceAsStream("/incident_File.csv");
     final InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
 
     private List<Zone> zones;
@@ -43,7 +39,7 @@ class SchedulerTest {
             parser.parseIncidentFile(incidentFile);
             parser.parseZoneFile(zoneFile);
         } catch (IOException e) {
-            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            System.err.println("Failed to parse incident_File.csv or zone_location.csv, aborting.");
             e.printStackTrace();
             return;
         }

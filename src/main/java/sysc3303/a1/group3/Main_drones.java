@@ -16,7 +16,7 @@ public class Main_drones {
     public static void main(String[] args) {
 
         // Load incident and zone files from resources.
-        InputStream incidentFile = Main.class.getResourceAsStream("/incidentFile.csv");
+        InputStream incidentFile = Main.class.getResourceAsStream("/incident_File.csv");
         InputStream zoneFile = Main.class.getResourceAsStream("/zone_location.csv");
         String schedulerAddress = "localhost"; // Scheduler's IP
 
@@ -27,7 +27,7 @@ public class Main_drones {
             parser.parseIncidentFile(incidentFile);
             parser.parseZoneFile(zoneFile);
         } catch (IOException e) {
-            System.err.println("Failed to parse incidentFile.csv or zone_location.csv, aborting.");
+            System.err.println("Failed to parse incident_File.csv or zone_location.csv, aborting.");
             e.printStackTrace();
             return;
         }
