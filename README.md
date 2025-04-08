@@ -25,7 +25,7 @@ This project uses Gradle for dependency management and compilation. The Gradle W
 - Use the Run functionality in IntelliJ IDEA on the [Main class](src/main/java/sysc3303/a1/group3/Main.java) to run the simulation.
 - Alternatively, execute `./gradlew clean run`
 
-Observe the graphical display popup, and the logging to the system output. The log can also later be viewed in output.txt (generated in the project roo).
+Observe the graphical display popup, and the logging to the system output. The log can also later be viewed in output.txt (generated in the project root).
 The application will only terminate when the graphical display is closed.
 
 ## Responsibilities Breakdown (Iteration 4)
