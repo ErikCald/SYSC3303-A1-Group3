@@ -54,7 +54,7 @@ public class DroneStateMachineTest {
     private int test3SchedulerPort = 6016; // Scheduler's port
 
     @Test
-    @Timeout(180)
+    @Timeout(80)
     public void testSingleDroneStateMachine() {
         UI.setIsUIDisabled(true); // Disable UI for testing
 
@@ -114,6 +114,11 @@ public class DroneStateMachineTest {
 
         // Wait for the threads to finish
         try {
+            Thread.sleep(40 * 1000);
+            fiSubsystemThread.interrupt();
+            droneThread.interrupt();
+            scheduler.closeSockets();
+
             fiSubsystemThread.join();
             droneThread.join();
         } catch (InterruptedException e) {

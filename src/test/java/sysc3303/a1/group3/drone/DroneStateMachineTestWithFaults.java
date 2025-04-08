@@ -53,7 +53,7 @@ public class DroneStateMachineTestWithFaults {
     private int test3SchedulerPort = 6016; // Scheduler's port
 
     @Test
-    @Timeout(180)
+    @Timeout(80)
     public void testSingleDroneStateMachineWithFaults() {
         UI.setIsUIDisabled(true); // Disable UI for testing
 
@@ -61,8 +61,8 @@ public class DroneStateMachineTestWithFaults {
 
         Parser parser = new Parser();
         try {
-            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFileWithFaults.csv"));
-            parser.parseZoneFile(DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
+            parser.parseIncidentFile(DroneStateMachineTestWithFaults.class.getResourceAsStream("/stateMachineTestIncidentFileWithFaults.csv"));
+            parser.parseZoneFile(DroneStateMachineTestWithFaults.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
         } catch (IOException e) {
             fail("Failed to parse incident file or zone location file, aborting. Exception" + e);
         }
@@ -106,6 +106,11 @@ public class DroneStateMachineTestWithFaults {
 
         // Wait for the threads to finish
         try {
+            Thread.sleep(40 * 1000);
+            fiSubsystemThread.interrupt();
+            droneThread.interrupt();
+            scheduler.closeSockets();
+
             fiSubsystemThread.join();
             droneThread.join();
         } catch (InterruptedException e) {
