@@ -54,10 +54,10 @@ public class DroneStateMachineTest {
     private int test3SchedulerPort = 6016; // Scheduler's port
 
     @Test
-    @Timeout(180)
+    @Timeout(80)
     public void testSingleDroneStateMachine() {
         UI.setIsUIDisabled(true); // Disable UI for testing
-        
+
         int schedulerPort = test1SchedulerPort;
 
         Parser parser = new Parser();
@@ -81,7 +81,7 @@ public class DroneStateMachineTest {
             fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
 
             // No faults
-            drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(), "");
+            drone = new TestableDrone("SingleDrone", schedulerAddress, schedulerPort, parser.getZoneMap(), "");
         } catch (IOException e) {
             fail("Failed to create scheduler, fire incident subsystem, or drone with Exception: " + e);
         }
@@ -114,6 +114,11 @@ public class DroneStateMachineTest {
 
         // Wait for the threads to finish
         try {
+            Thread.sleep(40 * 1000);
+            fiSubsystemThread.interrupt();
+            droneThread.interrupt();
+            scheduler.closeSockets();
+
             fiSubsystemThread.join();
             droneThread.join();
         } catch (InterruptedException e) {
