@@ -1,27 +1,31 @@
 package sysc3303.a1.group3.drone;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import sysc3303.a1.group3.Event;
-import sysc3303.a1.group3.Scheduler;
-import sysc3303.a1.group3.Zone;
-import sysc3303.a1.group3.drone.Drone;
-import sysc3303.a1.group3.physics.Vector2d;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import sysc3303.a1.group3.Event;
+import sysc3303.a1.group3.Scheduler;
+import sysc3303.a1.group3.Zone;
+import sysc3303.a1.group3.physics.Vector2d;
+import sysc3303.a1.group3.UI;
 
 class DroneTest {
-
     private Scheduler scheduler;
     private Drone drone;
     private List<Zone> zones;
@@ -33,6 +37,8 @@ class DroneTest {
 
     @BeforeEach
     void setUp() throws IOException {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+        
         // Set up the Scheduler that listens for requests
         schedulerSocket = new DatagramSocket(schedulerPort);
         schedulerAddress = InetAddress.getByName("localhost");
