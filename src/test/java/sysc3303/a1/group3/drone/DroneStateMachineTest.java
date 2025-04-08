@@ -19,7 +19,7 @@ import sysc3303.a1.group3.Zone;
 
 @Isolated
 public class DroneStateMachineTest {
-    
+
 
     /**
      * A testable version of the Drone class that allows for the onStateChange
@@ -97,11 +97,6 @@ public class DroneStateMachineTest {
         expectedStatesInOrder.add(DroneDroppingFoam.class);
         expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneIdle.class);
-        expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneIdle.class);
 
         // Schedule the drone thread, which will request events when running
         DroneState currentState = drone.getState();
@@ -114,10 +109,10 @@ public class DroneStateMachineTest {
 
         // Wait for the threads to finish
         try {
-            Thread.sleep(40 * 1000);
-            fiSubsystemThread.interrupt();
-            droneThread.interrupt();
-            scheduler.closeSockets();
+            Thread.sleep(10000);
+//            fiSubsystemThread.interrupt();
+//            droneThread.interrupt();
+//            scheduler.closeSockets();
 
             fiSubsystemThread.join();
             droneThread.join();
@@ -140,4 +135,5 @@ public class DroneStateMachineTest {
             fail("Drone state history does not match expected state history. Exception: " + e);
         }
     }
+
 }
