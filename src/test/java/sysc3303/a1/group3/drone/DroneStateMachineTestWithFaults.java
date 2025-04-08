@@ -86,8 +86,6 @@ public class DroneStateMachineTestWithFaults {
         ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
         expectedStatesInOrder.add(DroneIdle.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneNozzleJam.class);
-        expectedStatesInOrder.add(DroneEnRoute.class);
         expectedStatesInOrder.add(DroneInZone.class);
         expectedStatesInOrder.add(DroneDroppingFoam.class);
         expectedStatesInOrder.add(DroneReturning.class);
@@ -106,10 +104,10 @@ public class DroneStateMachineTestWithFaults {
 
         // Wait for the threads to finish
         try {
-            Thread.sleep(40 * 1000);
-            fiSubsystemThread.interrupt();
-            droneThread.interrupt();
-            scheduler.closeSockets();
+//            Thread.sleep(40 * 1000);
+//            fiSubsystemThread.interrupt();
+//            droneThread.interrupt();
+//            scheduler.closeSockets();
 
             fiSubsystemThread.join();
             droneThread.join();

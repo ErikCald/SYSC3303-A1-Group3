@@ -7,6 +7,11 @@ public class DroneDroppingFoam implements DroneState {
 
     @Override
     public void runState(Drone drone) {
+
+        if (!drone.isAtZone()){
+            return;
+        }
+
         if(drone.getNozzle().isStuck()) {
             return;
         }
@@ -31,12 +36,15 @@ public class DroneDroppingFoam implements DroneState {
         }
 
 
+
         if (drone.getNozzle().isFinishedExtinguishing()) {
             isDroppingFoam = false;
             Event event = drone.getCurrentEvent().orElseThrow(() -> new IllegalStateException("No event found in DroneDroppingFoam"));
             drone.getNozzle().finishExtinguishing(drone.getName(), event);
 
             return new DroneReturning();
+        } else if (!drone.isAtZone()){
+            return new DroneEnRoute();
         }
 
         return this;
