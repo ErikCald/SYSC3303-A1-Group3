@@ -53,7 +53,7 @@ public class WholeSystemTest {
             e.printStackTrace();
             return;
         }
-
+        scheduler.closeUiFrame();
         // Create Fire Incident Subsystem
         FireIncidentSubsystem fiSubsystem;
         fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);

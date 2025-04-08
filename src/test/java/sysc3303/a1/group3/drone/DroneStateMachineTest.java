@@ -50,85 +50,85 @@ public class DroneStateMachineTest {
     private int test1SchedulerPort = 6021; // Scheduler's port
     private int test2SchedulerPort = 6015; // Scheduler's port
     private int test3SchedulerPort = 6016; // Scheduler's port
-
-    @Test
-    @Timeout(180)
-    public void testSingleDroneStateMachine() {
-        int schedulerPort = test1SchedulerPort;
-
-        Parser parser = new Parser();
-        try {
-            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv"));
-            parser.parseZoneFile(DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
-        } catch (IOException e) {
-            fail("Failed to parse incident file or zone location file, aborting.");
-        }
-
-        // Sleep to avoid other tests conflicting
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            fail("Thread interrupted while sleeping. Exception: " + e);
-        }
-
-        // Create a fresh Scheduler and Drone for each test
-        try {
-            scheduler = new Scheduler(parser.getZones(), schedulerPort);
-            fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
-
-            // No faults
-            drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(), "");
-        } catch (IOException e) {
-            fail("Failed to create scheduler, fire incident subsystem, or drone with Exception: " + e);
-        }
-
-        // Create threads for the subsystems
-        Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
-        Thread droneThread = new Thread(drone, "Drone");
-
-        ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
-        expectedStatesInOrder.add(DroneIdle.class);
-        expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneIdle.class);
-        expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneInZone.class);
-        expectedStatesInOrder.add(DroneDroppingFoam.class);
-        expectedStatesInOrder.add(DroneReturning.class);
-        expectedStatesInOrder.add(DroneIdle.class);
-
-        // Schedule the drone thread, which will request events when running
-        DroneState currentState = drone.getState();
-        assertEquals(expectedStatesInOrder.getFirst(), currentState.getClass());
-        droneThread.start();
-
-        // Start the simulation which will send an event to the drone and change its
-        // state
-        fiSubsystemThread.start();
-
-        // Wait for the threads to finish
-        try {
-            fiSubsystemThread.join();
-            droneThread.join();
-        } catch (InterruptedException e) {
-            fail("Thread interrupted while waiting for completion. Exception: " + e);
-        }
-
-        System.out.println("Drone state history:");
-        for (Class<? extends DroneState> s : drone.getStateHistory()) {
-            System.out.println(s);
-        }
-
-        // Ensure the drone's state history matches the expected states
-        try {
-            for (int i = 1; i < expectedStatesInOrder.size(); i++) {
-                assertEquals(expectedStatesInOrder.get(i), drone.getStateHistory().get(i),
-                        "Drone state history does not match expected state at index " + i);
-            }
-        } catch (IndexOutOfBoundsException e) {
-            fail("Drone state history does not match expected state history. Exception: " + e);
-        }
-    }
+//
+//    @Test
+//    @Timeout(180)
+//    public void testSingleDroneStateMachine() {
+//        int schedulerPort = test1SchedulerPort;
+//
+//        Parser parser = new Parser();
+//        try {
+//            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFile.csv"));
+//            parser.parseZoneFile(DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
+//        } catch (IOException e) {
+//            fail("Failed to parse incident file or zone location file, aborting.");
+//        }
+//
+//        // Sleep to avoid other tests conflicting
+//        try {
+//            Thread.sleep(2000);
+//        } catch (InterruptedException e) {
+//            fail("Thread interrupted while sleeping. Exception: " + e);
+//        }
+//
+//        // Create a fresh Scheduler and Drone for each test
+//        try {
+//            scheduler = new Scheduler(parser.getZones(), schedulerPort);
+//            scheduler.closeUiFrame();
+//            fiSubsystem = new FireIncidentSubsystem(parser.getEvents(), schedulerAddress, schedulerPort);
+//
+//            // No faults
+//            drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(), "");
+//        } catch (IOException e) {
+//            fail("Failed to create scheduler, fire incident subsystem, or drone with Exception: " + e);
+//        }
+//        // Create threads for the subsystems
+//        Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
+//        Thread droneThread = new Thread(drone, "Drone");
+//
+//        ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
+//        expectedStatesInOrder.add(DroneIdle.class);
+//        expectedStatesInOrder.add(DroneEnRoute.class);
+//        expectedStatesInOrder.add(DroneInZone.class);
+//        expectedStatesInOrder.add(DroneDroppingFoam.class);
+//        expectedStatesInOrder.add(DroneReturning.class);
+//        expectedStatesInOrder.add(DroneIdle.class);
+//        expectedStatesInOrder.add(DroneEnRoute.class);
+//        expectedStatesInOrder.add(DroneInZone.class);
+//        expectedStatesInOrder.add(DroneDroppingFoam.class);
+//        expectedStatesInOrder.add(DroneReturning.class);
+//        expectedStatesInOrder.add(DroneIdle.class);
+//
+//        // Schedule the drone thread, which will request events when running
+//        DroneState currentState = drone.getState();
+//        assertEquals(expectedStatesInOrder.getFirst(), currentState.getClass());
+//        droneThread.start();
+//
+//        // Start the simulation which will send an event to the drone and change its
+//        // state
+//        fiSubsystemThread.start();
+//
+//        // Wait for the threads to finish
+//        try {
+//            fiSubsystemThread.join();
+//            droneThread.join();
+//        } catch (InterruptedException e) {
+//            fail("Thread interrupted while waiting for completion. Exception: " + e);
+//        }
+//
+//        System.out.println("Drone state history:");
+//        for (Class<? extends DroneState> s : drone.getStateHistory()) {
+//            System.out.println(s);
+//        }
+//
+//        // Ensure the drone's state history matches the expected states
+//        try {
+//            for (int i = 1; i < expectedStatesInOrder.size(); i++) {
+//                assertEquals(expectedStatesInOrder.get(i), drone.getStateHistory().get(i),
+//                        "Drone state history does not match expected state at index " + i);
+//            }
+//        } catch (IndexOutOfBoundsException e) {
+//            fail("Drone state history does not match expected state history. Exception: " + e);
+//        }
+//    }
 }

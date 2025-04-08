@@ -158,6 +158,10 @@ public class Scheduler {
 
     }
 
+    public void closeUiFrame(){
+        this.ui.closeFrame();
+    }
+
 
     // Starts one UDP listener thread that continuously receives packets.
     // Based on the packet info, respond and react accordingly

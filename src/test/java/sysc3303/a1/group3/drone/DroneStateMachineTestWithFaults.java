@@ -71,11 +71,11 @@ public class DroneStateMachineTestWithFaults {
 
             // Faults from the drone_faults.csv file
             drone = new TestableDrone("drone1", schedulerAddress, schedulerPort, parser.getZoneMap(),
-                    "drone_faults.csv");
+                "drone_faults_2.csv");
         } catch (IOException e) {
             fail("Failed to create scheduler, fire incident subsystem, or drone with Exception: " + e);
         }
-
+        scheduler.closeUiFrame();
         // Create threads for the subsystems
         Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         Thread droneThread = new Thread(drone, "Drone");

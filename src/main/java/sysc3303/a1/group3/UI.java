@@ -240,6 +240,10 @@ public class UI {
         }
     }
 
+    public void closeFrame(){
+        frame.dispose();
+    }
+
     public static void main(String[] args) {
         List<Zone> zones = new ArrayList<>();
         zones.add(Zone.of(1, 50, 50, 200, 200));
