@@ -1,2 +1,3 @@
 Time,DroneID,Event type
 0:00:07,drone3,NOZZLE_JAM
+0:00:20,drone3,DRONE_STUCK
