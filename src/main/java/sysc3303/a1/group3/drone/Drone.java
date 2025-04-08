@@ -487,7 +487,7 @@ public class Drone implements Runnable {
         kinematics.setPosition(p);
     }
 
-    private void setTargetZone() {
+    void setTargetZone() {
         int zoneId = currentEvent.map(Event::getZoneId).orElseThrow(() -> new IllegalStateException("No event set on " + this));
 
         Zone zone = zones.get(zoneId);

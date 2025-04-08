@@ -14,11 +14,13 @@ public class DroneInZone implements DroneState {
             return new DroneNozzleJam(new DroneEnRoute());
         }
 
-        if (drone.isInZoneSchedulerResponse()){
+        drone.setTargetZone();
+
+        if (drone.isAtZone()){
             System.out.println("Drone " + drone.getName() + " is extinguishing flames!");
             return new DroneDroppingFoam();
         } else {
-            return new DroneFaulted();
+            return new DroneEnRoute();
         }
     }
 
