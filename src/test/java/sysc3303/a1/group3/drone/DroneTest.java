@@ -87,6 +87,29 @@ class DroneTest {
         }
     }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+
+    @Test
+    @Timeout(5)
+    void testRequestNewEvent_successfulEvent() throws Exception {
+        // Start the Drone in its own thread (simulating real-time behavior)
+        Thread droneThread = new Thread(drone);
+        droneThread.start();
+
+        // Simulate the Drone requesting a new event
+        Optional<Event> event = drone.requestNewEvent();
+
+        // Wait briefly for the event to be received
+        Thread.sleep(500);
+
+        // If scheduler does not send an exception, then it passed
+    }
+
+>>>>>>> dbd944306f1db27b2d5856acc4298ecb06df0581
+>>>>>>> 831c8a6e054a7d3b56e58cc0809bffe6da1164b4
     @Test
     @Timeout(5)
     void testFillWaterTank() throws InterruptedException {
