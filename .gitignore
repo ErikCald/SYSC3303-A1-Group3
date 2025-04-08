@@ -347,3 +347,6 @@ gradle-app.setting
 
 # Ignore Gradle build output directory
 build
+
+### SYSC3303-A1-Group3 Project ###
+output.txt
