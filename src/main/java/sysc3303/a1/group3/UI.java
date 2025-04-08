@@ -12,9 +12,14 @@ import sysc3303.a1.group3.drone.DroneRecord;
 import sysc3303.a1.group3.physics.Vector2d;
 
 public class UI {
+    private static boolean disableUIForTesting = false;
+
     private final int borderSize = 20;
     private final int legendWidth = 190;
     private final int topBorder = 20;
+    private final int droneStatusBoxSize = 20;
+    private final int droneStatusSpacing = 40;
+    private final int droneStatusBottomOffset = 50; // Increased offset for the zone text
 
     private JFrame frame;
     private List<Zone> zones = new ArrayList<>();
@@ -22,11 +27,19 @@ public class UI {
     private List<Integer> fireStates = new ArrayList<>();
     private int minX, minY, maxX, maxY;
 
+    public static void setIsUIDisabled(boolean isUIDisabled) {
+        UI.disableUIForTesting = isUIDisabled;
+    }
+
     public UI(List<Zone> zones) {
+        if (disableUIForTesting) {
+            return;
+        }
+
         this.zones = zones;
         calculateZoneBounds();
         frame = new JFrame("Zone and Drone Display");
-        frame.setSize(maxX - minX + 400, maxY - minY + 200);
+        frame.setSize(maxX - minX + 400, maxY - minY + 2 * borderSize + topBorder + droneStatusBottomOffset + droneStatusBoxSize + 60); // Increased height
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel() {
@@ -38,6 +51,7 @@ public class UI {
                 drawDrones(g);
                 drawLegend(g);
                 drawFireSpots(g);
+                drawDroneStatuses(g);
             }
         };
 
@@ -61,13 +75,17 @@ public class UI {
     }
 
     public void updateDrones(List<DroneRecord> drones) {
-        this.drones = drones;
-        frame.getContentPane().repaint();
+        if (!disableUIForTesting) {
+            this.drones = drones;
+            frame.getContentPane().repaint();
+        }
     }
 
     public void updateFireStates(List<Integer> fireZoneIds) {
-        this.fireStates = fireZoneIds;
-        frame.getContentPane().repaint();
+        if (!disableUIForTesting) {
+            this.fireStates = fireZoneIds;
+            frame.getContentPane().repaint();
+        }
     }
 
     private void drawBorder(Graphics g) {
@@ -110,7 +128,7 @@ public class UI {
             Vector2d center = zone.centre();
             int x = (int) center.getX() - 10 - minX + legendWidth;
             int y = (int) center.getY() - 10 - minY + borderSize + topBorder;
-            
+
             if (fireStates.contains(zone.zoneID())) {
                 g.setColor(Color.RED);
             } else {
@@ -119,7 +137,7 @@ public class UI {
 
             g.fillRect(x, y, 20, 20);
         }
-}
+    }
 
     private Color getDroneColor(String state) {
         switch (state) {
@@ -174,7 +192,7 @@ public class UI {
         g.setColor(Color.BLACK);
         g.drawString("Drone Returning", legendX + 25, legendY + 15);
 
-        
+
         legendY += 30;
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect(legendX, legendY, 20, 20);
@@ -188,6 +206,54 @@ public class UI {
         g.drawString("Drone Fault", legendX + 25, legendY + 15);
     }
 
+    private void drawDroneStatuses(Graphics g) {
+        int startX = borderSize + droneStatusSpacing;
+        int startY = frame.getHeight() - droneStatusBottomOffset - droneStatusBoxSize - 40;
+
+        for (int i = 0; i < drones.size(); i++) {
+            DroneRecord drone = drones.get(i);
+            String state = drone.getState();
+            Color stateColor = getDroneColor(state);
+            Vector2d dronePosition = drone.getPosition();
+            String droneName = drone.getDroneName();
+
+            int x = startX + i * (droneStatusBoxSize + droneStatusSpacing);
+            int y = startY + 20;
+
+            // Draw drone name
+            if (droneName.toLowerCase().contains("drone")) {
+                int index = droneName.toLowerCase().indexOf("drone");
+                String rest = droneName.substring(index + "drone".length()).trim();
+                droneName = "D(" + rest + ")";
+            }
+            g.setColor(Color.BLACK);
+            g.drawString(droneName, x, y - 5);
+
+            // Draw state box
+            g.setColor(stateColor);
+            g.fillRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
+            g.setColor(Color.BLACK);
+            g.drawRect(x, y, droneStatusBoxSize, droneStatusBoxSize);
+
+            // Determine drone location
+            String location = "Home";
+            boolean isAtHome = Math.abs(dronePosition.getX()) < 2 && Math.abs(dronePosition.getY()) < 2;
+            if (!isAtHome) {
+                location = "Outside Zones";
+                for (Zone zone : zones) {
+                    if (dronePosition.getX() >= zone.startX() && dronePosition.getX() <= zone.endX() &&
+                        dronePosition.getY() >= zone.startY() && dronePosition.getY() <= zone.endY()) {
+                        location = "Zone " + zone.zoneID();
+                        break;
+                    }
+                }
+            }
+
+            // Draw drone location
+            g.drawString(location, x, y + droneStatusBoxSize + 15);
+        }
+    }
+
     public static void main(String[] args) {
         List<Zone> zones = new ArrayList<>();
         zones.add(Zone.of(1, 50, 50, 200, 200));
@@ -198,7 +264,7 @@ public class UI {
         List<DroneRecord> drones = new ArrayList<>();
         drones.add(new DroneRecord("Drone A", "DroneEnRoute", 100, 100));
         drones.add(new DroneRecord("Drone B", "DroneInZone", 350, 150));
-        drones.add(new DroneRecord("Drone Helicopter", "DroneEnRoute", 200, 200));
+        drones.add(new DroneRecord("Drone Helicopter", "DroneEnRoute", 0, 0)); // Drone at home
 
         List<Integer> fireZones = new ArrayList<>();
         fireZones.add(1);

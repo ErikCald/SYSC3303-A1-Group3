@@ -5,6 +5,7 @@ import sysc3303.a1.group3.physics.Vector2d;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.sql.Time;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -52,10 +53,8 @@ public class Scheduler {
 
     // socket to exclusive send packets when the main socket is busy listening
     private final DatagramSocket sendSocket;
-
     // UI to display where the zones and drones are
     private final UI ui;
-
     /**
      * Creates a new Scheduler
      *
@@ -206,7 +205,6 @@ public class Scheduler {
             socket.close();
             sendSocket.close();
             stopUI();
-
             System.out.println("Scheduler's UDP Listener is closing.");
         }, "Scheduler-UPDListener").start();
     }
@@ -536,7 +534,7 @@ public class Scheduler {
                     //CHECK IF RESPONSE VALID? up to whoever is dealing with packet loss faults ig
 
                     setDroneEventByName(drone.getDroneName(), event);
-                    System.out.println(drone.getDroneName() + " is scheduled with event: " + event + "\n");
+                    System.out.println("[" + Main.getElapsedTime() + "] " + drone.getDroneName() + " is scheduled with event: " + event + "\n");
                 } catch (IOException e) {
                     System.err.println("Error sending event to drone: " + e.getMessage());
                 }

@@ -15,6 +15,7 @@ import sysc3303.a1.group3.FireIncidentSubsystem;
 import sysc3303.a1.group3.Parser;
 import sysc3303.a1.group3.Scheduler;
 import sysc3303.a1.group3.Zone;
+import sysc3303.a1.group3.UI;
 
 @Isolated
 public class DroneStateMachineTestWithFaults {
@@ -52,14 +53,16 @@ public class DroneStateMachineTestWithFaults {
     private int test3SchedulerPort = 6016; // Scheduler's port
 
     @Test
-    @Timeout(180)
+    @Timeout(80)
     public void testSingleDroneStateMachineWithFaults() {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+
         int schedulerPort = test2SchedulerPort;
 
         Parser parser = new Parser();
         try {
-            parser.parseIncidentFile(DroneStateMachineTest.class.getResourceAsStream("/stateMachineTestIncidentFileWithFaults.csv"));
-            parser.parseZoneFile(DroneStateMachineTest.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
+            parser.parseIncidentFile(DroneStateMachineTestWithFaults.class.getResourceAsStream("/stateMachineTestIncidentFileWithFaults.csv"));
+            parser.parseZoneFile(DroneStateMachineTestWithFaults.class.getResourceAsStream("/zoneLocationsForTesting.csv"));
         } catch (IOException e) {
             fail("Failed to parse incident file or zone location file, aborting. Exception" + e);
         }
@@ -80,16 +83,16 @@ public class DroneStateMachineTestWithFaults {
         Thread fiSubsystemThread = new Thread(fiSubsystem, "FireIncidentSubsystem");
         Thread droneThread = new Thread(drone, "Drone");
 
-        // Nozzle Jam State removed (was below dropping foam)
         ArrayList<Class<? extends DroneState>> expectedStatesInOrder = new ArrayList<>();
         expectedStatesInOrder.add(DroneIdle.class);
+        expectedStatesInOrder.add(DroneEnRoute.class);
+        expectedStatesInOrder.add(DroneNozzleJam.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
         expectedStatesInOrder.add(DroneInZone.class);
         expectedStatesInOrder.add(DroneDroppingFoam.class);
         expectedStatesInOrder.add(DroneReturning.class);
         expectedStatesInOrder.add(DroneIdle.class);
         expectedStatesInOrder.add(DroneEnRoute.class);
-        expectedStatesInOrder.add(DroneStuck.class);
 
 
         // Schedule the drone thread, which will request events when running
@@ -103,6 +106,11 @@ public class DroneStateMachineTestWithFaults {
 
         // Wait for the threads to finish
         try {
+            Thread.sleep(40 * 1000);
+            fiSubsystemThread.interrupt();
+            droneThread.interrupt();
+            scheduler.closeSockets();
+
             fiSubsystemThread.join();
             droneThread.join();
         } catch (InterruptedException e) {

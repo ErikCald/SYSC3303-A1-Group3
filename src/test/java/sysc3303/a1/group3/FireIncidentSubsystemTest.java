@@ -1,15 +1,16 @@
 package sysc3303.a1.group3;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import sysc3303.a1.group3.drone.Drone;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import sysc3303.a1.group3.drone.Drone;
 
 class FireIncidentSubsystemTest {
 
@@ -28,6 +29,8 @@ class FireIncidentSubsystemTest {
 
     @BeforeEach
     void beforeEach() throws IOException {
+        UI.setIsUIDisabled(true); // Disable UI for testing
+        
         parser = new Parser();
 
         // Ensure files are loaded correctly

@@ -22,7 +22,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "sysc3303.a1.group3"
+    mainClass = "sysc3303.a1.group3.Main"
 }
 
 tasks.test {

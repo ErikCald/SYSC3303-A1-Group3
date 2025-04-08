@@ -1,5 +1,5 @@
 package sysc3303.a1.group3.drone;
-
+import sysc3303.a1.group3.Main;
 import sysc3303.a1.group3.Event;
 
 public class DroneEnRoute implements DroneState {
@@ -26,7 +26,7 @@ public class DroneEnRoute implements DroneState {
                 return new DroneReturning();
             }
 
-            System.out.println("Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
+            System.out.println("[" + Main.getElapsedTime() + "] " +  "Drone " + drone.getName() + " has arrived at Zone " + drone.getCurrentEvent().get().getZoneId() + ".");
             return new DroneInZone();
         }
 
@@ -35,7 +35,7 @@ public class DroneEnRoute implements DroneState {
 
     @Override
     public void onNewEvent(Drone drone, Event event) {
-        System.out.println(drone.getName() + " changed routes and is now en route to Zone " + event.getZoneId() + ".");
+        System.out.println("[" + Main.getElapsedTime() + "] " +  drone.getName() + " changed routes and is now en route to Zone " + event.getZoneId() + ".");
         drone.setCurrentEvent(event);
     }
 
