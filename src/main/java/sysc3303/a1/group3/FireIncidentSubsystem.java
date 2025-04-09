@@ -24,6 +24,14 @@ public class FireIncidentSubsystem implements Runnable {
     private InetAddress schedulerAddress;
     private int schedulerPort;
 
+    /**
+     * Constructs a new FireIncidentSubsystem.
+     *
+     * @param events the list of Event objects representing fire incidents.
+     * @param schedulerAddress the IP address of the Scheduler.
+     * @param schedulerPort the port number for the Scheduler's UDP connection.
+     * @throws SocketException if the DatagramSocket cannot be created.
+     */
     public FireIncidentSubsystem(List<Event> events, String schedulerAddress, int schedulerPort) {
         eventCount = 0;
         startTime = Instant.now();
@@ -39,7 +47,13 @@ public class FireIncidentSubsystem implements Runnable {
         }
     }
 
-    // Now sends events with sockets
+    /**
+     * Starts the Fire Incident Subsystem.
+     * <p>
+     * This method waits until the scheduled time for each event is reached and sends the event to the Scheduler via UDP.
+     * After sending all events, it sends a "SHUTDOWN" signal to the Scheduler.
+     * </p>
+     */
     @Override
     public void run() {
         for (Event event: events) {
@@ -65,7 +79,9 @@ public class FireIncidentSubsystem implements Runnable {
         sendShutOffSignal();
     }
 
-    // Sends a shutdown signal via UDP.
+    /**
+     * Sends the shutdown signal ("SHUTDOWN") via UDP to the Scheduler and closes the socket.
+     */
     private void sendShutOffSignal() {
         String shutdownMessage = "SHUTDOWN";
         byte[] sendData = shutdownMessage.getBytes();
@@ -78,11 +94,20 @@ public class FireIncidentSubsystem implements Runnable {
         socket.close();
     }
 
-    // Converts an Event object to a JSON string.
+    /**
+     * Converts the given Event object to a JSON string.
+     *
+     * @param event the Event to convert.
+     * @return the JSON string representation of the event.
+     */
     private String convertEventToJson(Event event) {
         return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
             event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());
     }
-
+    /**
+     * Returns the list of fire incident events.
+     *
+     * @return the list of Event objects.
+     */
     public List<Event> getEvents() { return events; }
 }
