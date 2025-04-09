@@ -72,6 +72,16 @@ public class Drone implements Runnable {
     private InputStream faultInputStream;
     private DroneEventParser events = new DroneEventParser();
 
+    /**
+     * Constructs a new Drone with specified specifications, fault file, and connection information.
+     *
+     * @param name the name of the drone
+     * @param specifications the drone specifications
+     * @param schedulerAddress the IP address of the scheduler
+     * @param schedulerPort the UDP port of the scheduler
+     * @param zones the map of zone IDs to Zone objects
+     * @param faultFile the fault file name (if any), empty string otherwise
+     */    
     public Drone(String name, DroneSpecifications specifications, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones, String faultFile) {
         this.name = name;
         this.kinematics = new Kinematics(specifications.maxSpeed(), specifications.maxAcceleration());
@@ -108,18 +118,25 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Creates a Drone with arbitrary specs.
+     * Constructs a Drone
      *
      * @param name the name of the drone
+     * @param schedulerAddress the IP address of the scheduler
+     * @param schedulerPort the UDP port of the scheduler
+     * @param zones the map of zone IDs to Zone objects
      */
     public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones) {
         this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones, "");
     }
 
     /**
-     * Creates a Drone with arbitrary specs and a specific fault file
+     * Constructs a Drone and a specific fault file.
      *
      * @param name the name of the drone
+     * @param schedulerAddress the IP address of the scheduler
+     * @param schedulerPort the UDP port of the scheduler
+     * @param zones the map of zone IDs to Zone objects
+     * @param faultFile the fault file name to use
      */
     public Drone(String name, String schedulerAddress, int schedulerPort, Map<Integer, Zone> zones, String faultFile) {
         this(name, new DroneSpecifications(10, 30), schedulerAddress, schedulerPort, zones, faultFile);
@@ -175,6 +192,12 @@ public class Drone implements Runnable {
         }
     }
 
+    /**
+     * Simulates corruption of a message to represent packet loss.
+     *
+     * @param message the original message string
+     * @return the corrupted message string
+     */
     // Package Private for Automated testing
     String corruptMessage(String message) {
         Random random = new Random();
@@ -194,7 +217,11 @@ public class Drone implements Runnable {
     }
 
 
-
+    /**
+     * Checks for an update event from the scheduler.
+     *
+     * @return an {@link Optional} containing an updated event, or empty if none available.
+     */
     public Optional<Event> checkEventUpdate() {
         byte[] receiveData = new byte[1024];
         DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
@@ -244,18 +271,26 @@ public class Drone implements Runnable {
         sendStateToScheduler(newState.getStateName());
         this.state = newState;
     }
-
+    /**
+     * Indicates if the drone is in the scheduler's response.
+     *
+     * @return true if the drone is in the zone per scheduler response, false otherwise.
+     */
     protected boolean isInZoneSchedulerResponse() {
         return true;
     }
-
+    /**
+     * Fills the drone's water tank if it is not full.
+     */
     protected void fillWaterTank() {
         if (!waterTank.isFull()) {
             waterTank.fillWaterLevel();
             System.out.println(name + "'s tank filled up to full!");
         }
     }
-
+    /**
+     * Registers this drone with the scheduler by sending its listener, drone, and shutoff port information.
+     */
     private void registerDroneToScheduler() {
         // First, send the scheduler it's information so it can add the drone to its records
         // Register the listener port
@@ -313,7 +348,9 @@ public class Drone implements Runnable {
         } catch (Exception e) {
         }
     }
-
+    /**
+     * Listens for a SHUTOFF message from the scheduler.
+     */
     public void listenForShutoff() {
         Runnable listener = () -> {
             byte[] receiveData = new byte[1024];
@@ -340,7 +377,9 @@ public class Drone implements Runnable {
         this.shutoffListener = new Thread(listener, name + " shutoff listener");
         this.shutoffListener.start();
     }
-
+    /**
+     * Runs the main drone loop including state updates, event requests, and fault handling.
+     */
     @Override
     public void run() {
         registerDroneToScheduler();
@@ -388,7 +427,11 @@ public class Drone implements Runnable {
 
     // HELPERS and GETTERS/SETTERS:
 
-    // Sends this drone's state to the scheduler.
+    /**
+     * Sends the drone's state to the scheduler.
+     *
+     * @param stateMsg the state message to send.
+     */
     private void sendStateToScheduler(String stateMsg) {
 
         Vector2d startingPosition = getPosition();

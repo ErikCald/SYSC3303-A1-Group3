@@ -24,6 +24,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The Scheduler class is the core controller for the Fire Incident Subsystem.
+ * It receives fire incident requests, dispatches drones to respond, manages the mission queue,
+ * tracks drone status, handles communication errors and hardware faults, and coordinates shutdown.
+ */
 public class Scheduler {
 
     private final int MAX_SIZE = 10;
@@ -74,7 +79,9 @@ public class Scheduler {
         startUDPListener();
         startUI();
     }
-
+    /**
+     * Starts the UI updater which periodically refreshes the drone and zone display.
+     */
     private void startUI() {
         uiUpdater.scheduleAtFixedRate(() -> {
 
@@ -137,8 +144,9 @@ public class Scheduler {
     }
 
 
-    // Stops UI scheduler object.
-    // Put any UI stuffs to be shutdown in here too
+    /**
+     * Stops the UI updater and performs any necessary UI shutdown tasks.
+     */
     public void stopUI() {
 //        System.out.println("Shutting down UI...");
         uiUpdater.shutdown();
@@ -159,8 +167,9 @@ public class Scheduler {
     }
 
 
-    // Starts one UDP listener thread that continuously receives packets.
-    // Based on the packet info, respond and react accordingly
+    /**
+     * Starts the UDP listener thread that continuously receives packets.
+     */
     private void startUDPListener() {
         new Thread(() -> {
             byte[] receiveData = new byte[1024];
@@ -210,7 +219,11 @@ public class Scheduler {
     }
 
     // UDP HANDLER FUNCTIONS:
-
+    /**
+     * Handles an event message received from the Fire Incident Subsystem.
+     *
+     * @param message the message containing the event data in JSON format
+     */
     private void handleSubsystemEvent(String message) {
         new Thread(() -> {
             String json = message.substring("SUBSYSTEM_EVENT:".length());
@@ -218,6 +231,11 @@ public class Scheduler {
             addEvent(event);
         }).start();
     }
+    /**
+     * Handles a request for an event sent by a drone.
+     *
+     * @param packet the UDP packet containing the drone's request
+     */    
     private void handleDroneRequest(DatagramPacket packet) {
         new Thread(() -> {
             try {
@@ -227,6 +245,9 @@ public class Scheduler {
             }
         }, "Scheduler-RemoveEvent").start();
     }
+    /**
+     * Handles a shutdown signal received from the Fire Incident Subsystem.
+     */
     private void handleShutdown() {
         new Thread(() -> {
             try {
@@ -236,6 +257,12 @@ public class Scheduler {
             }
         }).start();
     }
+    /**
+     * Handles a fault message from a drone by reclaiming the event and, if necessary, removing the drone.
+     *
+     * @param message the fault message
+     * @param packet the UDP packet containing the fault information
+     */
     private void handleDroneFault(String message, DatagramPacket packet) {
         new Thread(() -> {
             synchronized (drones) {
@@ -266,6 +293,12 @@ public class Scheduler {
             }
         }).start();
     }
+    /**
+     * Handles the registration of a new drone's listener socket.
+     *
+     * @param message the registration message
+     * @param packet the UDP packet with listener info
+     */
     private void handleNewDroneListener(String message, DatagramPacket packet) {
         new Thread(() -> {
             synchronized (drones) {
@@ -287,6 +320,12 @@ public class Scheduler {
             sendConfirmation(packet, "LISTENER_OK");
         }).start();
     }
+    /**
+     * Handles the registration of a new drone's data (drone) socket.
+     *
+     * @param message the registration message
+     * @param packet the UDP packet with data socket info
+     */
     private void handleNewDronePort(String message, DatagramPacket packet) {
         new Thread(() -> {
             synchronized (drones) {
@@ -308,6 +347,12 @@ public class Scheduler {
             sendConfirmation(packet, "DRONE_OK");
         }).start();
     }
+    /**
+     * Handles the registration of a new drone's shutoff socket.
+     *
+     * @param message the registration message
+     * @param packet the UDP packet with shutoff socket info
+     */
     private void handleNewShutoffPort(String message, DatagramPacket packet) {
         new Thread(() -> {
             synchronized (drones) {
@@ -329,6 +374,12 @@ public class Scheduler {
             sendConfirmation(packet, "DRONE_OK");
         }).start();
     }
+    /**
+     * Handles state change notifications from drones.
+     *
+     * @param message the state change message
+     * @param packet the UDP packet containing the new state information
+     */
     private void handleStateChange(String message, DatagramPacket packet) {
         synchronized (drones) {
             String[] parts = message.split(",");
@@ -354,6 +405,11 @@ public class Scheduler {
             sendConfirmation(packet, "STATE_CHANGE_OK");
         }
     }
+    /**
+     * Processes a corrupted UDP message and asks for a resend.
+     *
+     * @param packet the UDP packet containing the corrupted message
+     */
     private void corruptedMessage(DatagramPacket packet) {
         synchronized (socket) {
             System.out.println("Scheduler got a corrupted message, asking for drone to resend...");
@@ -366,6 +422,12 @@ public class Scheduler {
             }
         }
     }
+    /**
+     * Sends a confirmation message back to the sender via UDP.
+     *
+     * @param packet the original UDP packet
+     * @param confirmationMessage the confirmation message to send
+     */
     // NOTE: THIS FUNCTION USES THE DEFAULT "socket", NOT "sendSocket"
     // Be careful if you want to use this in other functions
     private void sendConfirmation(DatagramPacket packet, String confirmationMessage) {
@@ -383,8 +445,11 @@ public class Scheduler {
 
 
     // FUNCTIONS FOR ADDING AND REMOVING/DISTRIBUTING EVENTS:
-
-    // Synchronized method to add an event to the queue.
+    /**
+     * Adds an event to the scheduler's queue.
+     *
+     * @param event the Event to add
+     */
     public synchronized void addEvent(Event event) {
         if (shutoff) {
             return;
@@ -413,7 +478,11 @@ public class Scheduler {
         }
         notifyAll();
     }
-
+    /**
+     * Adds an event back to the scheduler's queue when reclaiming it.
+     *
+     * @param event the Event to add back
+     */
     public synchronized void addBackEvent(Event event) {
         if (shutoff) {
             return;
@@ -436,8 +505,15 @@ public class Scheduler {
         }
         notifyAll();
     }
+    /**
+     * Removes and returns the next available event from the scheduler's queue.
+     *
+     * @param originalAddress the sender's InetAddress
+     * @param originalPort the sender's port
+     * @return the next Event, or null if shutdown
+     * @throws InterruptedException if interrupted while waiting
+     */
 
-    // Synchronized method to remove (i.e. get) the next available event.
     public synchronized Event removeEvent(InetAddress originalAddress, int originalPort) throws InterruptedException {
         while (droneMessages.isEmpty() && !shutoff) {
             try {
@@ -470,9 +546,14 @@ public class Scheduler {
         notifyAll();
         return event;
     }
-
-    // Give the newest event to the drone closest to the zone
-    // If that drone already had an event, give that event to the second-closest drone to it
+    /**
+     * Distributes the given event to the available drones according to the scheduling algorithm (Give the newest event to the drone closest to the zone)
+     *(If that drone already had an event, give that event to the second-closest drone to it)
+     * @param event the event to distribute
+     * @param availableDrones the list of available drones
+     * @param originalAddress the sender's InetAddress
+     * @param originalPort the sender's port
+     */
     private void distributeEvent(Event event, List<DroneRecord> availableDrones, InetAddress originalAddress, int originalPort) {
         if (availableDrones.isEmpty()) {
             System.out.println("No available drones to assign the event. Something has gone wrong!");
@@ -519,6 +600,15 @@ public class Scheduler {
             sendEventToDrone(getDroneByPort(originalPort), event, sendSocket, originalAddress, originalPort);
         }
     }
+    /**
+     * Sends the specified event to a drone via UDP.
+     *
+     * @param drone the DroneRecord representing the target drone
+     * @param event the Event to send
+     * @param socket the DatagramSocket used to send the packet
+     * @param address the target InetAddress
+     * @param port the target port
+     */
     private void sendEventToDrone(DroneRecord drone, Event event, DatagramSocket socket, InetAddress address, int port) {
         new Thread(() -> {
             synchronized (socket){
@@ -546,8 +636,11 @@ public class Scheduler {
 
 
     //UTILITY AND MORE COMPLICATED HELPER FUNCTIONS:
-
-    // get all drones that are idle or EnRoute
+    /**
+     * Returns a list of available drones (those in "DroneIdle" or "DroneEnRoute" state).
+     *
+     * @return a List of available DroneRecord objects
+     */
     private List<DroneRecord> getAvailableDrones() {
         List<DroneRecord> availableDrones = new ArrayList<>();
 
@@ -564,6 +657,11 @@ public class Scheduler {
 
         return availableDrones;
     }
+    /**
+     * Shuts off the scheduler if there are no remaining events.
+     *
+     * @throws InterruptedException if interrupted while waiting for shutdown
+     */
 
     // Synchronized shutdown method using wait/notifyAll.
     public synchronized void shutOff() throws InterruptedException {
@@ -577,8 +675,11 @@ public class Scheduler {
             sendShutoffToDrones();
         }
     }
-
-    // Sends "SHUTOFF" to all drones
+    /**
+     * Sends a "SHUTOFF" message to all drones.
+     *
+     * @throws InterruptedException if interrupted during shutdown
+     */
     private void sendShutoffToDrones() throws InterruptedException {
         String message = "SHUTOFF";
         byte[] sendData = message.getBytes();
@@ -608,7 +709,12 @@ public class Scheduler {
         }
     }
 
-    // Converts an Event object to a JSON string.
+    /**
+     * Converts an Event object to a JSON string.
+     *
+     * @param event the Event to convert
+     * @return the JSON string representation of the event
+     */
     private String convertEventToJson(Event event) {
         return String.format("{\"time\":%d, \"zoneId\":%d, \"eventType\":\"%s\", \"severity\":\"%s\"}",
             event.getTime(), event.getZoneId(), event.getEventType(), event.getSeverity());

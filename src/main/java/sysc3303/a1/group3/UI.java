@@ -10,7 +10,10 @@ import javax.swing.JPanel;
 
 import sysc3303.a1.group3.drone.DroneRecord;
 import sysc3303.a1.group3.physics.Vector2d;
-
+/**
+ * User Interface (UI) class for visualizing zones, drones, and fire events.
+ * Draws a window with a grid of zones, drone markers, fire states, and a legend.
+ */
 public class UI {
     private static boolean disableUIForTesting = false;
 
@@ -27,10 +30,17 @@ public class UI {
     private List<Integer> fireStates = new ArrayList<>();
     private int minX, minY, maxX, maxY;
 
+    /**
+     * Disables or enables the UI for testing purposes.
+     * @param isUIDisabled true to disable UI rendering, false to enable it.
+     */
     public static void setIsUIDisabled(boolean isUIDisabled) {
         UI.disableUIForTesting = isUIDisabled;
     }
-
+    /**
+     * Constructs the UI with the provided list of zones and initializes the drawing frame.
+     * @param zones the list of zones to be displayed.
+     */
     public UI(List<Zone> zones) {
         if (disableUIForTesting) {
             return;
